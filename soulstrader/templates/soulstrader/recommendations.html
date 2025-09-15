@@ -1,0 +1,163 @@
+{% extends 'soulstrader/base.html' %}
+
+{% block title %}AI Recommendations - SOULTRADER{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="color: #667eea; margin-bottom: 1rem;">AI Recommendations</h1>
+    <p style="color: #6c757d; margin-bottom: 2rem;">Personalized stock recommendations based on your risk profile and market analysis.</p>
+    
+    <!-- Filter Options -->
+    <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;">
+        <div>
+            <label for="type-filter" style="font-weight: 500; margin-right: 0.5rem;">Filter by Type:</label>
+            <select id="type-filter" onchange="filterRecommendations()" style="padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                <option value="">All Types</option>
+                {% for value, label in recommendation_types %}
+                    <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="confidence-filter" style="font-weight: 500; margin-right: 0.5rem;">Filter by Confidence:</label>
+            <select id="confidence-filter" onchange="filterRecommendations()" style="padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                <option value="">All Levels</option>
+                {% for value, label in confidence_levels %}
+                    <option value="{{ value }}" {% if request.GET.confidence == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <a href="{% url 'soulstrader:recommendations' %}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Clear Filters</a>
+        </div>
+    </div>
+</div>
+
+{% if recommendations %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Your AI Recommendations ({{ recommendations|length }} found)</h2>
+    
+    {% for rec in recommendations %}
+    <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; background-color: #f8f9fa;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div>
+                <h3 style="margin: 0; color: #333;">
+                    <a href="{% url 'soulstrader:stock_detail' rec.stock.symbol %}" style="color: #667eea; text-decoration: none;">
+                        {{ rec.stock.symbol }} - {{ rec.stock.name }}
+                    </a>
+                </h3>
+                <p style="margin: 0.5rem 0 0 0; color: #6c757d; font-size: 0.9rem;">
+                    {{ rec.stock.sector }} • {{ rec.stock.market_cap_category }}
+                </p>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem;">
+                    <span class="{% if rec.recommendation_type == 'BUY' or rec.recommendation_type == 'STRONG_BUY' %}positive{% elif rec.recommendation_type == 'SELL' or rec.recommendation_type == 'STRONG_SELL' %}negative{% endif %}">
+                        {{ rec.get_recommendation_type_display }}
+                    </span>
+                </div>
+                <div style="color: #6c757d; font-size: 0.9rem;">
+                    {{ rec.get_confidence_level_display }} Confidence
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div>
+                <strong>Current Price:</strong><br>
+                <span style="color: #667eea; font-size: 1.1rem;">${{ rec.stock.current_price|floatformat:2|default:"N/A" }}</span>
+            </div>
+            <div>
+                <strong>Target Price:</strong><br>
+                <span style="color: #28a745; font-size: 1.1rem;">${{ rec.target_price|floatformat:2|default:"N/A" }}</span>
+            </div>
+            <div>
+                <strong>Stop Loss:</strong><br>
+                <span style="color: #dc3545; font-size: 1.1rem;">${{ rec.stop_loss|floatformat:2|default:"N/A" }}</span>
+            </div>
+            <div>
+                <strong>Confidence Score:</strong><br>
+                <span style="color: #667eea; font-size: 1.1rem;">{{ rec.confidence_score|floatformat:2 }}</span>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <strong>AI Reasoning:</strong>
+            <p style="margin: 0.5rem 0; color: #555; line-height: 1.5;">{{ rec.reasoning }}</p>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between;">
+            <div style="font-size: 0.9rem; color: #6c757d;">
+                <strong>Risk Level:</strong> {{ rec.user_risk_level }} • 
+                <strong>Created:</strong> {{ rec.created_at|date:"M d, Y H:i" }}
+                {% if rec.expires_at %}
+                    • <strong>Expires:</strong> {{ rec.expires_at|date:"M d, Y" }}
+                {% endif %}
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                    {% if rec.recommendation_type == 'BUY' or rec.recommendation_type == 'STRONG_BUY' %}
+                        Buy Stock
+                    {% elif rec.recommendation_type == 'SELL' or rec.recommendation_type == 'STRONG_SELL' %}
+                        Sell Stock
+                    {% else %}
+                        View Details
+                    {% endif %}
+                </button>
+                <a href="{% url 'soulstrader:stock_detail' rec.stock.symbol %}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                    Stock Details
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">No Recommendations Found</h2>
+    <div style="text-align: center; padding: 3rem; color: #6c757d;">
+        <h3 style="margin-bottom: 1rem;">No AI recommendations available</h3>
+        <p style="margin-bottom: 2rem;">This could be because:</p>
+        <ul style="text-align: left; max-width: 400px; margin: 0 auto 2rem auto;">
+            <li>No recommendations match your current filters</li>
+            <li>AI analysis is still processing</li>
+            <li>Market conditions don't meet our recommendation criteria</li>
+        </ul>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'soulstrader:recommendations' %}" class="btn btn-secondary">Clear Filters</a>
+            <a href="{% url 'soulstrader:dashboard' %}" class="btn">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Quick Actions</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'soulstrader:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        <a href="{% url 'soulstrader:portfolio' %}" class="btn">View Portfolio</a>
+        <button class="btn" style="background-color: #17a2b8;">Refresh Recommendations</button>
+        <button class="btn" style="background-color: #6f42c1;">Export Recommendations</button>
+    </div>
+</div>
+
+<script>
+function filterRecommendations() {
+    const typeFilter = document.getElementById('type-filter').value;
+    const confidenceFilter = document.getElementById('confidence-filter').value;
+    
+    let url = '{% url "soulstrader:recommendations" %}';
+    const params = new URLSearchParams();
+    
+    if (typeFilter) params.append('type', typeFilter);
+    if (confidenceFilter) params.append('confidence', confidenceFilter);
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+    
+    window.location.href = url;
+}
+</script>
+{% endblock %}

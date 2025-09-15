@@ -1,0 +1,165 @@
+{% extends 'soulstrader/base.html' %}
+
+{% block title %}Dashboard - SOULTRADER{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="color: #667eea; margin-bottom: 1rem;">Welcome back, {{ user.username }}!</h1>
+    <p style="color: #6c757d; margin-bottom: 2rem;">Here's your portfolio overview and latest AI recommendations.</p>
+    
+    <!-- Portfolio Summary -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">${{ portfolio.total_value|floatformat:2 }}</div>
+            <div class="stat-label">Total Portfolio Value</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number {% if portfolio.total_return >= 0 %}positive{% else %}negative{% endif %}">
+                {{ portfolio.total_return|floatformat:2 }}%
+            </div>
+            <div class="stat-label">Total Return</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">${{ portfolio.current_capital|floatformat:2 }}</div>
+            <div class="stat-label">Available Cash</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ holdings|length }}</div>
+            <div class="stat-label">Holdings</div>
+        </div>
+    </div>
+</div>
+
+<!-- Portfolio Holdings -->
+{% if holdings %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Your Holdings</h2>
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Stock</th>
+                    <th>Quantity</th>
+                    <th>Avg Price</th>
+                    <th>Current Price</th>
+                    <th>Current Value</th>
+                    <th>P&L</th>
+                    <th>P&L %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for holding in holdings %}
+                <tr>
+                    <td>
+                        <strong>{{ holding.stock.symbol }}</strong><br>
+                        <small>{{ holding.stock.name }}</small>
+                    </td>
+                    <td>{{ holding.quantity }}</td>
+                    <td>${{ holding.average_price|floatformat:2 }}</td>
+                    <td>${{ holding.stock.current_price|floatformat:2|default:"N/A" }}</td>
+                    <td>${{ holding.current_value|floatformat:2 }}</td>
+                    <td class="{% if holding.unrealized_pnl >= 0 %}positive{% else %}negative{% endif %}">
+                        ${{ holding.unrealized_pnl|floatformat:2 }}
+                    </td>
+                    <td class="{% if holding.unrealized_pnl_percent >= 0 %}positive{% else %}negative{% endif %}">
+                        {{ holding.unrealized_pnl_percent|floatformat:2 }}%
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Your Holdings</h2>
+    <p style="text-align: center; color: #6c757d; padding: 2rem;">
+        You don't have any holdings yet. Check out our AI recommendations to get started!
+    </p>
+    <div style="text-align: center;">
+        <a href="{% url 'soulstrader:recommendations' %}" class="btn">View Recommendations</a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Recommendations -->
+{% if recent_recommendations %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Recent AI Recommendations</h2>
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Stock</th>
+                    <th>Recommendation</th>
+                    <th>Confidence</th>
+                    <th>Target Price</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rec in recent_recommendations %}
+                <tr>
+                    <td>
+                        <strong>{{ rec.stock.symbol }}</strong><br>
+                        <small>{{ rec.stock.name }}</small>
+                    </td>
+                    <td>
+                        <span class="{% if rec.recommendation_type == 'BUY' or rec.recommendation_type == 'STRONG_BUY' %}positive{% elif rec.recommendation_type == 'SELL' or rec.recommendation_type == 'STRONG_SELL' %}negative{% endif %}">
+                            {{ rec.get_recommendation_type_display }}
+                        </span>
+                    </td>
+                    <td>{{ rec.get_confidence_level_display }}</td>
+                    <td>${{ rec.target_price|floatformat:2|default:"N/A" }}</td>
+                    <td>{{ rec.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div style="text-align: center; margin-top: 1rem;">
+        <a href="{% url 'soulstrader:recommendations' %}" class="btn">View All Recommendations</a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Notifications -->
+{% if recent_notifications %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Recent Notifications</h2>
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Title</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for notification in recent_notifications %}
+                <tr>
+                    <td>{{ notification.get_notification_type_display }}</td>
+                    <td>{{ notification.title }}</td>
+                    <td>{{ notification.created_at|date:"M d, Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div style="text-align: center; margin-top: 1rem;">
+        <a href="{% url 'soulstrader:notifications' %}" class="btn">View All Notifications</a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Quick Actions</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'soulstrader:portfolio' %}" class="btn">View Portfolio</a>
+        <a href="{% url 'soulstrader:recommendations' %}" class="btn">AI Recommendations</a>
+        <a href="{% url 'soulstrader:profile' %}" class="btn btn-secondary">Profile Settings</a>
+    </div>
+</div>
+{% endblock %}

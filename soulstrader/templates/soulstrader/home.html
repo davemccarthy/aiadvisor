@@ -1,0 +1,110 @@
+{% extends 'soulstrader/base.html' %}
+
+{% block title %}SOULTRADER - AI Stock Advisor{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="text-align: center; margin-bottom: 2rem; color: #667eea;">Welcome to SOULTRADER</h1>
+    <p style="text-align: center; font-size: 1.2rem; margin-bottom: 3rem; color: #6c757d;">
+        Your AI-powered stock advisor for intelligent trading decisions. 
+        Experience personalized recommendations tailored to your risk profile and investment goals.
+    </p>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_stocks }}</div>
+            <div class="stat-label">Stocks Tracked</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_users }}</div>
+            <div class="stat-label">Active Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_recommendations }}</div>
+            <div class="stat-label">AI Recommendations</div>
+        </div>
+    </div>
+    
+    {% if user.is_authenticated %}
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="{% url 'soulstrader:dashboard' %}" class="btn" style="font-size: 1.2rem; padding: 1rem 2rem;">
+                Go to Dashboard
+            </a>
+        </div>
+    {% else %}
+        <div style="text-align: center; margin-top: 3rem;">
+            <h3 style="margin-bottom: 2rem; color: #333;">Get Started Today</h3>
+            <p style="margin-bottom: 2rem; color: #6c757d;">
+                Join thousands of investors using AI to make smarter trading decisions.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="{% url 'soulstrader:register' %}" class="btn btn-success" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                    Create Free Account
+                </a>
+                <a href="{% url 'soulstrader:login' %}" class="btn" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                    Login
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% if recent_recommendations %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Recent AI Recommendations</h2>
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Stock</th>
+                    <th>Recommendation</th>
+                    <th>Confidence</th>
+                    <th>User</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rec in recent_recommendations %}
+                <tr>
+                    <td>
+                        <strong>{{ rec.stock.symbol }}</strong><br>
+                        <small>{{ rec.stock.name }}</small>
+                    </td>
+                    <td>
+                        <span class="{% if rec.recommendation_type == 'BUY' or rec.recommendation_type == 'STRONG_BUY' %}positive{% elif rec.recommendation_type == 'SELL' or rec.recommendation_type == 'STRONG_SELL' %}negative{% endif %}">
+                            {{ rec.get_recommendation_type_display }}
+                        </span>
+                    </td>
+                    <td>{{ rec.get_confidence_level_display }}</td>
+                    <td>{{ rec.user.username }}</td>
+                    <td>{{ rec.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Why Choose SOULTRADER?</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <div>
+            <h3 style="color: #667eea; margin-bottom: 1rem;">🤖 AI-Powered Analysis</h3>
+            <p>Advanced machine learning algorithms analyze market data, news sentiment, and technical indicators to provide personalized recommendations.</p>
+        </div>
+        <div>
+            <h3 style="color: #667eea; margin-bottom: 1rem;">🎯 Risk-Adjusted Strategies</h3>
+            <p>Recommendations tailored to your risk tolerance, from conservative to aggressive strategies based on your personal profile.</p>
+        </div>
+        <div>
+            <h3 style="color: #667eea; margin-bottom: 1rem;">📊 Comprehensive Tracking</h3>
+            <p>Monitor your portfolio performance with detailed analytics, risk metrics, and performance comparisons.</p>
+        </div>
+        <div>
+            <h3 style="color: #667eea; margin-bottom: 1rem;">🔒 Secure & Private</h3>
+            <p>Your data is completely isolated and secure. Each user has their own private portfolio and personalized recommendations.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

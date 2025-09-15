@@ -1,0 +1,233 @@
+{% extends 'soulstrader/base.html' %}
+
+{% block title %}{{ stock.symbol }} - {{ stock.name }} - SOULTRADER{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+        <div>
+            <h1 style="color: #667eea; margin-bottom: 0.5rem;">{{ stock.symbol }}</h1>
+            <h2 style="color: #333; margin-bottom: 0.5rem; font-size: 1.5rem;">{{ stock.name }}</h2>
+            <p style="color: #6c757d; margin: 0;">
+                {{ stock.sector }} • {{ stock.industry }} • {{ stock.market_cap_category }}
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 2rem; font-weight: bold; color: #333; margin-bottom: 0.5rem;">
+                ${{ stock.current_price|floatformat:2|default:"N/A" }}
+            </div>
+            {% if stock.day_change_percent %}
+                <div class="{% if stock.day_change_percent >= 0 %}positive{% else %}negative{% endif %}" style="font-size: 1.1rem;">
+                    {{ stock.day_change|floatformat:2|default:"" }} ({{ stock.day_change_percent|floatformat:2 }}%)
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Stock Overview -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <div class="stat-card">
+            <div class="stat-number">${{ stock.current_price|floatformat:2|default:"N/A" }}</div>
+            <div class="stat-label">Current Price</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stock.pe_ratio|floatformat:1|default:"N/A" }}</div>
+            <div class="stat-label">P/E Ratio</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stock.pb_ratio|floatformat:1|default:"N/A" }}</div>
+            <div class="stat-label">P/B Ratio</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stock.dividend_yield|floatformat:2|default:"N/A" }}%</div>
+            <div class="stat-label">Dividend Yield</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stock.esg_score|floatformat:1|default:"N/A" }}</div>
+            <div class="stat-label">ESG Score</div>
+        </div>
+    </div>
+</div>
+
+<!-- User's Holdings (if any) -->
+{% if user_holding %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Your Holdings</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div>
+            <strong>Quantity:</strong><br>
+            <span style="font-size: 1.2rem; color: #667eea;">{{ user_holding.quantity }} shares</span>
+        </div>
+        <div>
+            <strong>Average Price:</strong><br>
+            <span style="font-size: 1.2rem; color: #667eea;">${{ user_holding.average_price|floatformat:2 }}</span>
+        </div>
+        <div>
+            <strong>Current Value:</strong><br>
+            <span style="font-size: 1.2rem; color: #667eea;">${{ user_holding.current_value|floatformat:2 }}</span>
+        </div>
+        <div>
+            <strong>Unrealized P&L:</strong><br>
+            <span style="font-size: 1.2rem; {% if user_holding.unrealized_pnl >= 0 %}color: #28a745;{% else %}color: #dc3545;{% endif %}">
+                ${{ user_holding.unrealized_pnl|floatformat:2 }} ({{ user_holding.unrealized_pnl_percent|floatformat:2 }}%)
+            </span>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+        <button class="btn" style="background-color: #dc3545;">Sell Shares</button>
+        <button class="btn">Buy More</button>
+    </div>
+</div>
+{% endif %}
+
+<!-- AI Recommendations for this Stock -->
+{% if user_recommendations %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">AI Recommendations for {{ stock.symbol }}</h2>
+    
+    {% for rec in user_recommendations %}
+    <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; background-color: #f8f9fa;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div>
+                <h3 style="margin: 0; color: #333;">
+                    <span class="{% if rec.recommendation_type == 'BUY' or rec.recommendation_type == 'STRONG_BUY' %}positive{% elif rec.recommendation_type == 'SELL' or rec.recommendation_type == 'STRONG_SELL' %}negative{% endif %}">
+                        {{ rec.get_recommendation_type_display }}
+                    </span>
+                </h3>
+                <p style="margin: 0.5rem 0 0 0; color: #6c757d; font-size: 0.9rem;">
+                    {{ rec.get_confidence_level_display }} Confidence • {{ rec.created_at|date:"M d, Y" }}
+                </p>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 1.1rem; color: #667eea;">
+                    Confidence: {{ rec.confidence_score|floatformat:2 }}
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div>
+                <strong>Target Price:</strong><br>
+                <span style="color: #28a745;">${{ rec.target_price|floatformat:2|default:"N/A" }}</span>
+            </div>
+            <div>
+                <strong>Stop Loss:</strong><br>
+                <span style="color: #dc3545;">${{ rec.stop_loss|floatformat:2|default:"N/A" }}</span>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <strong>AI Reasoning:</strong>
+            <p style="margin: 0.5rem 0; color: #555; line-height: 1.5;">{{ rec.reasoning }}</p>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between;">
+            <div style="font-size: 0.9rem; color: #6c757d;">
+                Risk Level: {{ rec.user_risk_level }} • 
+                {% if rec.expires_at %}
+                    Expires: {{ rec.expires_at|date:"M d, Y" }}
+                {% endif %}
+            </div>
+            <div>
+                <button class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                    {% if rec.recommendation_type == 'BUY' or rec.recommendation_type == 'STRONG_BUY' %}
+                        Buy Stock
+                    {% elif rec.recommendation_type == 'SELL' or rec.recommendation_type == 'STRONG_SELL' %}
+                        Sell Stock
+                    {% else %}
+                        View Analysis
+                    {% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Price History -->
+{% if recent_prices %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Recent Price History</h2>
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Open</th>
+                    <th>High</th>
+                    <th>Low</th>
+                    <th>Close</th>
+                    <th>Volume</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for price in recent_prices %}
+                <tr>
+                    <td>{{ price.date|date:"M d, Y" }}</td>
+                    <td>${{ price.open_price|floatformat:2 }}</td>
+                    <td>${{ price.high_price|floatformat:2 }}</td>
+                    <td>${{ price.low_price|floatformat:2 }}</td>
+                    <td>${{ price.close_price|floatformat:2 }}</td>
+                    <td>{{ price.volume|floatformat:0 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Stock Information -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Stock Information</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 1rem;">Basic Information</h4>
+            <div style="line-height: 1.8;">
+                <div><strong>Symbol:</strong> {{ stock.symbol }}</div>
+                <div><strong>Name:</strong> {{ stock.name }}</div>
+                <div><strong>Sector:</strong> {{ stock.sector }}</div>
+                <div><strong>Industry:</strong> {{ stock.industry }}</div>
+                <div><strong>Market Cap:</strong> {{ stock.market_cap_category }}</div>
+            </div>
+        </div>
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 1rem;">Financial Metrics</h4>
+            <div style="line-height: 1.8;">
+                <div><strong>P/E Ratio:</strong> {{ stock.pe_ratio|floatformat:2|default:"N/A" }}</div>
+                <div><strong>P/B Ratio:</strong> {{ stock.pb_ratio|floatformat:2|default:"N/A" }}</div>
+                <div><strong>Dividend Yield:</strong> {{ stock.dividend_yield|floatformat:2|default:"N/A" }}%</div>
+                <div><strong>ESG Score:</strong> {{ stock.esg_score|floatformat:1|default:"N/A" }}/10</div>
+            </div>
+        </div>
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 1rem;">Trading Information</h4>
+            <div style="line-height: 1.8;">
+                <div><strong>Current Price:</strong> ${{ stock.current_price|floatformat:2|default:"N/A" }}</div>
+                <div><strong>Previous Close:</strong> ${{ stock.previous_close|floatformat:2|default:"N/A" }}</div>
+                <div><strong>Day Change:</strong> 
+                    <span class="{% if stock.day_change >= 0 %}positive{% else %}negative{% endif %}">
+                        ${{ stock.day_change|floatformat:2|default:"N/A" }}
+                    </span>
+                </div>
+                <div><strong>Last Updated:</strong> {{ stock.last_updated|date:"M d, Y H:i" }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Quick Actions</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'soulstrader:recommendations' %}" class="btn btn-secondary">Back to Recommendations</a>
+        <a href="{% url 'soulstrader:portfolio' %}" class="btn">View Portfolio</a>
+        <button class="btn">Buy Stock</button>
+        {% if user_holding %}
+            <button class="btn" style="background-color: #dc3545;">Sell Stock</button>
+        {% endif %}
+        <button class="btn" style="background-color: #17a2b8;">Add to Watchlist</button>
+    </div>
+</div>
+{% endblock %}

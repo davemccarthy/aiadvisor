@@ -1,0 +1,28 @@
+{% extends 'soulstrader/base.html' %}
+
+{% block title %}Login - SOULTRADER{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 400px; margin: 2rem auto;">
+    <h2 style="text-align: center; margin-bottom: 2rem; color: #667eea;">Login to SOULTRADER</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_username">Username:</label>
+            <input type="text" name="username" id="id_username" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_password">Password:</label>
+            <input type="password" name="password" id="id_password" required>
+        </div>
+        
+        <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">Login</button>
+    </form>
+    
+    <div style="text-align: center; margin-top: 2rem;">
+        <p>Don't have an account? <a href="{% url 'soulstrader:register' %}" style="color: #667eea;">Register here</a></p>
+    </div>
+</div>
+{% endblock %}
