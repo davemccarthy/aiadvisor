@@ -95,15 +95,19 @@
                 {% endif %}
             </div>
             <div style="display: flex; gap: 0.5rem;">
-                <button class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                    {% if rec.recommendation_type == 'BUY' or rec.recommendation_type == 'STRONG_BUY' %}
+                {% if rec.recommendation_type == 'BUY' or rec.recommendation_type == 'STRONG_BUY' %}
+                    <a href="{% url 'soulstrader:quick_buy_from_recommendation' rec.id %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #28a745;">
                         Buy Stock
-                    {% elif rec.recommendation_type == 'SELL' or rec.recommendation_type == 'STRONG_SELL' %}
+                    </a>
+                {% elif rec.recommendation_type == 'SELL' or rec.recommendation_type == 'STRONG_SELL' %}
+                    <a href="{% url 'soulstrader:quick_sell_from_recommendation' rec.id %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #dc3545;">
                         Sell Stock
-                    {% else %}
+                    </a>
+                {% else %}
+                    <a href="{% url 'soulstrader:stock_detail' rec.stock.symbol %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
                         View Details
-                    {% endif %}
-                </button>
+                    </a>
+                {% endif %}
                 <a href="{% url 'soulstrader:stock_detail' rec.stock.symbol %}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
                     Stock Details
                 </a>

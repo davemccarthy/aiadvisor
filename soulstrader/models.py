@@ -266,36 +266,95 @@ class Trade(models.Model):
         ('SELL', 'Sell'),
     ]
     
+    ORDER_TYPES = [
+        ('MARKET', 'Market Order'),
+        ('LIMIT', 'Limit Order'),
+        ('STOP', 'Stop Order'),
+        ('STOP_LIMIT', 'Stop Limit Order'),
+    ]
+    
     TRADE_STATUS = [
         ('PENDING', 'Pending'),
-        ('EXECUTED', 'Executed'),
+        ('PARTIALLY_FILLED', 'Partially Filled'),
+        ('FILLED', 'Filled'),
         ('CANCELLED', 'Cancelled'),
-        ('FAILED', 'Failed'),
+        ('REJECTED', 'Rejected'),
+        ('EXPIRED', 'Expired'),
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='trades')
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     trade_type = models.CharField(max_length=10, choices=TRADE_TYPES)
+    order_type = models.CharField(max_length=20, choices=ORDER_TYPES, default='MARKET')
+    
+    # Order details
     quantity = models.IntegerField(validators=[MinValueValidator(1)])
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Limit price
+    stop_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Stop price
+    
+    # Execution details
+    filled_quantity = models.IntegerField(default=0)
+    average_fill_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    commission = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'))
+    
     status = models.CharField(max_length=20, choices=TRADE_STATUS, default='PENDING')
     
-    # Metadata
+    # Time-based fields
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     executed_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    
+    # Additional fields
     notes = models.TextField(blank=True)
+    rejection_reason = models.TextField(blank=True)
     
     class Meta:
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.portfolio.user.username} - {self.trade_type} {self.quantity} {self.stock.symbol} @ ${self.price}"
+        return f"{self.portfolio.user.username} - {self.trade_type} {self.quantity} {self.stock.symbol} @ ${self.price or 'Market'}"
+    
+    @property
+    def remaining_quantity(self):
+        """Calculate remaining quantity to be filled"""
+        return self.quantity - self.filled_quantity
+    
+    @property
+    def is_completely_filled(self):
+        """Check if order is completely filled"""
+        return self.filled_quantity >= self.quantity
+    
+    @property
+    def is_active(self):
+        """Check if order is still active"""
+        return self.status in ['PENDING', 'PARTIALLY_FILLED']
     
     def save(self, *args, **kwargs):
-        self.total_amount = self.quantity * self.price
+        # Calculate total amount based on filled quantity and average price
+        if self.average_fill_price and self.filled_quantity:
+            self.total_amount = self.filled_quantity * self.average_fill_price
+        elif self.price and self.quantity and not self.total_amount:
+            # For pending orders, calculate based on order price and quantity
+            self.total_amount = self.quantity * self.price
         super().save(*args, **kwargs)
+
+
+class OrderBook(models.Model):
+    """Simulated order book for tracking pending orders"""
+    
+    trade = models.OneToOneField(Trade, on_delete=models.CASCADE, related_name='order_book_entry')
+    priority = models.IntegerField(default=0)  # For order matching priority
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['priority', 'created_at']
+    
+    def __str__(self):
+        return f"Order: {self.trade}"
 
 
 # =============================================================================

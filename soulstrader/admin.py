@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     UserProfile, RiskAssessment, Stock, StockPrice, Portfolio, 
-    Holding, Trade, AIRecommendation, PerformanceMetrics, UserNotification
+    Holding, Trade, OrderBook, AIRecommendation, PerformanceMetrics, UserNotification
 )
 
 
@@ -55,11 +55,18 @@ class HoldingAdmin(admin.ModelAdmin):
 
 @admin.register(Trade)
 class TradeAdmin(admin.ModelAdmin):
-    list_display = ['portfolio', 'stock', 'trade_type', 'quantity', 'price', 'total_amount', 'status', 'created_at']
-    list_filter = ['trade_type', 'status', 'created_at']
+    list_display = ['portfolio', 'stock', 'trade_type', 'order_type', 'quantity', 'price', 'status', 'created_at']
+    list_filter = ['trade_type', 'order_type', 'status', 'created_at']
     search_fields = ['portfolio__user__username', 'stock__symbol', 'stock__name']
-    readonly_fields = ['id', 'total_amount', 'created_at', 'executed_at']
+    readonly_fields = ['id', 'total_amount', 'created_at', 'executed_at', 'updated_at']
     date_hierarchy = 'created_at'
+
+
+@admin.register(OrderBook)
+class OrderBookAdmin(admin.ModelAdmin):
+    list_display = ['trade', 'priority', 'is_active']
+    list_filter = ['is_active', 'priority']
+    search_fields = ['trade__portfolio__user__username', 'trade__stock__symbol']
 
 
 @admin.register(AIRecommendation)

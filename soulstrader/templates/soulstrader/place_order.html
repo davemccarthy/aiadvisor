@@ -1,0 +1,168 @@
+{% extends 'soulstrader/base.html' %}
+
+{% block title %}Place Order - SOULTRADER{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="color: #667eea; margin-bottom: 1rem;">Place Trading Order</h1>
+    <p style="color: #6c757d; margin-bottom: 2rem;">Execute buy or sell orders for stocks in your portfolio.</p>
+    
+    <form method="post" style="max-width: 600px;">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="stock_symbol">Stock Symbol *</label>
+            <input type="text" id="stock_symbol" name="stock_symbol" required 
+                   placeholder="e.g., AAPL, MSFT, TSLA" style="text-transform: uppercase;">
+            <small style="color: #6c757d;">Enter the stock symbol you want to trade</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="trade_type">Order Type *</label>
+            <select id="trade_type" name="trade_type" required>
+                <option value="">Select Order Type</option>
+                {% for value, label in trade_types %}
+                    <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="order_type">Order Execution *</label>
+            <select id="order_type" name="order_type" required>
+                {% for value, label in order_types %}
+                    <option value="{{ value }}" {% if value == 'MARKET' %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="quantity">Quantity *</label>
+            <input type="number" id="quantity" name="quantity" required min="1" 
+                   placeholder="Number of shares">
+        </div>
+        
+        <div class="form-group" id="price_group" style="display: none;">
+            <label for="price">Limit Price *</label>
+            <input type="number" id="price" name="price" step="0.01" min="0.01" 
+                   placeholder="Enter limit price">
+            <small style="color: #6c757d;">For limit orders, specify the maximum (buy) or minimum (sell) price</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="notes">Notes (Optional)</label>
+            <textarea id="notes" name="notes" rows="3" 
+                      placeholder="Add any notes about this trade..."></textarea>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn">Place Order</button>
+            <a href="{% url 'soulstrader:trading' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<!-- Order Information -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Order Types Explained</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        <div style="padding: 1rem; border: 1px solid #e9ecef; border-radius: 4px;">
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">Market Order</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">Executes immediately at the current market price. Fastest execution but price may vary.</p>
+        </div>
+        
+        <div style="padding: 1rem; border: 1px solid #e9ecef; border-radius: 4px;">
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">Limit Order</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">Executes only at your specified price or better. More control over execution price.</p>
+        </div>
+        
+        <div style="padding: 1rem; border: 1px solid #e9ecef; border-radius: 4px;">
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">Stop Order</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">Becomes a market order when the stop price is reached. Used for risk management.</p>
+        </div>
+        
+        <div style="padding: 1rem; border: 1px solid #e9ecef; border-radius: 4px;">
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">Stop Limit Order</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">Combines stop and limit orders. Triggers at stop price but executes at limit price.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Available Stocks -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Available Stocks</h2>
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Name</th>
+                    <th>Current Price</th>
+                    <th>Change</th>
+                    <th>Sector</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stock in stocks %}
+                <tr>
+                    <td><strong>{{ stock.symbol }}</strong></td>
+                    <td>{{ stock.name }}</td>
+                    <td>
+                        {% if stock.current_price %}
+                            ${{ stock.current_price|floatformat:2 }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if stock.day_change_percent %}
+                            <span class="{% if stock.day_change_percent >= 0 %}positive{% else %}negative{% endif %}">
+                                {{ stock.day_change_percent|floatformat:2 }}%
+                            </span>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>{{ stock.get_sector_display|default:"N/A" }}</td>
+                    <td>
+                        <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;"
+                                onclick="selectStock('{{ stock.symbol }}')">
+                            Select
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// Show/hide price field based on order type
+document.getElementById('order_type').addEventListener('change', function() {
+    const priceGroup = document.getElementById('price_group');
+    const priceInput = document.getElementById('price');
+    
+    if (this.value === 'MARKET') {
+        priceGroup.style.display = 'none';
+        priceInput.required = false;
+    } else {
+        priceGroup.style.display = 'block';
+        priceInput.required = true;
+    }
+});
+
+// Function to select stock from table
+function selectStock(symbol) {
+    document.getElementById('stock_symbol').value = symbol;
+    document.getElementById('stock_symbol').focus();
+}
+
+// Auto-uppercase stock symbol
+document.getElementById('stock_symbol').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+});
+</script>
+{% endblock %}

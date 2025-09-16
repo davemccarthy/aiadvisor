@@ -1,0 +1,68 @@
+{% extends 'soulstrader/base.html' %}
+
+{% block title %}Search Stocks - SOULTRADER{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="color: #667eea; margin-bottom: 1rem;">Search Stocks</h1>
+    <p style="color: #6c757d; margin-bottom: 2rem;">Search for stocks using company names or symbols to add them to your watchlist.</p>
+    
+    <!-- Search Form -->
+    <form method="post" style="margin-bottom: 2rem;">
+        {% csrf_token %}
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <input 
+                type="text" 
+                name="keywords" 
+                placeholder="Enter company name or symbol (e.g., Apple, AAPL, Tesla)"
+                style="flex: 1; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"
+                required
+            >
+            <button type="submit" class="btn" style="padding: 0.75rem 1.5rem;">
+                Search Stocks
+            </button>
+        </div>
+    </form>
+    
+    <!-- Search Tips -->
+    <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 2rem;">
+        <h3 style="color: #667eea; margin-bottom: 0.5rem;">Search Tips:</h3>
+        <ul style="color: #6c757d; margin: 0; padding-left: 1.5rem;">
+            <li>Search by company name: "Apple", "Microsoft", "Tesla"</li>
+            <li>Search by stock symbol: "AAPL", "MSFT", "TSLA"</li>
+            <li>Search by industry: "semiconductor", "pharmaceutical"</li>
+            <li>Search by sector: "technology", "healthcare"</li>
+        </ul>
+    </div>
+    
+    <!-- Popular Stocks -->
+    <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px;">
+        <h3 style="color: #667eea; margin-bottom: 1rem;">Popular Stocks to Search:</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div style="text-align: center;">
+                <strong>Technology</strong><br>
+                <small>AAPL, MSFT, GOOGL, AMZN, META, NVDA</small>
+            </div>
+            <div style="text-align: center;">
+                <strong>Healthcare</strong><br>
+                <small>JNJ, PFE, UNH, ABBV, MRK</small>
+            </div>
+            <div style="text-align: center;">
+                <strong>Financial</strong><br>
+                <small>JPM, BAC, WFC, GS, MS</small>
+            </div>
+            <div style="text-align: center;">
+                <strong>Consumer</strong><br>
+                <small>KO, PEP, WMT, HD, PG</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Back to Trading -->
+<div class="card">
+    <div style="text-align: center;">
+        <a href="{% url 'soulstrader:trading' %}" class="btn btn-secondary">Back to Trading Center</a>
+    </div>
+</div>
+{% endblock %}

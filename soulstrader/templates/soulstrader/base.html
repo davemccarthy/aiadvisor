@@ -58,6 +58,12 @@
             background-color: rgba(255,255,255,0.2);
         }
         
+        .nav a.active {
+            background-color: rgba(255,255,255,0.3);
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255,255,255,0.8);
+        }
+        
         .user-info {
             display: flex;
             align-items: center;
@@ -200,10 +206,22 @@
         
         .positive {
             color: #28a745;
+            font-weight: bold;
         }
         
         .negative {
             color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .warning {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        
+        .info {
+            color: #17a2b8;
+            font-weight: bold;
         }
         
         .footer {
@@ -221,12 +239,13 @@
             <a href="{% url 'soulstrader:home' %}" class="logo">SOULTRADER</a>
             
             <nav class="nav">
-                <a href="{% url 'soulstrader:home' %}">Home</a>
+                <a href="{% url 'soulstrader:home' %}" {% if current_page == 'home' %}class="active"{% endif %}>Home</a>
                 {% if user.is_authenticated %}
-                    <a href="{% url 'soulstrader:dashboard' %}">Dashboard</a>
-                    <a href="{% url 'soulstrader:portfolio' %}">Portfolio</a>
-                    <a href="{% url 'soulstrader:recommendations' %}">Recommendations</a>
-                    <a href="{% url 'soulstrader:profile' %}">Profile</a>
+                    <a href="{% url 'soulstrader:dashboard' %}" {% if current_page == 'dashboard' %}class="active"{% endif %}>Dashboard</a>
+                    <a href="{% url 'soulstrader:portfolio' %}" {% if current_page == 'portfolio' %}class="active"{% endif %}>Portfolio</a>
+                    <a href="{% url 'soulstrader:trading' %}" {% if current_page == 'trading' %}class="active"{% endif %}>Trading</a>
+                    <a href="{% url 'soulstrader:recommendations' %}" {% if current_page == 'recommendations' %}class="active"{% endif %}>Recommendations</a>
+                    <a href="{% url 'soulstrader:profile' %}" {% if current_page == 'profile' %}class="active"{% endif %}>Profile</a>
                 {% endif %}
             </nav>
             

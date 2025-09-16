@@ -1,0 +1,240 @@
+{% extends 'soulstrader/base.html' %}
+
+{% block title %}Trading - SOULTRADER{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="color: #667eea; margin-bottom: 1rem;">Trading Center</h1>
+    <p style="color: #6c757d; margin-bottom: 2rem;">Execute trades, manage orders, and track your trading activity.</p>
+    
+    <!-- Trading Summary -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ trading_summary.total_trades }}</div>
+            <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ trading_summary.filled_trades }}</div>
+            <div class="stat-label">Executed Trades</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ trading_summary.pending_trades }}</div>
+            <div class="stat-label">Pending Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">${{ trading_summary.total_volume|floatformat:2 }}</div>
+            <div class="stat-label">Total Volume</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Quick Actions</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'soulstrader:place_order' %}" class="btn">Place New Order</a>
+        <a href="{% url 'soulstrader:order_history' %}" class="btn btn-secondary">Order History</a>
+        <a href="{% url 'soulstrader:search_stocks' %}" class="btn" style="background-color: #17a2b8;">Search Stocks</a>
+        <a href="{% url 'soulstrader:market_data_status' %}" class="btn" style="background-color: #6f42c1;">Market Data</a>
+        <form method="post" action="{% url 'soulstrader:simulate_market' %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">Simulate Market</button>
+        </form>
+    </div>
+</div>
+
+<!-- Pending Orders -->
+{% if pending_orders %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Pending Orders</h2>
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Stock</th>
+                    <th>Type</th>
+                    <th>Order Type</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in pending_orders %}
+                <tr>
+                    <td>
+                        <strong>{{ order.stock.symbol }}</strong><br>
+                        <small>{{ order.stock.name }}</small>
+                    </td>
+                    <td>
+                        <span class="{% if order.trade_type == 'BUY' %}positive{% else %}negative{% endif %}">
+                            {{ order.get_trade_type_display }}
+                        </span>
+                    </td>
+                    <td>{{ order.get_order_type_display }}</td>
+                    <td>{{ order.quantity }}</td>
+                    <td>
+                        {% if order.price %}
+                            ${{ order.price|floatformat:2 }}
+                        {% else %}
+                            Market
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="
+                            {% if order.status == 'PENDING' %}color: #ffc107; font-weight: bold;
+                            {% elif order.status == 'PARTIALLY_FILLED' %}color: #17a2b8; font-weight: bold;
+                            {% else %}color: #6c757d; font-weight: bold;
+                            {% endif %}
+                        ">
+                            {{ order.get_status_display }}
+                        </span>
+                    </td>
+                    <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                        <form method="post" action="{% url 'soulstrader:cancel_order' order.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                                Cancel
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Trades -->
+{% if recent_trades %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Recent Trades</h2>
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Stock</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                    <th>Commission</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trade in recent_trades %}
+                <tr>
+                    <td>
+                        <strong>{{ trade.stock.symbol }}</strong><br>
+                        <small>{{ trade.stock.name }}</small>
+                    </td>
+                    <td>
+                        <span class="{% if trade.trade_type == 'BUY' %}positive{% else %}negative{% endif %}">
+                            {{ trade.get_trade_type_display }}
+                        </span>
+                    </td>
+                    <td>{{ trade.filled_quantity|default:trade.quantity }}</td>
+                    <td>
+                        {% if trade.average_fill_price %}
+                            ${{ trade.average_fill_price|floatformat:2 }}
+                        {% elif trade.price %}
+                            ${{ trade.price|floatformat:2 }}
+                        {% else %}
+                            Market
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if trade.total_amount %}
+                            ${{ trade.total_amount|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if trade.commission %}
+                            ${{ trade.commission|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="
+                            {% if trade.status == 'FILLED' %}color: #28a745; font-weight: bold;
+                            {% elif trade.status == 'CANCELLED' or trade.status == 'REJECTED' %}color: #dc3545; font-weight: bold;
+                            {% elif trade.status == 'PENDING' %}color: #ffc107; font-weight: bold;
+                            {% elif trade.status == 'PARTIALLY_FILLED' %}color: #17a2b8; font-weight: bold;
+                            {% else %}color: #6c757d; font-weight: bold;
+                            {% endif %}
+                        ">
+                            {{ trade.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if trade.notes %}
+                            <small>{{ trade.notes|truncatechars:30 }}</small>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if trade.executed_at %}
+                            {{ trade.executed_at|date:"M d, Y H:i" }}
+                        {% else %}
+                            {{ trade.created_at|date:"M d, Y H:i" }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div style="text-align: center; margin-top: 1rem;">
+        <a href="{% url 'soulstrader:order_history' %}" class="btn">View All Trades</a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Portfolio Summary -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Portfolio Summary</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">${{ portfolio.total_value|floatformat:2 }}</div>
+            <div class="stat-label">Total Value</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">${{ portfolio.current_capital|floatformat:2 }}</div>
+            <div class="stat-label">Available Cash</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number {% if portfolio.total_return >= 0 %}positive{% else %}negative{% endif %}">
+                {{ portfolio.total_return|floatformat:2 }}%
+            </div>
+            <div class="stat-label">Total Return</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">${{ trading_summary.total_commission|floatformat:2 }}</div>
+            <div class="stat-label">Total Commission</div>
+        </div>
+    </div>
+</div>
+
+<!-- Popular Stocks for Quick Trading -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Quick Trade Popular Stocks</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'soulstrader:quick_trade' 'AAPL' %}" class="btn btn-secondary">Trade AAPL</a>
+        <a href="{% url 'soulstrader:quick_trade' 'MSFT' %}" class="btn btn-secondary">Trade MSFT</a>
+        <a href="{% url 'soulstrader:quick_trade' 'TSLA' %}" class="btn btn-secondary">Trade TSLA</a>
+        <a href="{% url 'soulstrader:quick_trade' 'GOOGL' %}" class="btn btn-secondary">Trade GOOGL</a>
+        <a href="{% url 'soulstrader:quick_trade' 'AMZN' %}" class="btn btn-secondary">Trade AMZN</a>
+    </div>
+</div>
+{% endblock %}

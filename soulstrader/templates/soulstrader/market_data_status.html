@@ -1,0 +1,167 @@
+{% extends 'soulstrader/base.html' %}
+
+{% block title %}Market Data Status - SOULTRADER{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="color: #667eea; margin-bottom: 1rem;">Market Data Status</h1>
+    <p style="color: #6c757d; margin-bottom: 2rem;">Real-time market data from Alpha Vantage API</p>
+    
+    <!-- Data Summary -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ stocks|length }}</div>
+            <div class="stat-label">Active Stocks</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">
+                {% for stock in stocks %}
+                    {% if stock.last_updated %}
+                        {% if forloop.first %}
+                            {{ stock.last_updated|timesince }} ago
+                        {% endif %}
+                    {% endif %}
+                {% empty %}
+                    Never
+                {% endfor %}
+            </div>
+            <div class="stat-label">Last Update</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">Alpha Vantage</div>
+            <div class="stat-label">Data Provider</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">12s</div>
+            <div class="stat-label">Rate Limit</div>
+        </div>
+    </div>
+</div>
+
+<!-- Stocks Table -->
+{% if stocks %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Stock Data Status</h2>
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Name</th>
+                    <th>Current Price</th>
+                    <th>Day Change</th>
+                    <th>Last Updated</th>
+                    <th>Data Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stock in stocks %}
+                <tr>
+                    <td>
+                        <strong><a href="{% url 'soulstrader:stock_detail' stock.symbol %}" style="color: #667eea; text-decoration: none;">{{ stock.symbol }}</a></strong>
+                    </td>
+                    <td>{{ stock.name|truncatechars:30 }}</td>
+                    <td>
+                        {% if stock.current_price %}
+                            ${{ stock.current_price|floatformat:2 }}
+                        {% else %}
+                            <span style="color: #dc3545;">No Data</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if stock.day_change_percent %}
+                            <span class="{% if stock.day_change_percent >= 0 %}positive{% else %}negative{% endif %}">
+                                {{ stock.day_change_percent|floatformat:2 }}%
+                            </span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if stock.last_updated %}
+                            {{ stock.last_updated|date:"M d, Y H:i" }}
+                        {% else %}
+                            <span style="color: #dc3545;">Never</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if stock.current_price and stock.last_updated %}
+                            <span style="color: #28a745; font-weight: bold;">✓ Live</span>
+                        {% elif stock.current_price %}
+                            <span style="color: #ffc107; font-weight: bold;">⚠ Stale</span>
+                        {% else %}
+                            <span style="color: #dc3545; font-weight: bold;">✗ No Data</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'soulstrader:update_stock_data' stock.symbol %}" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                            Update
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">No Stocks Found</h2>
+    <div style="text-align: center; padding: 2rem; color: #6c757d;">
+        <p>No stocks are currently in your database.</p>
+        <p>Use the search function to add stocks with real market data.</p>
+        <a href="{% url 'soulstrader:search_stocks' %}" class="btn">Search for Stocks</a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Market Data Actions -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Market Data Actions</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'soulstrader:search_stocks' %}" class="btn">Search New Stocks</a>
+        <a href="{% url 'soulstrader:trading' %}" class="btn btn-secondary">Back to Trading</a>
+        <button class="btn" style="background-color: #17a2b8;" onclick="updateAllStocks()">Update All Stocks</button>
+    </div>
+</div>
+
+<!-- API Information -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Alpha Vantage API Information</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">Rate Limits</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">
+                Free tier: 5 calls per minute<br>
+                Premium tier: 500+ calls per minute
+            </p>
+        </div>
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">Data Coverage</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">
+                Real-time quotes<br>
+                Historical data (20+ years)<br>
+                Company fundamentals
+            </p>
+        </div>
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">Update Frequency</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">
+                Real-time during market hours<br>
+                End-of-day after market close<br>
+                Manual updates available
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateAllStocks() {
+    if (confirm('This will update all stocks with fresh market data. This may take a few minutes due to rate limiting. Continue?')) {
+        // You could implement an AJAX call here to update all stocks
+        alert('Feature coming soon! For now, use the individual "Update" buttons.');
+    }
+}
+</script>
+{% endblock %}

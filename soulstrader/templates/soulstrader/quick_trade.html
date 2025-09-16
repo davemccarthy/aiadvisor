@@ -1,0 +1,341 @@
+{% extends 'soulstrader/base.html' %}
+
+{% block title %}Quick Trade {{ stock.symbol }} - SOULTRADER{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="color: #667eea; margin-bottom: 1rem;">Quick Trade: {{ stock.symbol }}</h1>
+    <p style="color: #6c757d; margin-bottom: 2rem;">{{ stock.name }} - {{ stock.get_sector_display|default:"N/A" }}</p>
+    
+    {% if source_recommendation %}
+    <div style="background-color: #e8f5e8; border: 1px solid #28a745; border-radius: 8px; padding: 1rem; margin-bottom: 2rem;">
+        <h3 style="color: #28a745; margin-bottom: 0.5rem;">🎯 Trading from AI Recommendation</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div>
+                <strong>Recommendation:</strong><br>
+                <span style="color: #28a745; font-weight: bold;">{{ source_recommendation.get_recommendation_type_display }}</span>
+            </div>
+            <div>
+                <strong>Confidence:</strong><br>
+                <span style="color: #667eea;">{{ source_recommendation.get_confidence_level_display }}</span>
+            </div>
+            <div>
+                <strong>Target Price:</strong><br>
+                <span style="color: #28a745;">${{ source_recommendation.target_price|floatformat:2|default:"N/A" }}</span>
+            </div>
+            <div>
+                <strong>Stop Loss:</strong><br>
+                <span style="color: #dc3545;">${{ source_recommendation.stop_loss|floatformat:2|default:"N/A" }}</span>
+            </div>
+        </div>
+        <div style="margin-top: 1rem;">
+            <strong>AI Reasoning:</strong>
+            <p style="margin: 0.5rem 0; color: #555; font-size: 0.9rem;">{{ source_recommendation.reasoning|truncatechars:200 }}</p>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Stock Information -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">
+                {% if stock.current_price %}
+                    ${{ stock.current_price|floatformat:2 }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </div>
+            <div class="stat-label">Current Price</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number {% if stock.day_change_percent and stock.day_change_percent >= 0 %}positive{% elif stock.day_change_percent %}negative{% endif %}">
+                {% if stock.day_change_percent %}
+                    {{ stock.day_change_percent|floatformat:2 }}%
+                {% else %}
+                    N/A
+                {% endif %}
+            </div>
+            <div class="stat-label">Day Change</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">${{ portfolio.current_capital|floatformat:2 }}</div>
+            <div class="stat-label">Available Cash</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">
+                {% if holding %}
+                    {{ holding.quantity }}
+                {% else %}
+                    0
+                {% endif %}
+            </div>
+            <div class="stat-label">Current Shares</div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Holding Information -->
+{% if holding %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Current Holding</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ holding.quantity }}</div>
+            <div class="stat-label">Shares Owned</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">${{ holding.average_price|floatformat:2 }}</div>
+            <div class="stat-label">Average Price</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">${{ holding.current_value|floatformat:2 }}</div>
+            <div class="stat-label">Current Value</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number {% if holding.unrealized_pnl >= 0 %}positive{% else %}negative{% endif %}">
+                ${{ holding.unrealized_pnl|floatformat:2 }}
+            </div>
+            <div class="stat-label">Unrealized P&L</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Trade Forms -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    <!-- Buy Order -->
+    <div class="card">
+        <h2 style="margin-bottom: 1.5rem; color: #28a745;">Buy Order</h2>
+        <form method="post" action="{% url 'soulstrader:place_order' %}">
+            {% csrf_token %}
+            <input type="hidden" name="stock_symbol" value="{{ stock.symbol }}">
+            <input type="hidden" name="trade_type" value="BUY">
+            
+            <div class="form-group">
+                <label for="buy_quantity">Quantity</label>
+                <input type="number" id="buy_quantity" name="quantity" required min="1" 
+                       placeholder="Number of shares to buy">
+            </div>
+            
+            <div class="form-group">
+                <label for="buy_order_type">Order Type</label>
+                <select id="buy_order_type" name="order_type" required>
+                    {% for value, label in order_types %}
+                        <option value="{{ value }}" {% if value == 'MARKET' %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group" id="buy_price_group" style="display: none;">
+                <label for="buy_price">Limit Price</label>
+                <input type="number" id="buy_price" name="price" step="0.01" min="0.01" 
+                       placeholder="Maximum price to pay">
+            </div>
+            
+            <div class="form-group">
+                <label for="buy_notes">Notes (Optional)</label>
+                <textarea id="buy_notes" name="notes" rows="2" 
+                          placeholder="Add notes about this buy order..."></textarea>
+            </div>
+            
+            <button type="submit" class="btn" style="background: #28a745;">Place Buy Order</button>
+        </form>
+    </div>
+    
+    <!-- Sell Order -->
+    <div class="card">
+        <h2 style="margin-bottom: 1.5rem; color: #dc3545;">Sell Order</h2>
+        {% if holding and holding.quantity > 0 %}
+        <form method="post" action="{% url 'soulstrader:place_order' %}">
+            {% csrf_token %}
+            <input type="hidden" name="stock_symbol" value="{{ stock.symbol }}">
+            <input type="hidden" name="trade_type" value="SELL">
+            
+            <div class="form-group">
+                <label for="sell_quantity">Quantity</label>
+                <input type="number" id="sell_quantity" name="quantity" required min="1" 
+                       max="{{ holding.quantity }}" placeholder="Number of shares to sell">
+                <small style="color: #6c757d;">Maximum: {{ holding.quantity }} shares</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="sell_order_type">Order Type</label>
+                <select id="sell_order_type" name="order_type" required>
+                    {% for value, label in order_types %}
+                        <option value="{{ value }}" {% if value == 'MARKET' %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group" id="sell_price_group" style="display: none;">
+                <label for="sell_price">Limit Price</label>
+                <input type="number" id="sell_price" name="price" step="0.01" min="0.01" 
+                       placeholder="Minimum price to accept">
+            </div>
+            
+            <div class="form-group">
+                <label for="sell_notes">Notes (Optional)</label>
+                <textarea id="sell_notes" name="notes" rows="2" 
+                          placeholder="Add notes about this sell order..."></textarea>
+            </div>
+            
+            <button type="submit" class="btn" style="background: #dc3545;">Place Sell Order</button>
+        </form>
+        {% else %}
+        <div style="text-align: center; padding: 2rem; color: #6c757d;">
+            <h3>No Shares to Sell</h3>
+            <p>You don't currently own any shares of {{ stock.symbol }}.</p>
+            <p>Place a buy order first to start building your position.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- AI Recommendations -->
+{% if recommendations %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">AI Recommendations for {{ stock.symbol }}</h2>
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Recommendation</th>
+                    <th>Confidence</th>
+                    <th>Target Price</th>
+                    <th>Reasoning</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rec in recommendations %}
+                <tr>
+                    <td>
+                        <span class="{% if rec.recommendation_type == 'BUY' or rec.recommendation_type == 'STRONG_BUY' %}positive{% elif rec.recommendation_type == 'SELL' or rec.recommendation_type == 'STRONG_SELL' %}negative{% endif %}">
+                            {{ rec.get_recommendation_type_display }}
+                        </span>
+                    </td>
+                    <td>{{ rec.get_confidence_level_display }}</td>
+                    <td>
+                        {% if rec.target_price %}
+                            ${{ rec.target_price|floatformat:2 }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        <small>{{ rec.reasoning|truncatechars:100 }}</small>
+                    </td>
+                    <td>{{ rec.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Stock Details -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Stock Information</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div>
+            <strong>Symbol:</strong> {{ stock.symbol }}
+        </div>
+        <div>
+            <strong>Name:</strong> {{ stock.name }}
+        </div>
+        <div>
+            <strong>Sector:</strong> {{ stock.get_sector_display|default:"N/A" }}
+        </div>
+        <div>
+            <strong>Industry:</strong> {{ stock.industry|default:"N/A" }}
+        </div>
+        <div>
+            <strong>Market Cap:</strong> {{ stock.get_market_cap_category_display|default:"N/A" }}
+        </div>
+        <div>
+            <strong>P/E Ratio:</strong> {{ stock.pe_ratio|default:"N/A" }}
+        </div>
+        <div>
+            <strong>ESG Score:</strong> {{ stock.esg_score|default:"N/A" }}
+        </div>
+        <div>
+            <strong>Dividend Yield:</strong> 
+            {% if stock.dividend_yield %}
+                {{ stock.dividend_yield|floatformat:2 }}%
+            {% else %}
+                N/A
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Quick Actions</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        {% if source_recommendation %}
+            <a href="{% url 'soulstrader:recommendations' %}" class="btn btn-secondary">← Back to Recommendations</a>
+        {% endif %}
+        <a href="{% url 'soulstrader:stock_detail' stock.symbol %}" class="btn btn-secondary">View Stock Details</a>
+        <a href="{% url 'soulstrader:trading' %}" class="btn btn-secondary">Trading Center</a>
+        <a href="{% url 'soulstrader:portfolio' %}" class="btn btn-secondary">View Portfolio</a>
+    </div>
+</div>
+
+<script>
+// Show/hide price fields based on order type
+function togglePriceField(orderTypeSelect, priceGroup) {
+    const priceInput = priceGroup.querySelector('input[type="number"]');
+    
+    if (orderTypeSelect.value === 'MARKET') {
+        priceGroup.style.display = 'none';
+        priceInput.required = false;
+    } else {
+        priceGroup.style.display = 'block';
+        priceInput.required = true;
+    }
+}
+
+// Buy order type change
+document.getElementById('buy_order_type').addEventListener('change', function() {
+    togglePriceField(this, document.getElementById('buy_price_group'));
+});
+
+// Sell order type change
+document.getElementById('sell_order_type').addEventListener('change', function() {
+    togglePriceField(this, document.getElementById('sell_price_group'));
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    togglePriceField(document.getElementById('buy_order_type'), document.getElementById('buy_price_group'));
+    togglePriceField(document.getElementById('sell_order_type'), document.getElementById('sell_price_group'));
+    
+    // Pre-fill form with recommendation data if available
+    {% if source_recommendation %}
+        {% if source_recommendation.recommendation_type == 'BUY' or source_recommendation.recommendation_type == 'STRONG_BUY' %}
+            // Pre-fill buy form with recommendation data
+            {% if source_recommendation.target_price %}
+                document.getElementById('buy_price').value = '{{ source_recommendation.target_price }}';
+                document.getElementById('buy_order_type').value = 'LIMIT';
+                togglePriceField(document.getElementById('buy_order_type'), document.getElementById('buy_price_group'));
+            {% endif %}
+            
+            // Add recommendation note
+            document.getElementById('buy_notes').value = 'Based on AI recommendation: {{ source_recommendation.get_recommendation_type_display }} ({{ source_recommendation.get_confidence_level_display }} confidence)';
+        {% elif source_recommendation.recommendation_type == 'SELL' or source_recommendation.recommendation_type == 'STRONG_SELL' %}
+            // Pre-fill sell form with recommendation data
+            {% if source_recommendation.stop_loss %}
+                document.getElementById('sell_price').value = '{{ source_recommendation.stop_loss }}';
+                document.getElementById('sell_order_type').value = 'LIMIT';
+                togglePriceField(document.getElementById('sell_order_type'), document.getElementById('sell_price_group'));
+            {% endif %}
+            
+            // Add recommendation note
+            document.getElementById('sell_notes').value = 'Based on AI recommendation: {{ source_recommendation.get_recommendation_type_display }} ({{ source_recommendation.get_confidence_level_display }} confidence)';
+        {% endif %}
+    {% endif %}
+});
+</script>
+{% endblock %}

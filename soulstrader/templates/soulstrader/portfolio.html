@@ -118,19 +118,19 @@
         <table>
             <thead>
                 <tr>
-                    <th>Date</th>
                     <th>Stock</th>
                     <th>Type</th>
                     <th>Quantity</th>
                     <th>Price</th>
                     <th>Total Amount</th>
+                    <th>Notes</th>
+                    <th>Date</th>
                     <th>Status</th>
                 </tr>
             </thead>
             <tbody>
                 {% for trade in recent_trades %}
                 <tr>
-                    <td>{{ trade.created_at|date:"M d, Y H:i" }}</td>
                     <td>
                         <strong>{{ trade.stock.symbol }}</strong><br>
                         <small>{{ trade.stock.name }}</small>
@@ -141,10 +141,39 @@
                         </span>
                     </td>
                     <td>{{ trade.quantity }}</td>
-                    <td>${{ trade.price|floatformat:2 }}</td>
-                    <td>${{ trade.total_amount|floatformat:2 }}</td>
                     <td>
-                        <span class="{% if trade.status == 'EXECUTED' %}positive{% elif trade.status == 'FAILED' %}negative{% else %}btn-secondary{% endif %}">
+                        {% if trade.average_fill_price %}
+                            ${{ trade.average_fill_price|floatformat:2 }}
+                        {% elif trade.price %}
+                            ${{ trade.price|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if trade.total_amount %}
+                            ${{ trade.total_amount|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if trade.notes %}
+                            <small>{{ trade.notes|truncatechars:30 }}</small>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ trade.created_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                        <span style="
+                            {% if trade.status == 'FILLED' %}color: #28a745; font-weight: bold;
+                            {% elif trade.status == 'CANCELLED' or trade.status == 'REJECTED' %}color: #dc3545; font-weight: bold;
+                            {% elif trade.status == 'PENDING' %}color: #ffc107; font-weight: bold;
+                            {% elif trade.status == 'PARTIALLY_FILLED' %}color: #17a2b8; font-weight: bold;
+                            {% else %}color: #6c757d; font-weight: bold;
+                            {% endif %}
+                        ">
                             {{ trade.get_status_display }}
                         </span>
                     </td>

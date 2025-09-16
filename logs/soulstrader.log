@@ -1,0 +1,21 @@
+Failed to update quote for AAPL: no such table: soulstrader_stock
+Failed to update quote for MSFT: no such table: soulstrader_stock
+Failed to update quote for GOOGL: no such table: soulstrader_stock
+Failed to update quote for TSLA: no such table: soulstrader_stock
+Failed to update quote for NVDA: no such table: soulstrader_stock
+Updated quote for AAPL: $236.7000
+Updated quote for MSFT: $515.3600
+Updated quote for GOOGL: $251.6100
+Could not fetch company overview for TSLA: [<class 'decimal.ConversionSyntax'>]
+Updated quote for TSLA: $410.0400
+Updated quote for NVDA: $177.7500
+Updated 100 price records for AAPL
+Updated 100 price records for MSFT
+Updated 100 price records for GOOGL
+Updated 100 price records for TSLA
+Updated 100 price records for NVDA
+Updated quote for AAPL: $236.7000
+Updated quote for TL0.DEX: $358.4000
+Updated quote for TL0.FRK: $348.0000
+Updated quote for TSLA34.SAO: $67.9700
+Updated quote for TSLA.TRT: $36.5000

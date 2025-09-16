@@ -2,9 +2,10 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from decimal import Decimal
 from soulstrader.models import (
-    Stock, StockPrice, UserProfile, Portfolio, 
+    Stock, StockPrice, UserProfile, Portfolio, Holding, Trade,
     AIRecommendation, UserNotification
 )
+from soulstrader.trading_service import TradingService
 from datetime import date, timedelta
 import random
 
@@ -29,6 +30,9 @@ class Command(BaseCommand):
         
         # Create sample notifications
         self.create_sample_notifications(sample_user)
+        
+        # Create sample trades
+        self.create_sample_trades(sample_user)
         
         self.stdout.write(
             self.style.SUCCESS('Successfully created sample data!')
@@ -325,3 +329,51 @@ class Command(BaseCommand):
             )
         
         self.stdout.write('Created sample notifications')
+
+    def create_sample_trades(self, user):
+        """Create sample trading history"""
+        portfolio = user.portfolio
+        stocks = Stock.objects.all()[:5]  # Get first 5 stocks
+        
+        # Create some sample trades
+        sample_trades = [
+            {
+                'stock': stocks[0],  # AAPL
+                'trade_type': 'BUY',
+                'quantity': 10,
+                'order_type': 'MARKET',
+                'notes': 'Initial position in Apple'
+            },
+            {
+                'stock': stocks[1],  # MSFT
+                'trade_type': 'BUY',
+                'quantity': 5,
+                'order_type': 'LIMIT',
+                'price': Decimal('375.00'),
+                'notes': 'Limit order for Microsoft'
+            },
+            {
+                'stock': stocks[2],  # TSLA
+                'trade_type': 'BUY',
+                'quantity': 3,
+                'order_type': 'MARKET',
+                'notes': 'Small position in Tesla'
+            }
+        ]
+        
+        for trade_data in sample_trades:
+            # Use the trading service to place orders
+            trade = TradingService.place_order(
+                portfolio=portfolio,
+                stock=trade_data['stock'],
+                trade_type=trade_data['trade_type'],
+                quantity=trade_data['quantity'],
+                order_type=trade_data['order_type'],
+                price=trade_data.get('price'),
+                notes=trade_data['notes']
+            )
+            
+            if trade:
+                self.stdout.write(f'Created trade: {trade}')
+        
+        self.stdout.write('Created sample trades')
