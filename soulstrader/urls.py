@@ -39,6 +39,12 @@ urlpatterns = [
     path('trading/update-stock/<str:symbol>/', views.update_stock_data, name='update_stock_data'),
     path('trading/market-data-status/', views.market_data_status, name='market_data_status'),
     
+    # AI Advisors
+    path('ai-advisors/', views.ai_advisors_dashboard, name='ai_advisors_dashboard'),
+    path('ai-advisors/<int:advisor_id>/', views.advisor_detail, name='advisor_detail'),
+    path('ai-advisors/consensus/', views.consensus_recommendations, name='consensus_recommendations'),
+    path('ai-advisors/recommend/<str:symbol>/', views.get_stock_recommendations, name='get_stock_recommendations'),
+    
     # User management
     path('profile/', views.profile_view, name='profile'),
     path('notifications/', views.notifications_view, name='notifications'),

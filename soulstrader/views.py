@@ -13,10 +13,12 @@ from decimal import Decimal
 import json
 from .models import (
     UserProfile, RiskAssessment, Stock, Portfolio, Trade, OrderBook,
-    AIRecommendation, PerformanceMetrics, UserNotification
+    AIRecommendation, PerformanceMetrics, UserNotification,
+    AIAdvisor, AIAdvisorRecommendation, ConsensusRecommendation
 )
 from .trading_service import TradingService
 from .market_data_service import MarketDataManager, AlphaVantageService
+from .yahoo_finance_service import YahooMarketDataManager, YahooFinanceService
 
 
 def home(request):
@@ -542,22 +544,22 @@ def quick_sell_from_recommendation(request, recommendation_id):
 
 @login_required
 def search_stocks(request):
-    """Search for stocks using Alpha Vantage"""
+    """Search for stocks using Yahoo Finance"""
     if request.method == 'POST':
         keywords = request.POST.get('keywords', '').strip()
         if keywords:
             try:
-                # Search for stocks
-                symbols = AlphaVantageService.search_symbols(keywords)
+                # Search for stocks using Yahoo Finance
+                symbols = YahooFinanceService.search_symbols(keywords)
                 
-                # Add top results to database
+                # Add results to database
                 added_stocks = []
-                for symbol_data in symbols[:5]:  # Limit to top 5
+                for symbol_data in symbols:
                     symbol = symbol_data['symbol']
                     if not Stock.objects.filter(symbol=symbol).exists():
                         try:
                             # Create stock and update with real data
-                            stock = MarketDataManager.update_stock_quote(symbol)
+                            stock = YahooMarketDataManager.update_stock_quote(symbol)
                             if stock:
                                 added_stocks.append(stock)
                         except Exception as e:
@@ -579,9 +581,9 @@ def search_stocks(request):
 
 @login_required
 def update_stock_data(request, symbol):
-    """Update real-time data for a specific stock"""
+    """Update real-time data for a specific stock using Yahoo Finance"""
     try:
-        stock = MarketDataManager.update_stock_quote(symbol.upper())
+        stock = YahooMarketDataManager.update_stock_quote(symbol.upper())
         messages.success(request, f'Updated {symbol} - Current price: ${stock.current_price}')
     except Exception as e:
         messages.error(request, f'Failed to update {symbol}: {str(e)}')
@@ -600,3 +602,150 @@ def market_data_status(request):
     }
     
     return render(request, 'soulstrader/market_data_status.html', context)
+
+
+# =============================================================================
+# AI ADVISOR VIEWS
+# =============================================================================
+
+@login_required
+def ai_advisors_dashboard(request):
+    """AI Advisors dashboard showing all advisors and their performance"""
+    advisors = AIAdvisor.objects.all().order_by('-success_rate', '-weight')
+    
+    # Get recent recommendations
+    recent_recommendations = AIAdvisorRecommendation.objects.select_related(
+        'advisor', 'stock'
+    ).order_by('-created_at')[:20]
+    
+    # Get recent consensus recommendations
+    recent_consensus = ConsensusRecommendation.objects.select_related(
+        'stock'
+    ).order_by('-created_at')[:10]
+    
+    # Calculate overall statistics
+    total_recommendations = AIAdvisorRecommendation.objects.count()
+    active_advisors = advisors.filter(is_enabled=True, status='ACTIVE').count()
+    
+    # Performance stats
+    successful_recs = AIAdvisorRecommendation.objects.filter(is_successful=True).count()
+    overall_success_rate = (successful_recs / total_recommendations * 100) if total_recommendations > 0 else 0
+    
+    context = {
+        'advisors': advisors,
+        'recent_recommendations': recent_recommendations,
+        'recent_consensus': recent_consensus,
+        'total_recommendations': total_recommendations,
+        'active_advisors': active_advisors,
+        'overall_success_rate': overall_success_rate,
+        'current_page': 'ai_advisors',
+    }
+    
+    return render(request, 'soulstrader/ai_advisors_dashboard.html', context)
+
+
+@login_required
+def advisor_detail(request, advisor_id):
+    """Detailed view of a specific AI advisor"""
+    advisor = get_object_or_404(AIAdvisor, id=advisor_id)
+    
+    # Get advisor's recommendations
+    recommendations = advisor.recommendations.select_related('stock').order_by('-created_at')
+    
+    # Apply filters
+    rec_type = request.GET.get('type')
+    if rec_type:
+        recommendations = recommendations.filter(recommendation_type=rec_type)
+    
+    status_filter = request.GET.get('status')
+    if status_filter:
+        recommendations = recommendations.filter(status=status_filter)
+    
+    # Performance metrics
+    total_recs = recommendations.count()
+    successful_recs = recommendations.filter(is_successful=True).count()
+    
+    # Recent performance (last 30 days)
+    from datetime import timedelta
+    recent_recs = recommendations.filter(
+        created_at__gte=timezone.now() - timedelta(days=30)
+    )
+    
+    context = {
+        'advisor': advisor,
+        'recommendations': recommendations[:50],  # Limit for page load
+        'total_recommendations': total_recs,
+        'successful_recommendations': successful_recs,
+        'recent_recommendations_count': recent_recs.count(),
+        'recommendation_types': AIAdvisorRecommendation.RECOMMENDATION_TYPES,
+        'recommendation_statuses': AIAdvisorRecommendation.RECOMMENDATION_STATUS,
+        'current_filters': {
+            'type': rec_type,
+            'status': status_filter,
+        },
+        'current_page': 'ai_advisors',
+    }
+    
+    return render(request, 'soulstrader/advisor_detail.html', context)
+
+
+@login_required
+def consensus_recommendations(request):
+    """View consensus recommendations from all advisors"""
+    consensus_recs = ConsensusRecommendation.objects.select_related(
+        'stock'
+    ).prefetch_related('advisor_recommendations__advisor').order_by('-created_at')
+    
+    # Filter by consensus type
+    consensus_type = request.GET.get('type')
+    if consensus_type:
+        consensus_recs = consensus_recs.filter(consensus_type=consensus_type)
+    
+    # Filter by auto-trade eligibility
+    auto_trade = request.GET.get('auto_trade')
+    if auto_trade == 'eligible':
+        consensus_recs = consensus_recs.filter(auto_trade_eligible=True)
+    elif auto_trade == 'executed':
+        consensus_recs = consensus_recs.filter(auto_trade_executed=True)
+    
+    context = {
+        'consensus_recommendations': consensus_recs[:50],
+        'consensus_types': ConsensusRecommendation.CONSENSUS_TYPES,
+        'current_filters': {
+            'type': consensus_type,
+            'auto_trade': auto_trade,
+        },
+        'current_page': 'ai_advisors',
+    }
+    
+    return render(request, 'soulstrader/consensus_recommendations.html', context)
+
+
+@login_required
+def get_stock_recommendations(request, symbol):
+    """Get AI recommendations for a specific stock"""
+    from .ai_advisor_service import AIAdvisorManager
+    
+    if request.method == 'POST':
+        try:
+            stock = get_object_or_404(Stock, symbol=symbol.upper(), is_active=True)
+            
+            # Get recommendations from all active advisors
+            recommendations = AIAdvisorManager.get_recommendations_for_stock(stock)
+            
+            if recommendations:
+                # Create consensus
+                consensus = AIAdvisorManager.create_consensus_recommendation(stock, recommendations)
+                
+                messages.success(
+                    request, 
+                    f'Got {len(recommendations)} AI recommendations for {symbol}. '
+                    f'Consensus: {consensus.consensus_type if consensus else "No consensus"}'
+                )
+            else:
+                messages.warning(request, f'No AI recommendations available for {symbol}')
+                
+        except Exception as e:
+            messages.error(request, f'Error getting recommendations: {str(e)}')
+    
+    return redirect('soulstrader:stock_detail', symbol=symbol)

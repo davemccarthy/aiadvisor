@@ -5,7 +5,7 @@
 {% block content %}
 <div class="card">
     <h1 style="color: #667eea; margin-bottom: 1rem;">Market Data Status</h1>
-    <p style="color: #6c757d; margin-bottom: 2rem;">Real-time market data from Alpha Vantage API</p>
+    <p style="color: #6c757d; margin-bottom: 2rem;">Real-time market data from Yahoo Finance (unlimited, free)</p>
     
     <!-- Data Summary -->
     <div class="stats-grid">
@@ -28,12 +28,12 @@
             <div class="stat-label">Last Update</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">Alpha Vantage</div>
+            <div class="stat-number">Yahoo Finance</div>
             <div class="stat-label">Data Provider</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">12s</div>
-            <div class="stat-label">Rate Limit</div>
+            <div class="stat-number">Unlimited</div>
+            <div class="stat-label">API Calls</div>
         </div>
     </div>
 </div>
@@ -128,29 +128,32 @@
 
 <!-- API Information -->
 <div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">Alpha Vantage API Information</h2>
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Yahoo Finance API Information</h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
         <div>
             <h4 style="color: #667eea; margin-bottom: 0.5rem;">Rate Limits</h4>
             <p style="color: #6c757d; font-size: 0.9rem;">
-                Free tier: 5 calls per minute<br>
-                Premium tier: 500+ calls per minute
+                ✅ No rate limits<br>
+                ✅ Unlimited API calls<br>
+                ✅ No API key required
             </p>
         </div>
         <div>
             <h4 style="color: #667eea; margin-bottom: 0.5rem;">Data Coverage</h4>
             <p style="color: #6c757d; font-size: 0.9rem;">
                 Real-time quotes<br>
-                Historical data (20+ years)<br>
-                Company fundamentals
+                Historical data (years)<br>
+                Company fundamentals<br>
+                Global markets
             </p>
         </div>
         <div>
             <h4 style="color: #667eea; margin-bottom: 0.5rem;">Update Frequency</h4>
             <p style="color: #6c757d; font-size: 0.9rem;">
                 Real-time during market hours<br>
-                End-of-day after market close<br>
-                Manual updates available
+                15-minute delay (free tier)<br>
+                Manual updates anytime<br>
+                Bulk updates supported
             </p>
         </div>
     </div>
@@ -158,9 +161,9 @@
 
 <script>
 function updateAllStocks() {
-    if (confirm('This will update all stocks with fresh market data. This may take a few minutes due to rate limiting. Continue?')) {
+    if (confirm('This will update all stocks with fresh market data from Yahoo Finance. No rate limits! Continue?')) {
         // You could implement an AJAX call here to update all stocks
-        alert('Feature coming soon! For now, use the individual "Update" buttons.');
+        alert('Feature coming soon! For now, use the individual "Update" buttons or management commands.');
     }
 }
 </script>

@@ -19,3 +19,38 @@ Updated quote for TL0.DEX: $358.4000
 Updated quote for TL0.FRK: $348.0000
 Updated quote for TSLA34.SAO: $67.9700
 Updated quote for TSLA.TRT: $36.5000
+Updated quote for AAPL: $238.15
+Failed to get quote for APPLE: No price data available for APPLE
+Failed to update quote for APPLE: Failed to fetch quote for APPLE: No price data available for APPLE
+Failed to add stock APPLE: Failed to fetch quote for APPLE: No price data available for APPLE
+Updated quote for NFLX: $1200.51
+Updated quote for DIS: $115.23
+Updated quote for BA: $215.02
+Updated 63 price records for NFLX
+Updated 63 price records for DIS
+Updated 63 price records for BA
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Demo recommendation for AAPL: STRONG_BUY
+Demo recommendation for AAPL: STRONG_BUY
+Demo recommendation for AAPL: STRONG_BUY
+Demo recommendation for AAPL: STRONG_BUY
+Demo recommendation for AAPL: STRONG_BUY
+Demo recommendation for AAPL: STRONG_BUY
+Demo recommendation for TSLA: BUY
+Demo recommendation for TSLA: BUY
+Demo recommendation for TSLA: STRONG_BUY
+Demo recommendation for MSFT: STRONG_BUY
+Demo recommendation for MSFT: STRONG_BUY
+Demo recommendation for MSFT: STRONG_BUY
+Demo recommendation for GOOGL: STRONG_BUY
+Demo recommendation for GOOGL: BUY
+Demo recommendation for GOOGL: STRONG_BUY
+Demo recommendation for AAPL: BUY
+Demo recommendation for AAPL: STRONG_BUY
+Demo recommendation for AAPL: STRONG_BUY
+Demo recommendation for AAPL: BUY
+Error in Enhanced Yahoo analysis: Invalid format specifier '.1f if pe_ratio else 'N/A'' for object of type 'float'
+Enhanced Yahoo recommendation for AAPL: HOLD
+Demo recommendation for AAPL: STRONG_BUY
+Enhanced Yahoo recommendation for AAPL: HOLD

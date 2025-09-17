@@ -245,6 +245,7 @@
                     <a href="{% url 'soulstrader:portfolio' %}" {% if current_page == 'portfolio' %}class="active"{% endif %}>Portfolio</a>
                     <a href="{% url 'soulstrader:trading' %}" {% if current_page == 'trading' %}class="active"{% endif %}>Trading</a>
                     <a href="{% url 'soulstrader:recommendations' %}" {% if current_page == 'recommendations' %}class="active"{% endif %}>Recommendations</a>
+                    <a href="{% url 'soulstrader:ai_advisors_dashboard' %}" {% if current_page == 'ai_advisors' %}class="active"{% endif %}>🤖 AI Advisors</a>
                     <a href="{% url 'soulstrader:profile' %}" {% if current_page == 'profile' %}class="active"{% endif %}>Profile</a>
                 {% endif %}
             </nav>

@@ -358,7 +358,245 @@ class OrderBook(models.Model):
 
 
 # =============================================================================
-# AI RECOMMENDATION MODELS
+# AI ADVISOR MODELS
+# =============================================================================
+
+class AIAdvisor(models.Model):
+    """AI Advisor services that provide stock recommendations"""
+    
+    ADVISOR_TYPES = [
+        ('OPENAI_GPT', 'OpenAI GPT'),
+        ('CLAUDE', 'Anthropic Claude'),
+        ('GEMINI', 'Google Gemini'),
+        ('PERPLEXITY', 'Perplexity AI'),
+        ('FMP', 'Financial Modeling Prep'),
+        ('FINNHUB', 'Finnhub'),
+        ('YAHOO_ENHANCED', 'Yahoo Finance Enhanced'),
+        ('POLYGON', 'Polygon.io'),
+        ('IEX_CLOUD', 'IEX Cloud'),
+        ('CUSTOM', 'Custom AI Service'),
+    ]
+    
+    ADVISOR_STATUS = [
+        ('ACTIVE', 'Active'),
+        ('INACTIVE', 'Inactive'),
+        ('LIMITED', 'Limited (Trial/Rate Limited)'),
+        ('ERROR', 'Error State'),
+    ]
+    
+    name = models.CharField(max_length=100)
+    advisor_type = models.CharField(max_length=20, choices=ADVISOR_TYPES)
+    description = models.TextField(blank=True)
+    
+    # API Configuration
+    api_key = models.CharField(max_length=500, blank=True, null=True)
+    api_endpoint = models.URLField(blank=True, null=True)
+    rate_limit_per_day = models.IntegerField(default=100)
+    rate_limit_per_minute = models.IntegerField(default=10)
+    
+    # Status and Performance
+    status = models.CharField(max_length=20, choices=ADVISOR_STATUS, default='ACTIVE')
+    is_enabled = models.BooleanField(default=True)
+    weight = models.DecimalField(max_digits=3, decimal_places=2, default=Decimal('1.00'))  # Voting weight
+    
+    # Performance Metrics
+    total_recommendations = models.IntegerField(default=0)
+    successful_recommendations = models.IntegerField(default=0)
+    success_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.00'))
+    average_confidence = models.DecimalField(max_digits=3, decimal_places=2, default=Decimal('0.00'))
+    
+    # Usage Tracking
+    daily_api_calls = models.IntegerField(default=0)
+    monthly_api_calls = models.IntegerField(default=0)
+    last_api_call = models.DateTimeField(null=True, blank=True)
+    last_reset_date = models.DateField(auto_now_add=True)
+    
+    # Configuration
+    prompt_template = models.TextField(blank=True)
+    analysis_parameters = models.JSONField(default=dict, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-success_rate', '-weight', 'name']
+    
+    def __str__(self):
+        return f"{self.name} ({self.get_advisor_type_display()}) - {self.success_rate}%"
+    
+    @property
+    def daily_calls_remaining(self):
+        """Calculate remaining daily API calls"""
+        return max(0, self.rate_limit_per_day - self.daily_api_calls)
+    
+    def can_make_request(self):
+        """Check if advisor can make a request"""
+        return (self.is_enabled and 
+                self.status == 'ACTIVE' and 
+                self.daily_calls_remaining > 0)
+    
+    def update_success_rate(self):
+        """Update success rate based on recommendations"""
+        if self.total_recommendations > 0:
+            self.success_rate = (self.successful_recommendations / self.total_recommendations) * 100
+        else:
+            self.success_rate = 0
+        self.save()
+
+
+class AIAdvisorRecommendation(models.Model):
+    """Individual recommendations from AI advisors"""
+    
+    RECOMMENDATION_TYPES = [
+        ('STRONG_BUY', 'Strong Buy'),
+        ('BUY', 'Buy'),
+        ('HOLD', 'Hold'),
+        ('SELL', 'Sell'),
+        ('STRONG_SELL', 'Strong Sell'),
+    ]
+    
+    CONFIDENCE_LEVELS = [
+        ('LOW', 'Low'),
+        ('MEDIUM', 'Medium'),
+        ('HIGH', 'High'),
+        ('VERY_HIGH', 'Very High'),
+    ]
+    
+    RECOMMENDATION_STATUS = [
+        ('ACTIVE', 'Active'),
+        ('EXECUTED', 'Executed'),
+        ('EXPIRED', 'Expired'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    advisor = models.ForeignKey(AIAdvisor, on_delete=models.CASCADE, related_name='recommendations')
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name='ai_recommendations')
+    
+    # Recommendation Details
+    recommendation_type = models.CharField(max_length=20, choices=RECOMMENDATION_TYPES)
+    confidence_level = models.CharField(max_length=20, choices=CONFIDENCE_LEVELS)
+    confidence_score = models.DecimalField(max_digits=3, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(1)])
+    
+    # Price Targets
+    target_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    stop_loss = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    price_at_recommendation = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    # Analysis
+    reasoning = models.TextField()
+    key_factors = models.JSONField(default=list, blank=True)  # List of key factors
+    technical_indicators = models.JSONField(default=dict, blank=True)
+    risk_factors = models.JSONField(default=list, blank=True)
+    
+    # Performance Tracking
+    status = models.CharField(max_length=20, choices=RECOMMENDATION_STATUS, default='ACTIVE')
+    is_successful = models.BooleanField(null=True, blank=True)  # Determined later
+    actual_return = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    
+    # Timing
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    evaluated_at = models.DateTimeField(null=True, blank=True)
+    
+    # API Response
+    raw_response = models.JSONField(default=dict, blank=True)
+    processing_time = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['advisor', 'stock', '-created_at']),
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['recommendation_type', '-created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.advisor.name} - {self.stock.symbol} - {self.recommendation_type} ({self.confidence_level})"
+    
+    @property
+    def current_return(self):
+        """Calculate current return since recommendation"""
+        if self.stock.current_price and self.price_at_recommendation:
+            return ((self.stock.current_price - self.price_at_recommendation) / self.price_at_recommendation) * 100
+        return 0
+    
+    @property
+    def is_expired(self):
+        """Check if recommendation has expired"""
+        return self.expires_at and timezone.now() > self.expires_at
+
+
+class ConsensusRecommendation(models.Model):
+    """Aggregated recommendations from multiple AI advisors"""
+    
+    CONSENSUS_TYPES = [
+        ('STRONG_BUY', 'Strong Buy'),
+        ('BUY', 'Buy'),
+        ('HOLD', 'Hold'),
+        ('SELL', 'Sell'),
+        ('STRONG_SELL', 'Strong Sell'),
+        ('NO_CONSENSUS', 'No Consensus'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name='consensus_recommendations')
+    
+    # Consensus Details
+    consensus_type = models.CharField(max_length=20, choices=CONSENSUS_TYPES)
+    consensus_strength = models.DecimalField(max_digits=3, decimal_places=2)  # 0.0 to 1.0
+    total_advisors = models.IntegerField()
+    participating_advisors = models.IntegerField()
+    
+    # Vote Breakdown
+    strong_buy_votes = models.IntegerField(default=0)
+    buy_votes = models.IntegerField(default=0)
+    hold_votes = models.IntegerField(default=0)
+    sell_votes = models.IntegerField(default=0)
+    strong_sell_votes = models.IntegerField(default=0)
+    
+    # Weighted Scores
+    weighted_score = models.DecimalField(max_digits=5, decimal_places=2)  # -100 to +100
+    average_confidence = models.DecimalField(max_digits=3, decimal_places=2)
+    average_target_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    # Related Recommendations
+    advisor_recommendations = models.ManyToManyField(AIAdvisorRecommendation, related_name='consensus_recommendations')
+    
+    # Auto-trading
+    auto_trade_eligible = models.BooleanField(default=False)
+    auto_trade_executed = models.BooleanField(default=False)
+    auto_trade = models.ForeignKey(Trade, on_delete=models.SET_NULL, null=True, blank=True, related_name='consensus_recommendation')
+    
+    # Performance
+    price_at_consensus = models.DecimalField(max_digits=10, decimal_places=2)
+    is_successful = models.BooleanField(null=True, blank=True)
+    actual_return = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['stock', '-created_at']),
+            models.Index(fields=['consensus_type', '-created_at']),
+            models.Index(fields=['auto_trade_eligible', '-created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.stock.symbol} - {self.consensus_type} ({self.participating_advisors}/{self.total_advisors} advisors)"
+    
+    @property
+    def consensus_percentage(self):
+        """Calculate consensus percentage"""
+        if self.total_advisors > 0:
+            return (self.participating_advisors / self.total_advisors) * 100
+        return 0
+
+
+# =============================================================================
+# LEGACY AI RECOMMENDATION MODELS (keeping for backward compatibility)
 # =============================================================================
 
 class AIRecommendation(models.Model):

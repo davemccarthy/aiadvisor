@@ -1,0 +1,292 @@
+{% extends 'soulstrader/base.html' %}
+
+{% block title %}AI Advisors - SOULTRADER{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="color: #667eea; margin-bottom: 1rem;">🤖 AI Advisors Dashboard</h1>
+    <p style="color: #6c757d; margin-bottom: 2rem;">Multiple AI services providing stock recommendations and automated trading decisions.</p>
+    
+    <!-- AI Advisor Summary -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ active_advisors }}</div>
+            <div class="stat-label">Active Advisors</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_recommendations }}</div>
+            <div class="stat-label">Total Recommendations</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ overall_success_rate|floatformat:1 }}%</div>
+            <div class="stat-label">Success Rate</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ recent_consensus|length }}</div>
+            <div class="stat-label">Recent Consensus</div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Advisors List -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">AI Advisors</h2>
+    {% if advisors %}
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Advisor</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Success Rate</th>
+                    <th>Weight</th>
+                    <th>API Calls</th>
+                    <th>Last Active</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for advisor in advisors %}
+                <tr>
+                    <td>
+                        <strong><a href="{% url 'soulstrader:advisor_detail' advisor.id %}" style="color: #667eea; text-decoration: none;">{{ advisor.name }}</a></strong><br>
+                        <small>{{ advisor.description|truncatechars:50 }}</small>
+                    </td>
+                    <td>{{ advisor.get_advisor_type_display }}</td>
+                    <td>
+                        <span style="
+                            {% if advisor.status == 'ACTIVE' and advisor.is_enabled %}color: #28a745; font-weight: bold;
+                            {% elif advisor.status == 'LIMITED' %}color: #ffc107; font-weight: bold;
+                            {% elif advisor.status == 'ERROR' %}color: #dc3545; font-weight: bold;
+                            {% else %}color: #6c757d; font-weight: bold;
+                            {% endif %}
+                        ">
+                            {% if advisor.is_enabled %}
+                                {{ advisor.get_status_display }}
+                            {% else %}
+                                Disabled
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        {% if advisor.total_recommendations > 0 %}
+                            <span class="{% if advisor.success_rate >= 60 %}positive{% elif advisor.success_rate >= 40 %}neutral{% else %}negative{% endif %}">
+                                {{ advisor.success_rate|floatformat:1 }}%
+                            </span>
+                            <br><small>({{ advisor.total_recommendations }} recs)</small>
+                        {% else %}
+                            <span style="color: #6c757d;">No data</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ advisor.weight }}</td>
+                    <td>
+                        {% if advisor.is_enabled %}
+                            {{ advisor.daily_calls_remaining }}/{{ advisor.rate_limit_per_day }}
+                            <br><small>remaining today</small>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if advisor.last_api_call %}
+                            {{ advisor.last_api_call|timesince }} ago
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'soulstrader:advisor_detail' advisor.id %}" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                            View Details
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 2rem; color: #6c757d;">
+        <h3>No AI Advisors Configured</h3>
+        <p>Set up AI advisors to get automated stock recommendations.</p>
+        <p><strong>Run:</strong> <code>python manage.py setup_ai_advisors --openai-key YOUR_KEY</code></p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recent Recommendations -->
+{% if recent_recommendations %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Recent AI Recommendations</h2>
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Advisor</th>
+                    <th>Stock</th>
+                    <th>Recommendation</th>
+                    <th>Confidence</th>
+                    <th>Target Price</th>
+                    <th>Current Return</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rec in recent_recommendations %}
+                <tr>
+                    <td>
+                        <strong>{{ rec.advisor.name }}</strong>
+                    </td>
+                    <td>
+                        <strong><a href="{% url 'soulstrader:stock_detail' rec.stock.symbol %}" style="color: #667eea; text-decoration: none;">{{ rec.stock.symbol }}</a></strong><br>
+                        <small>{{ rec.stock.name|truncatechars:30 }}</small>
+                    </td>
+                    <td>
+                        <span class="{% if rec.recommendation_type == 'BUY' or rec.recommendation_type == 'STRONG_BUY' %}positive{% elif rec.recommendation_type == 'SELL' or rec.recommendation_type == 'STRONG_SELL' %}negative{% endif %}">
+                            {{ rec.get_recommendation_type_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {{ rec.get_confidence_level_display }}<br>
+                        <small>({{ rec.confidence_score|floatformat:2 }})</small>
+                    </td>
+                    <td>
+                        {% if rec.target_price %}
+                            ${{ rec.target_price|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if rec.current_return %}
+                            <span class="{% if rec.current_return >= 0 %}positive{% else %}negative{% endif %}">
+                                {{ rec.current_return|floatformat:2 }}%
+                            </span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ rec.created_at|date:"M d, H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div style="text-align: center; margin-top: 1rem;">
+        <a href="{% url 'soulstrader:consensus_recommendations' %}" class="btn">View All Recommendations</a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Consensus Recommendations -->
+{% if recent_consensus %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Recent Consensus Recommendations</h2>
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Stock</th>
+                    <th>Consensus</th>
+                    <th>Strength</th>
+                    <th>Advisors</th>
+                    <th>Weighted Score</th>
+                    <th>Auto-Trade</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for consensus in recent_consensus %}
+                <tr>
+                    <td>
+                        <strong><a href="{% url 'soulstrader:stock_detail' consensus.stock.symbol %}" style="color: #667eea; text-decoration: none;">{{ consensus.stock.symbol }}</a></strong><br>
+                        <small>{{ consensus.stock.name|truncatechars:30 }}</small>
+                    </td>
+                    <td>
+                        <span class="{% if consensus.consensus_type == 'BUY' or consensus.consensus_type == 'STRONG_BUY' %}positive{% elif consensus.consensus_type == 'SELL' or consensus.consensus_type == 'STRONG_SELL' %}negative{% endif %}">
+                            {{ consensus.get_consensus_type_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="{% if consensus.consensus_strength >= 0.7 %}positive{% elif consensus.consensus_strength >= 0.5 %}neutral{% else %}negative{% endif %}">
+                            {{ consensus.consensus_strength|floatformat:2 }}
+                        </span>
+                    </td>
+                    <td>{{ consensus.participating_advisors }}/{{ consensus.total_advisors }}</td>
+                    <td>
+                        <span class="{% if consensus.weighted_score >= 0 %}positive{% else %}negative{% endif %}">
+                            {{ consensus.weighted_score|floatformat:1 }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if consensus.auto_trade_executed %}
+                            <span style="color: #28a745; font-weight: bold;">✓ Executed</span>
+                        {% elif consensus.auto_trade_eligible %}
+                            <span style="color: #ffc107; font-weight: bold;">⚡ Eligible</span>
+                        {% else %}
+                            <span style="color: #6c757d;">-</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ consensus.created_at|date:"M d, H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div style="text-align: center; margin-top: 1rem;">
+        <a href="{% url 'soulstrader:consensus_recommendations' %}" class="btn">View All Consensus</a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">AI Advisor Actions</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'soulstrader:consensus_recommendations' %}" class="btn">View All Consensus</a>
+        <button class="btn" style="background-color: #28a745;" onclick="getRecommendations()">Get New Recommendations</button>
+        <button class="btn" style="background-color: #17a2b8;" onclick="executeAutoTrades()">Execute Auto-Trades</button>
+        <a href="{% url 'soulstrader:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+<!-- Configuration Info -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Configuration</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">Setup Commands</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">
+                <code>python manage.py setup_ai_advisors --openai-key YOUR_KEY</code><br>
+                <small>Set up AI advisors with API keys</small>
+            </p>
+        </div>
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">Get Recommendations</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">
+                <code>python manage.py get_ai_recommendations --symbol AAPL</code><br>
+                <small>Get AI recommendations for specific stocks</small>
+            </p>
+        </div>
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">Auto-Trading</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">
+                Consensus recommendations with >60% agreement<br>
+                and strong weighted scores are eligible for auto-trading
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+function getRecommendations() {
+    alert('Feature coming soon! Use management commands for now:\npython manage.py get_ai_recommendations --all-stocks');
+}
+
+function executeAutoTrades() {
+    if (confirm('Execute auto-trades based on AI consensus recommendations?')) {
+        alert('Feature coming soon! Auto-trading will be implemented in the next phase.');
+    }
+}
+</script>
+{% endblock %}
