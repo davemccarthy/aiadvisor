@@ -3,6 +3,45 @@
 {% block title %}AI Recommendations - SOULTRADER{% endblock %}
 
 {% block content %}
+<style>
+.tab-button {
+    background-color: #f8f9fa;
+    border: none;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    font-weight: 500;
+    font-size: 1.1rem;
+    color: #6c757d;
+    transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.tab-button.active {
+    background-color: white;
+    color: #667eea;
+    border-bottom-color: #667eea;
+    font-weight: 600;
+}
+
+.tab-content {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
 <div class="card">
     <h1 style="color: #667eea; margin-bottom: 1rem;">📈 AI Recommendations</h1>
     <p style="color: #6c757d; margin-bottom: 2rem;">Personalized stock recommendations based on your risk profile and market analysis.</p>
@@ -33,6 +72,22 @@
     </div>
 </div>
 
+<!-- Tabs -->
+<div class="card">
+    <div style="border-bottom: 1px solid #e9ecef; margin-bottom: 0;">
+        <div style="display: flex; gap: 0;">
+            <button class="tab-button active" onclick="showTab('all-recommendations')" id="tab-all-recommendations">
+                📈 All Recommendations
+            </button>
+            <button class="tab-button" onclick="showTab('smart-analysis')" id="tab-smart-analysis">
+                🧠 Smart Analysis
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Tab Content: All Recommendations -->
+<div id="all-recommendations-content" class="tab-content">
 {% if all_recommendations %}
 <div class="card">
     <h2 style="margin-bottom: 1.5rem; color: #333;">
@@ -145,6 +200,40 @@
     </div>
 </div>
 {% endif %}
+</div>
+
+<!-- Tab Content: Smart Analysis -->
+<div id="smart-analysis-content" class="tab-content" style="display: none;">
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="color: #333; margin: 0;">🧠 Portfolio-Aware Smart Analysis</h2>
+            <button class="btn" style="background-color: #667eea;" onclick="generateSmartAnalysis()">
+                Generate Analysis
+            </button>
+        </div>
+        
+        <div id="smart-analysis-results" style="display: none;">
+            <!-- Smart analysis results will be loaded here -->
+        </div>
+        
+        <div id="smart-analysis-placeholder" style="text-align: center; padding: 3rem; color: #6c757d;">
+            <h3 style="margin-bottom: 1rem;">Portfolio-Aware AI Analysis</h3>
+            <p style="margin-bottom: 2rem;">
+                Get intelligent, personalized recommendations based on your current holdings:
+            </p>
+            <ul style="text-align: left; max-width: 500px; margin: 0 auto 2rem auto; color: #555;">
+                <li>✅ <strong>Portfolio Context</strong> - Only relevant SELL recommendations for stocks you own</li>
+                <li>✅ <strong>Consolidated Analysis</strong> - Multiple advisor opinions per stock</li>
+                <li>✅ <strong>Cost Basis Awareness</strong> - Factors in your average purchase prices</li>
+                <li>✅ <strong>Intelligent Ranking</strong> - Best opportunities prioritized</li>
+                <li>✅ <strong>Actionable Insights</strong> - Tailored to your specific portfolio</li>
+            </ul>
+            <button class="btn" style="background-color: #28a745; font-size: 1.1rem; padding: 0.75rem 2rem;" onclick="generateSmartAnalysis()">
+                🧠 Generate Smart Analysis
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- Quick Actions -->
 <div class="card">
@@ -293,6 +382,78 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// Tab functionality
+function showTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.style.display = 'none';
+    });
+    
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabName + '-content').style.display = 'block';
+    
+    // Add active class to selected tab button
+    document.getElementById('tab-' + tabName).classList.add('active');
+}
+
+// Smart Analysis functionality
+function generateSmartAnalysis() {
+    const placeholder = document.getElementById('smart-analysis-placeholder');
+    const results = document.getElementById('smart-analysis-results');
+    
+    // Show loading state
+    placeholder.innerHTML = `
+        <div style="text-align: center; padding: 3rem;">
+            <h3 style="color: #667eea;">🧠 Analyzing Your Portfolio...</h3>
+            <p style="color: #6c757d;">Processing AI recommendations with portfolio context</p>
+            <div style="margin: 2rem 0;">
+                <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            </div>
+        </div>
+    `;
+    
+    // Make AJAX request to get smart analysis
+    fetch('/recommendations/smart-analysis/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            placeholder.style.display = 'none';
+            results.innerHTML = data.html;
+            results.style.display = 'block';
+        } else {
+            placeholder.innerHTML = `
+                <div style="text-align: center; padding: 3rem; color: #dc3545;">
+                    <h3>Analysis Failed</h3>
+                    <p>${data.error || 'Unknown error occurred'}</p>
+                    <button class="btn" onclick="generateSmartAnalysis()">Try Again</button>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        placeholder.innerHTML = `
+            <div style="text-align: center; padding: 3rem; color: #dc3545;">
+                <h3>Connection Error</h3>
+                <p>Unable to generate analysis. Please try again.</p>
+                <button class="btn" onclick="generateSmartAnalysis()">Try Again</button>
+            </div>
+        `;
+    });
+}
+
 // Sell Modal Functions
 function openSellFromRecommendationsModal(symbol, name, currentPrice, targetPrice) {
     // First check if user owns the stock
@@ -359,6 +520,60 @@ document.getElementById('sellRecModal').addEventListener('click', function(e) {
         closeSellRecModal();
     }
 });
+
+// Advisor Details Modal Functions
+function showAdvisorDetails(symbol) {
+    const modal = document.getElementById('advisorDetailsModal');
+    const content = document.getElementById('advisorDetailsContent');
+    
+    // Show loading state
+    content.innerHTML = `
+        <div style="text-align: center; padding: 3rem;">
+            <h3 style="color: #667eea;">🔍 Loading Advisor Details...</h3>
+            <div style="margin: 2rem 0;">
+                <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            </div>
+        </div>
+    `;
+    
+    modal.style.display = 'block';
+    
+    // Fetch advisor details
+    fetch(`/recommendations/advisor-details/${symbol}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                content.innerHTML = data.html;
+            } else {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: #dc3545;">
+                        <h3>Error Loading Details</h3>
+                        <p>${data.error || 'Unknown error occurred'}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            content.innerHTML = `
+                <div style="text-align: center; padding: 3rem; color: #dc3545;">
+                    <h3>Connection Error</h3>
+                    <p>Unable to load advisor details. Please try again.</p>
+                </div>
+            `;
+        });
+}
+
+function closeAdvisorDetailsModal() {
+    document.getElementById('advisorDetailsModal').style.display = 'none';
+}
+
+// Close details modal when clicking outside
+document.getElementById('advisorDetailsModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeAdvisorDetailsModal();
+    }
+});
 </script>
 
 <!-- Sell Modal -->
@@ -422,6 +637,20 @@ document.getElementById('sellRecModal').addEventListener('click', function(e) {
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Advisor Details Modal -->
+<div id="advisorDetailsModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div style="background-color: white; margin: 5% auto; padding: 2rem; width: 90%; max-width: 800px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="color: #333; margin: 0;">🔍 Advisor Analysis Details</h2>
+            <button onclick="closeAdvisorDetailsModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6c757d;">&times;</button>
+        </div>
+        
+        <div id="advisorDetailsContent">
+            <!-- Content will be loaded here -->
+        </div>
     </div>
 </div>
 

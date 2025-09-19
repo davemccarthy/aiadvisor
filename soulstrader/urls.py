@@ -31,6 +31,8 @@ urlpatterns = [
     # Recommendation actions
     path('recommendations/buy-now/', views.buy_from_recommendations_view, name='buy_from_recommendations'),
     path('recommendations/sell-now/', views.sell_from_recommendations_view, name='sell_from_recommendations'),
+    path('recommendations/smart-analysis/', views.smart_analysis_view, name='smart_analysis'),
+    path('recommendations/advisor-details/<str:symbol>/', views.advisor_details_view, name='advisor_details'),
     path('recommendations/buy/<uuid:recommendation_id>/', views.quick_buy_from_recommendation, name='quick_buy_from_recommendation'),
     path('recommendations/sell/<uuid:recommendation_id>/', views.quick_sell_from_recommendation, name='quick_sell_from_recommendation'),
     

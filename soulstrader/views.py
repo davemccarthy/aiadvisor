@@ -26,7 +26,10 @@ def home(request):
     # Get some basic stats
     total_stocks = Stock.objects.filter(is_active=True).count()
     total_users = UserProfile.objects.count()
-    total_recommendations = AIRecommendation.objects.filter(is_active=True).count()
+    # Count both legacy and new advisor recommendations
+    legacy_recommendations = AIRecommendation.objects.filter(is_active=True).count()
+    advisor_recommendations = AIAdvisorRecommendation.objects.filter(status='ACTIVE').count()
+    total_recommendations = legacy_recommendations + advisor_recommendations
     
     # Get recent recommendations for display
     recent_recommendations = AIRecommendation.objects.filter(
@@ -953,3 +956,511 @@ def sell_from_recommendations_view(request):
             messages.error(request, f'An error occurred: {str(e)}')
     
     return redirect('soulstrader:recommendations')
+# Smart Analysis Functions for SOULTRADER
+# These will be added to views.py
+
+@login_required
+def smart_analysis_view(request):
+    """Generate portfolio-aware smart analysis"""
+    from django.http import JsonResponse
+    from datetime import timedelta
+    
+    if request.method == 'POST':
+        try:
+            portfolio = get_object_or_404(Portfolio, user=request.user)
+            
+            # Get all recent AI recommendations
+            recent_recommendations = AIAdvisorRecommendation.objects.filter(
+                status='ACTIVE',
+                created_at__gte=timezone.now() - timedelta(days=7)  # Last 7 days
+            ).select_related('stock', 'advisor')
+            
+            # Get user's current holdings
+            user_holdings = {
+                holding.stock.symbol: holding 
+                for holding in portfolio.holdings.select_related('stock').all()
+            }
+            
+            # Process recommendations with portfolio awareness
+            smart_analysis = process_smart_analysis(recent_recommendations, user_holdings, portfolio)
+            
+            # Generate HTML for the results
+            analysis_html = render_smart_analysis_html(smart_analysis, user_holdings)
+            
+            return JsonResponse({
+                'success': True,
+                'html': analysis_html
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'Analysis failed: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+def process_smart_analysis(recommendations, user_holdings, portfolio):
+    """Process AI recommendations with portfolio awareness"""
+    stock_analysis = {}
+    
+    for rec in recommendations:
+        symbol = rec.stock.symbol
+        
+        # Initialize stock analysis if not exists
+        if symbol not in stock_analysis:
+            stock_analysis[symbol] = {
+                'stock': rec.stock,
+                'recommendations': [],
+                'user_holding': user_holdings.get(symbol),
+                'consensus_score': 0,
+                'action_priority': 0,
+                'reasoning': []
+            }
+        
+        # Apply portfolio-aware filtering
+        holding = user_holdings.get(symbol)
+        
+        # Filter SELL recommendations for stocks not owned
+        if rec.recommendation_type in ['SELL', 'STRONG_SELL'] and not holding:
+            continue  # Skip SELL recommendations for stocks not owned
+        
+        # Add recommendation to analysis
+        stock_analysis[symbol]['recommendations'].append(rec)
+    
+    # Calculate consensus and ranking for each stock
+    for symbol, analysis in stock_analysis.items():
+        if not analysis['recommendations']:
+            continue
+            
+        # Calculate consensus score
+        total_score = 0
+        total_weight = 0
+        buy_votes = 0
+        sell_votes = 0
+        
+        for rec in analysis['recommendations']:
+            # Convert recommendation to numeric score
+            score_map = {
+                'STRONG_SELL': -2, 'SELL': -1, 'HOLD': 0, 'BUY': 1, 'STRONG_BUY': 2
+            }
+            confidence_weight = {
+                'LOW': 0.5, 'MEDIUM': 1.0, 'HIGH': 1.5, 'VERY_HIGH': 2.0
+            }
+            
+            rec_score = score_map.get(rec.recommendation_type, 0)
+            weight = confidence_weight.get(rec.confidence_level, 1.0)
+            
+            total_score += rec_score * weight
+            total_weight += weight
+            
+            if rec_score > 0:
+                buy_votes += 1
+            elif rec_score < 0:
+                sell_votes += 1
+        
+        # Calculate weighted consensus
+        analysis['consensus_score'] = total_score / total_weight if total_weight > 0 else 0
+        analysis['buy_votes'] = buy_votes
+        analysis['sell_votes'] = sell_votes
+        analysis['total_advisors'] = len(analysis['recommendations'])
+        
+        # Calculate action priority based on consensus strength and portfolio context
+        holding = analysis['user_holding']
+        consensus = float(analysis['consensus_score'])  # Convert to float for calculations
+        
+        if holding and consensus < -0.5:  # Strong sell consensus for owned stock
+            analysis['action_priority'] = abs(consensus) * 100  # High priority to sell
+            analysis['action_type'] = 'SELL'
+        elif not holding and consensus > 0.5:  # Strong buy consensus for unowned stock
+            analysis['action_priority'] = consensus * 100  # High priority to buy
+            analysis['action_type'] = 'BUY'
+        elif holding and consensus > 0.5:  # Buy more of owned stock
+            # Factor in current performance
+            current_price = float(holding.stock.current_price)
+            avg_price = float(holding.average_price)
+            current_return = ((current_price - avg_price) / avg_price) * 100
+            if current_return > 10:  # Already profitable
+                analysis['action_priority'] = consensus * 50  # Lower priority
+            else:
+                analysis['action_priority'] = consensus * 75  # Medium priority
+            analysis['action_type'] = 'BUY_MORE'
+        else:
+            analysis['action_priority'] = 0
+            analysis['action_type'] = 'HOLD'
+    
+    # Sort by action priority (highest first)
+    sorted_analysis = sorted(
+        [(symbol, data) for symbol, data in stock_analysis.items() if data['recommendations']],
+        key=lambda x: x[1]['action_priority'],
+        reverse=True
+    )
+    
+    return sorted_analysis
+
+
+def render_smart_analysis_html(analysis_data, user_holdings):
+    """Render smart analysis results as HTML"""
+    if not analysis_data:
+        return """
+        <div style="text-align: center; padding: 3rem; color: #6c757d;">
+            <h3>No Actionable Recommendations</h3>
+            <p>No portfolio-relevant recommendations found in recent AI analysis.</p>
+        </div>
+        """
+    
+    html = f"""
+    <div style="margin-bottom: 1rem; padding: 1rem; background-color: #e8f4fd; border-radius: 4px;">
+        <h3 style="color: #667eea; margin-bottom: 0.5rem;">📊 Smart Analysis Results</h3>
+        <p style="color: #6c757d; margin: 0;">
+            Analyzed {len(analysis_data)} stocks with portfolio context. 
+            Ranked by action priority and filtered for relevance.
+        </p>
+    </div>
+    
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Stock</th>
+                    <th>Your Position</th>
+                    <th>AI Consensus</th>
+                    <th>Priority Score</th>
+                    <th>Advisors</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+    
+    for rank, (symbol, analysis) in enumerate(analysis_data, 1):
+        stock = analysis['stock']
+        holding = analysis['user_holding']
+        consensus = analysis['consensus_score']
+        action_type = analysis['action_type']
+        priority = analysis['action_priority']
+        
+        # Position info
+        if holding:
+            position_info = f"{holding.quantity} shares @ ${holding.average_price:.2f}"
+            current_price = float(stock.current_price)
+            avg_price = float(holding.average_price)
+            current_return = ((current_price - avg_price) / avg_price) * 100
+            position_color = "positive" if current_return >= 0 else "negative"
+            position_return = f"({current_return:+.1f}%)"
+        else:
+            position_info = "Not owned"
+            position_color = "neutral"
+            position_return = ""
+        
+        # Action styling
+        action_colors = {
+            'BUY': '#28a745', 'BUY_MORE': '#17a2b8', 'SELL': '#dc3545', 'HOLD': '#6c757d'
+        }
+        action_color = action_colors.get(action_type, '#6c757d')
+        
+        # Consensus display
+        if consensus > 0.5:
+            consensus_text = f"Strong Buy ({consensus:.2f})"
+            consensus_color = "#28a745"
+        elif consensus > 0:
+            consensus_text = f"Buy ({consensus:.2f})"
+            consensus_color = "#28a745"
+        elif consensus < -0.5:
+            consensus_text = f"Strong Sell ({consensus:.2f})"
+            consensus_color = "#dc3545"
+        elif consensus < 0:
+            consensus_text = f"Sell ({consensus:.2f})"
+            consensus_color = "#dc3545"
+        else:
+            consensus_text = f"Hold ({consensus:.2f})"
+            consensus_color = "#6c757d"
+        
+        # Generate action button based on recommendation
+        current_price_float = float(stock.current_price)
+        target_price_buy = current_price_float * 1.05
+        target_price_sell = current_price_float * 0.95
+        
+        # Create action buttons with Details button
+        details_button = f'''
+            <button class="btn" 
+                    style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #667eea; border: none; cursor: pointer; color: white; margin-right: 0.5rem;"
+                    onclick="showAdvisorDetails('{symbol}')">
+                Details
+            </button>
+        '''
+        
+        if action_type == 'BUY':
+            action_button = f'''
+                {details_button}
+                <button class="btn" 
+                        style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #28a745; border: none; cursor: pointer; color: white;"
+                        onclick="openBuyModal('{symbol}', '{stock.name}', {current_price_float}, {target_price_buy})">
+                    Buy Now
+                </button>
+            '''
+        elif action_type == 'BUY_MORE':
+            action_button = f'''
+                {details_button}
+                <button class="btn" 
+                        style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #17a2b8; border: none; cursor: pointer; color: white;"
+                        onclick="openBuyModal('{symbol}', '{stock.name}', {current_price_float}, {target_price_buy})">
+                    Buy More
+                </button>
+            '''
+        elif action_type == 'SELL':
+            action_button = f'''
+                {details_button}
+                <button class="btn" 
+                        style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #dc3545; border: none; cursor: pointer; color: white;"
+                        onclick="openSellFromRecommendationsModal('{symbol}', '{stock.name}', {current_price_float}, {target_price_sell})">
+                    Sell Now
+                </button>
+            '''
+        else:
+            action_button = f'''
+                {details_button}
+                <span style="color: #6c757d; font-style: italic;">Hold</span>
+            '''
+        
+        html += f"""
+                <tr>
+                    <td><strong>#{rank}</strong></td>
+                    <td>
+                        <strong>{symbol}</strong><br>
+                        <small>{stock.name[:30]}</small><br>
+                        <small style="color: #6c757d;">${stock.current_price:.2f}</small>
+                    </td>
+                    <td>
+                        <span class="{position_color}">{position_info}</span><br>
+                        <small class="{position_color}">{position_return}</small>
+                    </td>
+                    <td>
+                        <span style="color: {consensus_color}; font-weight: bold;">{consensus_text}</span><br>
+                        <small>{analysis['buy_votes']} buy, {analysis['sell_votes']} sell</small>
+                    </td>
+                    <td>
+                        <span style="color: #667eea; font-weight: bold;">{priority:.0f}</span>
+                    </td>
+                    <td>{analysis['total_advisors']} advisors</td>
+                    <td>{action_button}</td>
+                </tr>
+        """
+    
+    html += """
+            </tbody>
+        </table>
+    </div>
+    
+    <div style="margin-top: 2rem; padding: 1rem; background-color: #f8f9fa; border-radius: 4px;">
+        <h4 style="color: #333; margin-bottom: 1rem;">💡 How to Read This Analysis:</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; font-size: 0.9rem; color: #555;">
+            <div><strong>Rank:</strong> Priority order for action</div>
+            <div><strong>Your Position:</strong> Current holdings and performance</div>
+            <div><strong>AI Consensus:</strong> Weighted advisor agreement</div>
+            <div><strong>Action:</strong> Recommended next step</div>
+            <div><strong>Priority Score:</strong> Urgency/importance rating</div>
+        </div>
+    </div>
+    """
+    
+    return html
+
+
+@login_required
+def advisor_details_view(request, symbol):
+    """Get detailed advisor breakdown for a specific stock"""
+    from django.http import JsonResponse
+    from datetime import timedelta
+    import traceback
+    
+    try:
+        stock = get_object_or_404(Stock, symbol=symbol.upper())
+        portfolio = get_object_or_404(Portfolio, user=request.user)
+        
+        # Get recent recommendations for this stock
+        recommendations = AIAdvisorRecommendation.objects.filter(
+            stock=stock,
+            status='ACTIVE',
+            created_at__gte=timezone.now() - timedelta(days=7)
+        ).select_related('advisor').order_by('-confidence_score')
+        
+        # Get user's holding if any
+        user_holding = None
+        try:
+            user_holding = portfolio.holdings.get(stock=stock)
+        except Holding.DoesNotExist:
+            pass
+        
+        # Generate detailed HTML
+        try:
+            details_html = render_advisor_details_html(stock, recommendations, user_holding)
+        except Exception as html_error:
+            return JsonResponse({
+                'success': False,
+                'error': f'HTML generation error: {str(html_error)}'
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'html': details_html
+        })
+        
+    except Exception as e:
+        # Get full traceback for debugging
+        error_details = traceback.format_exc()
+        return JsonResponse({
+            'success': False,
+            'error': f'Error loading advisor details: {str(e)}',
+            'traceback': error_details
+        })
+
+
+def render_advisor_details_html(stock, recommendations, user_holding):
+    """Render detailed advisor analysis as HTML"""
+    
+    # Stock and position info
+    position_info = ""
+    if user_holding:
+        current_price = float(stock.current_price)
+        avg_price = float(user_holding.average_price)
+        current_return = ((current_price - avg_price) / avg_price) * 100
+        position_color = "positive" if current_return >= 0 else "negative"
+        position_info = f"""
+        <div style="padding: 1rem; background-color: #f8f9fa; border-radius: 4px; margin-bottom: 1.5rem;">
+            <h4 style="color: #333; margin-bottom: 0.5rem;">💼 Your Position</h4>
+            <p style="margin: 0;">
+                <strong>{user_holding.quantity} shares</strong> @ ${avg_price:.2f} average
+                <span class="{position_color}" style="margin-left: 1rem;">({current_return:+.1f}%)</span>
+            </p>
+            <p style="margin: 0.5rem 0 0 0; color: #6c757d;">
+                Current value: ${user_holding.current_value:.2f}
+            </p>
+        </div>
+        """
+    else:
+        position_info = f"""
+        <div style="padding: 1rem; background-color: #f8f9fa; border-radius: 4px; margin-bottom: 1.5rem;">
+            <h4 style="color: #333; margin-bottom: 0.5rem;">💼 Your Position</h4>
+            <p style="margin: 0; color: #6c757d;">
+                You do not currently own {stock.symbol} shares
+            </p>
+        </div>
+        """
+    
+    html = f"""
+    <div style="margin-bottom: 1.5rem;">
+        <h3 style="color: #667eea; margin-bottom: 0.5rem;">{stock.symbol} - {stock.name}</h3>
+        <p style="color: #6c757d; margin: 0;">
+            Current Price: <strong>${stock.current_price:.2f}</strong> | 
+            Sector: {stock.sector} | 
+            {recommendations.count()} advisor recommendations
+        </p>
+    </div>
+    
+    {position_info}
+    
+    <h4 style="color: #333; margin-bottom: 1rem;">🤖 Individual Advisor Recommendations</h4>
+    """
+    
+    if recommendations:
+        for rec in recommendations:
+            # Recommendation styling
+            rec_colors = {
+                'STRONG_BUY': '#28a745', 'BUY': '#28a745', 'HOLD': '#6c757d', 
+                'SELL': '#dc3545', 'STRONG_SELL': '#dc3545'
+            }
+            rec_color = rec_colors.get(rec.recommendation_type, '#6c757d')
+            
+            confidence_colors = {
+                'VERY_HIGH': '#28a745', 'HIGH': '#28a745', 'MEDIUM': '#ffc107', 'LOW': '#dc3545'
+            }
+            conf_color = confidence_colors.get(rec.confidence_level, '#6c757d')
+            
+            html += f"""
+            <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; background-color: #fafafa;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div>
+                        <h5 style="margin: 0; color: #333;">{rec.advisor.name}</h5>
+                        <small style="color: #6c757d;">{rec.advisor.get_advisor_type_display()}</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 1.1rem; font-weight: bold; color: {rec_color};">
+                            {rec.get_recommendation_type_display()}
+                        </div>
+                        <div style="font-size: 0.9rem; color: {conf_color};">
+                            {rec.get_confidence_level_display()} ({rec.confidence_score:.2f})
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <strong>Target Price:</strong><br>
+                        <span style="color: #28a745;">{'$' + str(rec.target_price) if rec.target_price else 'N/A'}</span>
+                    </div>
+                    <div>
+                        <strong>Stop Loss:</strong><br>
+                        <span style="color: #dc3545;">{'$' + str(rec.stop_loss) if rec.stop_loss else 'N/A'}</span>
+                    </div>
+                    <div>
+                        <strong>Processing Time:</strong><br>
+                        <span style="color: #6c757d;">{float(rec.processing_time or 0):.2f}s</span>
+                    </div>
+                    <div>
+                        <strong>Created:</strong><br>
+                        <span style="color: #6c757d;">{rec.created_at.strftime('%m/%d %H:%M')}</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <strong>AI Reasoning:</strong>
+                    <div style="margin-top: 0.5rem; padding: 1rem; background-color: white; border-radius: 4px; border-left: 4px solid {rec_color};">
+                        <p style="margin: 0; color: #555; line-height: 1.5; font-size: 0.95rem;">
+                            {rec.reasoning[:500]}{'...' if len(rec.reasoning) > 500 else ''}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            """
+        
+        # Add consensus summary
+        total_recs = recommendations.count()
+        buy_count = recommendations.filter(recommendation_type__in=['BUY', 'STRONG_BUY']).count()
+        sell_count = recommendations.filter(recommendation_type__in=['SELL', 'STRONG_SELL']).count()
+        hold_count = recommendations.filter(recommendation_type='HOLD').count()
+        
+        html += f"""
+        <div style="margin-top: 2rem; padding: 1.5rem; background-color: #e8f4fd; border-radius: 8px;">
+            <h4 style="color: #667eea; margin-bottom: 1rem;">📊 Consensus Summary</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; text-align: center;">
+                <div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">{buy_count}</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">Buy Votes</div>
+                </div>
+                <div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #6c757d;">{hold_count}</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">Hold Votes</div>
+                </div>
+                <div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #dc3545;">{sell_count}</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">Sell Votes</div>
+                </div>
+                <div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">{total_recs}</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">Total Advisors</div>
+                </div>
+            </div>
+        </div>
+        """
+    else:
+        html += """
+        <div style="text-align: center; padding: 3rem; color: #6c757d;">
+            <h4>No Recent Recommendations</h4>
+            <p>No advisor recommendations found for this stock in the last 7 days.</p>
+        </div>
+        """
+    
+    return html
