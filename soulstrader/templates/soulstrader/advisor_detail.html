@@ -1,0 +1,228 @@
+{% extends 'soulstrader/base.html' %}
+
+{% block title %}{{ advisor.name }} - AI Advisors - SOULTRADER{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="color: #667eea; margin-bottom: 1rem;">🤖 {{ advisor.name }}</h1>
+    <p style="color: #6c757d; margin-bottom: 2rem;">{{ advisor.description }}</p>
+    
+    <!-- Advisor Summary -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_recommendations }}</div>
+            <div class="stat-label">Total Recommendations</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number {% if advisor.success_rate >= 60 %}positive{% elif advisor.success_rate >= 40 %}neutral{% else %}negative{% endif %}">
+                {{ advisor.success_rate|floatformat:1 }}%
+            </div>
+            <div class="stat-label">Success Rate</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ recent_recommendations_count }}</div>
+            <div class="stat-label">Recent (30 days)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ advisor.weight }}</div>
+            <div class="stat-label">Voting Weight</div>
+        </div>
+    </div>
+</div>
+
+<!-- Advisor Configuration -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Configuration</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">Status</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">
+                <span style="
+                    {% if advisor.status == 'ACTIVE' and advisor.is_enabled %}color: #28a745; font-weight: bold;
+                    {% elif advisor.status == 'LIMITED' %}color: #ffc107; font-weight: bold;
+                    {% elif advisor.status == 'ERROR' %}color: #dc3545; font-weight: bold;
+                    {% else %}color: #6c757d; font-weight: bold;
+                    {% endif %}
+                ">
+                    {% if advisor.is_enabled %}
+                        {{ advisor.get_status_display }}
+                    {% else %}
+                        Disabled
+                    {% endif %}
+                </span>
+            </p>
+        </div>
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">API Usage</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">
+                {% if advisor.is_enabled %}
+                    {{ advisor.daily_calls_remaining }}/{{ advisor.rate_limit_per_day }} calls remaining
+                {% else %}
+                    Not active
+                {% endif %}
+            </p>
+        </div>
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">Last Active</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">
+                {% if advisor.last_api_call %}
+                    {{ advisor.last_api_call|timesince }} ago
+                {% else %}
+                    Never
+                {% endif %}
+            </p>
+        </div>
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 0.5rem;">Type</h4>
+            <p style="color: #6c757d; font-size: 0.9rem;">
+                {{ advisor.get_advisor_type_display }}
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Options -->
+{% if recommendations %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Recommendations</h2>
+    
+    <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;">
+        <div>
+            <label for="type-filter" style="font-weight: 500; margin-right: 0.5rem;">Filter by Type:</label>
+            <select id="type-filter" onchange="filterRecommendations()" style="padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                <option value="">All Types</option>
+                {% for value, label in recommendation_types %}
+                    <option value="{{ value }}" {% if current_filters.type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="status-filter" style="font-weight: 500; margin-right: 0.5rem;">Filter by Status:</label>
+            <select id="status-filter" onchange="filterRecommendations()" style="padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
+                <option value="">All Statuses</option>
+                {% for value, label in recommendation_statuses %}
+                    <option value="{{ value }}" {% if current_filters.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <a href="{% url 'soulstrader:advisor_detail' advisor.id %}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Clear Filters</a>
+        </div>
+    </div>
+    
+    <!-- Recommendations Table -->
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Stock</th>
+                    <th>Recommendation</th>
+                    <th>Confidence</th>
+                    <th>Target Price</th>
+                    <th>Current Return</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rec in recommendations %}
+                <tr>
+                    <td>
+                        <strong><a href="{% url 'soulstrader:stock_detail' rec.stock.symbol %}" style="color: #667eea; text-decoration: none;">{{ rec.stock.symbol }}</a></strong><br>
+                        <small>{{ rec.stock.name|truncatechars:30 }}</small>
+                    </td>
+                    <td>
+                        <span class="{% if rec.recommendation_type == 'BUY' or rec.recommendation_type == 'STRONG_BUY' %}positive{% elif rec.recommendation_type == 'SELL' or rec.recommendation_type == 'STRONG_SELL' %}negative{% endif %}">
+                            {{ rec.get_recommendation_type_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {{ rec.get_confidence_level_display }}<br>
+                        <small>({{ rec.confidence_score|floatformat:2 }})</small>
+                    </td>
+                    <td>
+                        {% if rec.target_price %}
+                            ${{ rec.target_price|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if rec.current_return %}
+                            <span class="{% if rec.current_return >= 0 %}positive{% else %}negative{% endif %}">
+                                {{ rec.current_return|floatformat:2 }}%
+                            </span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="
+                            {% if rec.status == 'ACTIVE' %}color: #28a745; font-weight: bold;
+                            {% elif rec.status == 'EXECUTED' %}color: #17a2b8; font-weight: bold;
+                            {% elif rec.status == 'EXPIRED' %}color: #6c757d; font-weight: bold;
+                            {% else %}color: #ffc107; font-weight: bold;
+                            {% endif %}
+                        ">
+                            {{ rec.get_status_display }}
+                        </span>
+                    </td>
+                    <td>{{ rec.created_at|date:"M d, H:i" }}</td>
+                    <td>
+                        <a href="{% url 'soulstrader:stock_detail' rec.stock.symbol %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #667eea; border: none; cursor: pointer; color: white; text-decoration: none;">
+                            View Stock
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">No Recommendations</h2>
+    <div style="text-align: center; padding: 3rem; color: #6c757d;">
+        <h3 style="margin-bottom: 1rem;">No recommendations from this advisor yet</h3>
+        <p style="margin-bottom: 2rem;">This advisor hasn't generated any recommendations yet.</p>
+        <a href="{% url 'soulstrader:ai_advisors_dashboard' %}" class="btn">Back to AI Advisors</a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">Actions</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'soulstrader:ai_advisors_dashboard' %}" class="btn btn-secondary">Back to AI Advisors</a>
+        <a href="{% url 'soulstrader:recommendations' %}" class="btn">View All Recommendations</a>
+        {% if advisor.is_enabled %}
+            <button class="btn" style="background-color: #28a745;" onclick="getAdvisorRecommendations('{{ advisor.advisor_type }}')">Get New Recommendations</button>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function filterRecommendations() {
+    const typeFilter = document.getElementById('type-filter').value;
+    const statusFilter = document.getElementById('status-filter').value;
+    
+    let url = '{% url "soulstrader:advisor_detail" advisor.id %}';
+    const params = new URLSearchParams();
+    
+    if (typeFilter) params.append('type', typeFilter);
+    if (statusFilter) params.append('status', statusFilter);
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+    
+    window.location.href = url;
+}
+
+function getAdvisorRecommendations(advisorType) {
+    alert(`Feature coming soon! Use management command for now:\npython manage.py get_ai_recommendations --symbol AAPL`);
+}
+</script>
+{% endblock %}
