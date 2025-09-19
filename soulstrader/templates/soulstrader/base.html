@@ -245,7 +245,9 @@
                     <a href="{% url 'soulstrader:ai_advisors_dashboard' %}" {% if current_page == 'ai_advisors' %}class="active"{% endif %}>Advisors</a>
                     <a href="{% url 'soulstrader:profile' %}" {% if current_page == 'profile' %}class="active"{% endif %}>Profile</a>
                 {% else %}
-                    <a href="{% url 'soulstrader:home' %}" {% if current_page == 'home' %}class="active"{% endif %}>Home</a>
+                    {% if current_page != 'home' %}
+                        <a href="{% url 'soulstrader:home' %}" {% if current_page == 'home' %}class="active"{% endif %}>Home</a>
+                    {% endif %}
                 {% endif %}
             </nav>
             
