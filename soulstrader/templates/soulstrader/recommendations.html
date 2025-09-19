@@ -33,11 +33,15 @@
     </div>
 </div>
 
-{% if recommendations %}
+{% if all_recommendations %}
 <div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">Your AI Recommendations ({{ recommendations|length }} found)</h2>
+    <h2 style="margin-bottom: 1.5rem; color: #333;">
+        AI Recommendations ({{ total_count }} found)
+        {% if advisor_count > 0 %}<span style="color: #28a745;">• {{ advisor_count }} from AI Advisors</span>{% endif %}
+        {% if legacy_count > 0 %}<span style="color: #17a2b8;">• {{ legacy_count }} Personal</span>{% endif %}
+    </h2>
     
-    {% for rec in recommendations %}
+    {% for rec in all_recommendations %}
     <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; background-color: #f8f9fa;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
             <div>
@@ -53,11 +57,14 @@
             <div style="text-align: right;">
                 <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem;">
                     <span class="{% if rec.recommendation_type == 'BUY' or rec.recommendation_type == 'STRONG_BUY' %}positive{% elif rec.recommendation_type == 'SELL' or rec.recommendation_type == 'STRONG_SELL' %}negative{% endif %}">
-                        {{ rec.get_recommendation_type_display }}
+                        {{ rec.recommendation_type|capfirst }}
                     </span>
                 </div>
                 <div style="color: #6c757d; font-size: 0.9rem;">
-                    {{ rec.get_confidence_level_display }} Confidence
+                    {{ rec.confidence_level|capfirst }} Confidence ({{ rec.confidence_score }})
+                </div>
+                <div style="color: #28a745; font-size: 0.8rem; font-weight: 500;">
+                    by {{ rec.advisor_name }}
                 </div>
             </div>
         </div>
@@ -69,11 +76,11 @@
             </div>
             <div>
                 <strong>Target Price:</strong><br>
-                <span style="color: #28a745; font-size: 1.1rem;">${{ rec.target_price|floatformat:2|default:"N/A" }}</span>
+                <span style="color: #28a745; font-size: 1.1rem;">${{ rec.recommendation.target_price|floatformat:2|default:"N/A" }}</span>
             </div>
             <div>
                 <strong>Stop Loss:</strong><br>
-                <span style="color: #dc3545; font-size: 1.1rem;">${{ rec.stop_loss|floatformat:2|default:"N/A" }}</span>
+                <span style="color: #dc3545; font-size: 1.1rem;">${{ rec.recommendation.stop_loss|floatformat:2|default:"N/A" }}</span>
             </div>
             <div>
                 <strong>Confidence Score:</strong><br>
@@ -88,21 +95,25 @@
         
         <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between;">
             <div style="font-size: 0.9rem; color: #6c757d;">
-                <strong>Risk Level:</strong> {{ rec.user_risk_level }} • 
+                <strong>Advisor:</strong> {{ rec.advisor_name }} • 
                 <strong>Created:</strong> {{ rec.created_at|date:"M d, Y H:i" }}
-                {% if rec.expires_at %}
-                    • <strong>Expires:</strong> {{ rec.expires_at|date:"M d, Y" }}
+                {% if rec.recommendation.expires_at %}
+                    • <strong>Expires:</strong> {{ rec.recommendation.expires_at|date:"M d, Y" }}
                 {% endif %}
             </div>
             <div style="display: flex; gap: 0.5rem;">
                 {% if rec.recommendation_type == 'BUY' or rec.recommendation_type == 'STRONG_BUY' %}
-                    <a href="{% url 'soulstrader:quick_buy_from_recommendation' rec.id %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #28a745;">
-                        Buy Stock
-                    </a>
+                    <button class="btn" 
+                            style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #28a745; border: none; cursor: pointer;"
+                            onclick="openBuyModal('{{ rec.stock.symbol }}', '{{ rec.stock.name }}', {{ rec.stock.current_price }}, {{ rec.recommendation.target_price|default:rec.stock.current_price }})">
+                        Buy Now
+                    </button>
                 {% elif rec.recommendation_type == 'SELL' or rec.recommendation_type == 'STRONG_SELL' %}
-                    <a href="{% url 'soulstrader:quick_sell_from_recommendation' rec.id %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #dc3545;">
-                        Sell Stock
-                    </a>
+                    <button class="btn" 
+                            style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #dc3545; border: none; cursor: pointer;"
+                            onclick="openSellFromRecommendationsModal('{{ rec.stock.symbol }}', '{{ rec.stock.name }}', {{ rec.stock.current_price }}, {{ rec.recommendation.target_price|default:rec.stock.current_price }})">
+                        Sell Now
+                    </button>
                 {% else %}
                     <a href="{% url 'soulstrader:stock_detail' rec.stock.symbol %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
                         View Details
@@ -164,4 +175,254 @@ function filterRecommendations() {
     window.location.href = url;
 }
 </script>
+
+<!-- Buy Modal -->
+<div id="buyModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div style="background-color: white; margin: 10% auto; padding: 2rem; width: 90%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h2 style="margin-bottom: 1.5rem; color: #333;">Buy Shares</h2>
+        
+        <form id="buyForm" method="post" action="{% url 'soulstrader:buy_from_recommendations' %}">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Stock:</label>
+                <div style="padding: 0.5rem; background-color: #f8f9fa; border-radius: 4px;">
+                    <span id="buyStockName"></span> (<span id="buyStockSymbol"></span>)
+                </div>
+                <input type="hidden" id="buySymbol" name="symbol" />
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Current Price:</label>
+                <div style="padding: 0.5rem; background-color: #f8f9fa; border-radius: 4px;">
+                    $<span id="buyCurrentPrice"></span>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">AI Target Price:</label>
+                <div style="padding: 0.5rem; background-color: #e8f4fd; border-radius: 4px; color: #28a745;">
+                    $<span id="buyTargetPrice"></span>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="buyQuantity" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Shares to Buy:</label>
+                <input type="number" 
+                       id="buyQuantity" 
+                       name="quantity" 
+                       min="1" 
+                       value="10"
+                       style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"
+                       oninput="updateBuyEstimate()" />
+                <small style="color: #6c757d;">Available cash: $<span id="availableCash">{{ request.user.portfolio.current_capital|floatformat:2 }}</span></small>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem; padding: 1rem; background-color: #f8f4fd; border-radius: 4px;">
+                <strong>Estimated Cost:</strong>
+                <div style="font-size: 1.2rem; color: #667eea; font-weight: bold;">
+                    $<span id="estimatedCost">0.00</span>
+                </div>
+                <small style="color: #6c757d;">Including commission</small>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" 
+                        onclick="closeBuyModal()" 
+                        style="padding: 0.5rem 1rem; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        style="padding: 0.5rem 1rem; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Buy Shares
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let buyCurrentPrice = 0;
+const BUY_COMMISSION_RATE = 0.001; // 0.1%
+const BUY_MIN_COMMISSION = 1.00;   // Minimum $1
+
+function openBuyModal(symbol, name, currentPrice, targetPrice) {
+    document.getElementById('buyStockSymbol').textContent = symbol;
+    document.getElementById('buyStockName').textContent = name;
+    document.getElementById('buyCurrentPrice').textContent = currentPrice.toFixed(2);
+    document.getElementById('buyTargetPrice').textContent = targetPrice.toFixed(2);
+    document.getElementById('buySymbol').value = symbol;
+    document.getElementById('buyQuantity').value = 10; // Default to 10 shares
+    
+    buyCurrentPrice = currentPrice;
+    updateBuyEstimate();
+    
+    document.getElementById('buyModal').style.display = 'block';
+    document.getElementById('buyQuantity').focus();
+}
+
+function closeBuyModal() {
+    document.getElementById('buyModal').style.display = 'none';
+}
+
+function updateBuyEstimate() {
+    const quantity = parseInt(document.getElementById('buyQuantity').value) || 0;
+    
+    if (quantity > 0) {
+        const grossCost = quantity * buyCurrentPrice;
+        const commission = Math.max(grossCost * BUY_COMMISSION_RATE, BUY_MIN_COMMISSION);
+        const totalCost = grossCost + commission;
+        
+        document.getElementById('estimatedCost').textContent = totalCost.toFixed(2);
+    } else {
+        document.getElementById('estimatedCost').textContent = '0.00';
+    }
+}
+
+// Close modal when clicking outside
+document.getElementById('buyModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeBuyModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeBuyModal();
+    }
+});
+
+// Sell Modal Functions
+function openSellFromRecommendationsModal(symbol, name, currentPrice, targetPrice) {
+    // First check if user owns the stock
+    fetch(`/api/stock-info/${symbol}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.user_holding && data.user_holding.quantity > 0) {
+                // User owns the stock, open sell modal
+                document.getElementById('sellRecStockSymbol').textContent = symbol;
+                document.getElementById('sellRecStockName').textContent = name;
+                document.getElementById('sellRecCurrentPrice').textContent = currentPrice.toFixed(2);
+                document.getElementById('sellRecTargetPrice').textContent = targetPrice.toFixed(2);
+                document.getElementById('sellRecSymbol').value = symbol;
+                document.getElementById('sellRecQuantity').value = data.user_holding.quantity;
+                document.getElementById('sellRecQuantity').max = data.user_holding.quantity;
+                document.getElementById('sellRecMaxShares').textContent = data.user_holding.quantity;
+                
+                sellRecCurrentPrice = currentPrice;
+                updateSellRecEstimate();
+                
+                document.getElementById('sellRecModal').style.display = 'block';
+                document.getElementById('sellRecQuantity').focus();
+            } else {
+                // User doesn't own the stock
+                alert(`You don't own any ${symbol} shares to sell.`);
+            }
+        })
+        .catch(error => {
+            console.error('Error checking holdings:', error);
+            alert('Error checking your holdings. Please try again.');
+        });
+}
+
+function closeSellRecModal() {
+    document.getElementById('sellRecModal').style.display = 'none';
+}
+
+let sellRecCurrentPrice = 0;
+
+function updateSellRecEstimate() {
+    const quantity = parseInt(document.getElementById('sellRecQuantity').value) || 0;
+    const maxShares = parseInt(document.getElementById('sellRecMaxShares').textContent);
+    
+    // Validate quantity
+    if (quantity > maxShares) {
+        document.getElementById('sellRecQuantity').value = maxShares;
+        quantity = maxShares;
+    }
+    
+    if (quantity > 0) {
+        const grossProceeds = quantity * sellRecCurrentPrice;
+        const commission = Math.max(grossProceeds * BUY_COMMISSION_RATE, BUY_MIN_COMMISSION);
+        const netProceeds = grossProceeds - commission;
+        
+        document.getElementById('sellRecEstimatedProceeds').textContent = netProceeds.toFixed(2);
+    } else {
+        document.getElementById('sellRecEstimatedProceeds').textContent = '0.00';
+    }
+}
+
+// Close sell modal when clicking outside
+document.getElementById('sellRecModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeSellRecModal();
+    }
+});
+</script>
+
+<!-- Sell Modal -->
+<div id="sellRecModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div style="background-color: white; margin: 10% auto; padding: 2rem; width: 90%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h2 style="margin-bottom: 1.5rem; color: #333;">Sell Shares</h2>
+        
+        <form id="sellRecForm" method="post" action="{% url 'soulstrader:sell_from_recommendations' %}">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Stock:</label>
+                <div style="padding: 0.5rem; background-color: #f8f9fa; border-radius: 4px;">
+                    <span id="sellRecStockName"></span> (<span id="sellRecStockSymbol"></span>)
+                </div>
+                <input type="hidden" id="sellRecSymbol" name="symbol" />
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Current Price:</label>
+                <div style="padding: 0.5rem; background-color: #f8f9fa; border-radius: 4px;">
+                    $<span id="sellRecCurrentPrice"></span>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">AI Target Price:</label>
+                <div style="padding: 0.5rem; background-color: #fdf2f2; border-radius: 4px; color: #dc3545;">
+                    $<span id="sellRecTargetPrice"></span>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="sellRecQuantity" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Shares to Sell:</label>
+                <input type="number" 
+                       id="sellRecQuantity" 
+                       name="quantity" 
+                       min="1" 
+                       style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"
+                       oninput="updateSellRecEstimate()" />
+                <small style="color: #6c757d;">You own <span id="sellRecMaxShares"></span> shares</small>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem; padding: 1rem; background-color: #f8f4fd; border-radius: 4px;">
+                <strong>Estimated Proceeds:</strong>
+                <div style="font-size: 1.2rem; color: #667eea; font-weight: bold;">
+                    $<span id="sellRecEstimatedProceeds">0.00</span>
+                </div>
+                <small style="color: #6c757d;">Net after commission</small>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" 
+                        onclick="closeSellRecModal()" 
+                        style="padding: 0.5rem 1rem; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        style="padding: 0.5rem 1rem; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Sell Shares
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}

@@ -363,7 +363,7 @@ class Command(BaseCommand):
         
         for trade_data in sample_trades:
             # Use the trading service to place orders
-            trade = TradingService.place_order(
+            result = TradingService.place_order(
                 portfolio=portfolio,
                 stock=trade_data['stock'],
                 trade_type=trade_data['trade_type'],
@@ -373,7 +373,10 @@ class Command(BaseCommand):
                 notes=trade_data['notes']
             )
             
-            if trade:
+            if result['success']:
+                trade = result['trade']
                 self.stdout.write(f'Created trade: {trade}')
+            else:
+                self.stdout.write(f'Failed to create trade: {result["error"]}')
         
         self.stdout.write('Created sample trades')

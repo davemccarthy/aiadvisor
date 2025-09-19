@@ -38,12 +38,14 @@
         <table>
             <thead>
                 <tr>
+                    <th style="width: 50px;"></th>
                     <th>Stock</th>
+                    <th>Grade</th>
                     <th>Quantity</th>
-                    <th>Avg Price</th>
-                    <th>Current Price</th>
-                    <th>Current Value</th>
-                    <th>Unrealized P&L</th>
+                    <th>Avg</th>
+                    <th>Price</th>
+                    <th>Value</th>
+                    <th>P&L</th>
                     <th>P&L %</th>
                     <th>Actions</th>
                 </tr>
@@ -51,10 +53,42 @@
             <tbody>
                 {% for holding in holdings %}
                 <tr>
+                    <td style="text-align: center; padding: 0.5rem;">
+                        {% if holding.stock.logo_url %}
+                            <img src="{{ holding.stock.logo_url }}" 
+                                 alt="{{ holding.stock.symbol }} logo" 
+                                 style="width: 32px; height: 32px; border-radius: 4px; object-fit: contain;"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                            <div style="display: none; width: 32px; height: 32px; background-color: #f8f9fa; border-radius: 4px; 
+                                        line-height: 32px; text-align: center; font-size: 12px; color: #6c757d; font-weight: bold;">
+                                {{ holding.stock.symbol|slice:":2" }}
+                            </div>
+                        {% else %}
+                            <div style="width: 32px; height: 32px; background-color: #f8f9fa; border-radius: 4px; 
+                                        line-height: 32px; text-align: center; font-size: 12px; color: #6c757d; font-weight: bold;">
+                                {{ holding.stock.symbol|slice:":2" }}
+                            </div>
+                        {% endif %}
+                    </td>
                     <td>
                         <strong><a href="{% url 'soulstrader:stock_detail' holding.stock.symbol %}" style="color: #667eea; text-decoration: none;">{{ holding.stock.symbol }}</a></strong><br>
                         <small>{{ holding.stock.name }}</small><br>
                         <small style="color: #6c757d;">{{ holding.stock.sector }}</small>
+                    </td>
+                    <td style="text-align: center;">
+                        {% if holding.stock.fmp_grade %}
+                            <span style="
+                                padding: 2px 6px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;
+                                {% if holding.stock.fmp_grade|slice:':1' == 'A' %}background-color: #d4edda; color: #155724;
+                                {% elif holding.stock.fmp_grade|slice:':1' == 'B' %}background-color: #fff3cd; color: #856404;
+                                {% elif holding.stock.fmp_grade|slice:':1' == 'C' %}background-color: #f8d7da; color: #721c24;
+                                {% elif holding.stock.fmp_grade|slice:':1' == 'D' %}background-color: #f5c6cb; color: #721c24;
+                                {% else %}background-color: #f8f9fa; color: #6c757d;
+                                {% endif %}
+                            ">{{ holding.stock.fmp_grade }}</span>
+                        {% else %}
+                            <span style="color: #6c757d; font-size: 0.8rem;">N/A</span>
+                        {% endif %}
                     </td>
                     <td>{{ holding.quantity }}</td>
                     <td>${{ holding.average_price|floatformat:2 }}</td>
@@ -67,7 +101,15 @@
                         {{ holding.unrealized_pnl_percent|floatformat:2 }}%
                     </td>
                     <td>
-                        <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin: 0.1rem;">Sell</button>
+                        <button class="btn" 
+                                style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #dc3545; border: none; cursor: pointer; color: white;"
+                                data-symbol="{{ holding.stock.symbol }}"
+                                data-quantity="{{ holding.quantity }}"
+                                data-price="{{ holding.stock.current_price }}"
+                                data-name="{{ holding.stock.name }}"
+                                onclick="openSellModal('{{ holding.stock.symbol }}', {{ holding.quantity }}, {{ holding.stock.current_price }}, '{{ holding.stock.name }}')">
+                            Sell Now
+                        </button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -228,4 +270,123 @@
         </div>
     </div>
 </div>
+
+<!-- Sell Modal -->
+<div id="sellModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div style="background-color: white; margin: 10% auto; padding: 2rem; width: 90%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h2 style="margin-bottom: 1.5rem; color: #333;">Sell Shares</h2>
+        
+        <form id="sellForm" method="post" action="{% url 'soulstrader:sell_shares' %}">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Stock:</label>
+                <div style="padding: 0.5rem; background-color: #f8f9fa; border-radius: 4px;">
+                    <span id="sellStockName"></span> (<span id="sellStockSymbol"></span>)
+                </div>
+                <input type="hidden" id="sellSymbol" name="symbol" />
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Current Price:</label>
+                <div style="padding: 0.5rem; background-color: #f8f9fa; border-radius: 4px;">
+                    $<span id="sellCurrentPrice"></span>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="sellQuantity" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Shares to Sell:</label>
+                <input type="number" 
+                       id="sellQuantity" 
+                       name="quantity" 
+                       min="1" 
+                       style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"
+                       oninput="updateSellEstimate()" />
+                <small style="color: #6c757d;">You own <span id="maxShares"></span> shares</small>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem; padding: 1rem; background-color: #e8f4fd; border-radius: 4px;">
+                <strong>Estimated Proceeds:</strong>
+                <div style="font-size: 1.2rem; color: #667eea; font-weight: bold;">
+                    $<span id="estimatedProceeds">0.00</span>
+                </div>
+                <small style="color: #6c757d;">Estimated after commission</small>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" 
+                        onclick="closeSellModal()" 
+                        style="padding: 0.5rem 1rem; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        style="padding: 0.5rem 1rem; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Sell Shares
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let currentPrice = 0;
+const COMMISSION_RATE = 0.001; // 0.1%
+const MIN_COMMISSION = 1.00;   // Minimum $1
+
+function openSellModal(symbol, maxQuantity, price, name) {
+    document.getElementById('sellStockSymbol').textContent = symbol;
+    document.getElementById('sellStockName').textContent = name;
+    document.getElementById('sellCurrentPrice').textContent = price.toFixed(2);
+    document.getElementById('sellSymbol').value = symbol;
+    document.getElementById('sellQuantity').value = maxQuantity;
+    document.getElementById('sellQuantity').max = maxQuantity;
+    document.getElementById('maxShares').textContent = maxQuantity;
+    
+    currentPrice = price;
+    updateSellEstimate();
+    
+    document.getElementById('sellModal').style.display = 'block';
+    document.getElementById('sellQuantity').focus();
+}
+
+function closeSellModal() {
+    document.getElementById('sellModal').style.display = 'none';
+}
+
+function updateSellEstimate() {
+    const quantity = parseInt(document.getElementById('sellQuantity').value) || 0;
+    const maxShares = parseInt(document.getElementById('maxShares').textContent);
+    
+    // Validate quantity
+    if (quantity > maxShares) {
+        document.getElementById('sellQuantity').value = maxShares;
+        quantity = maxShares;
+    }
+    
+    if (quantity > 0) {
+        const grossProceeds = quantity * currentPrice;
+        const commission = Math.max(grossProceeds * COMMISSION_RATE, MIN_COMMISSION);
+        const netProceeds = grossProceeds - commission;
+        
+        document.getElementById('estimatedProceeds').textContent = netProceeds.toFixed(2);
+    } else {
+        document.getElementById('estimatedProceeds').textContent = '0.00';
+    }
+}
+
+// Close modal when clicking outside
+document.getElementById('sellModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeSellModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeSellModal();
+    }
+});
+</script>
+
 {% endblock %}

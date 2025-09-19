@@ -158,24 +158,70 @@ def portfolio_view(request):
 
 @login_required
 def recommendations_view(request):
-    """AI recommendations view"""
-    recommendations = AIRecommendation.objects.filter(
+    """AI recommendations view - shows both legacy and new advisor recommendations"""
+    
+    # Get legacy user-specific recommendations
+    legacy_recommendations = AIRecommendation.objects.filter(
         user=request.user,
         is_active=True
     ).select_related('stock').order_by('-created_at')
     
+    # Get new AI advisor recommendations (not user-specific, but general market recommendations)
+    advisor_recommendations = AIAdvisorRecommendation.objects.filter(
+        status='ACTIVE'
+    ).select_related('stock', 'advisor').order_by('-created_at')
+    
     # Filter by recommendation type if specified
     rec_type = request.GET.get('type')
     if rec_type:
-        recommendations = recommendations.filter(recommendation_type=rec_type)
+        legacy_recommendations = legacy_recommendations.filter(recommendation_type=rec_type)
+        advisor_recommendations = advisor_recommendations.filter(recommendation_type=rec_type)
     
     # Filter by confidence level if specified
     confidence = request.GET.get('confidence')
     if confidence:
-        recommendations = recommendations.filter(confidence_level=confidence)
+        legacy_recommendations = legacy_recommendations.filter(confidence_level=confidence)
+        advisor_recommendations = advisor_recommendations.filter(confidence_level=confidence)
+    
+    # Combine and sort recommendations by date
+    all_recommendations = []
+    
+    # Add legacy recommendations
+    for rec in legacy_recommendations:
+        all_recommendations.append({
+            'type': 'legacy',
+            'recommendation': rec,
+            'created_at': rec.created_at,
+            'stock': rec.stock,
+            'recommendation_type': rec.recommendation_type,
+            'confidence_level': rec.confidence_level,
+            'confidence_score': rec.confidence_score,
+            'reasoning': rec.reasoning,
+            'advisor_name': 'Personal AI',
+        })
+    
+    # Add advisor recommendations
+    for rec in advisor_recommendations:
+        all_recommendations.append({
+            'type': 'advisor',
+            'recommendation': rec,
+            'created_at': rec.created_at,
+            'stock': rec.stock,
+            'recommendation_type': rec.recommendation_type,
+            'confidence_level': rec.confidence_level,
+            'confidence_score': rec.confidence_score,
+            'reasoning': rec.reasoning,
+            'advisor_name': rec.advisor.name,
+        })
+    
+    # Sort by creation date (newest first)
+    all_recommendations.sort(key=lambda x: x['created_at'], reverse=True)
     
     context = {
-        'recommendations': recommendations,
+        'all_recommendations': all_recommendations,
+        'legacy_count': legacy_recommendations.count(),
+        'advisor_count': advisor_recommendations.count(),
+        'total_count': len(all_recommendations),
         'recommendation_types': AIRecommendation.RECOMMENDATION_TYPES,
         'confidence_levels': AIRecommendation.CONFIDENCE_LEVELS,
         'current_page': 'recommendations',
@@ -309,7 +355,7 @@ def place_order_view(request):
             limit_price = Decimal(price) if price else None
             
             # Place the order
-            trade = TradingService.place_order(
+            result = TradingService.place_order(
                 portfolio=portfolio,
                 stock=stock,
                 trade_type=trade_type,
@@ -319,14 +365,15 @@ def place_order_view(request):
                 notes=notes
             )
             
-            if trade:
+            if result['success']:
+                trade = result['trade']
                 if order_type == 'MARKET':
                     messages.success(request, f'Market order executed successfully! {trade.trade_type} {trade.quantity} shares of {stock.symbol} at ${trade.average_fill_price:.2f}')
                 else:
                     messages.success(request, f'Limit order placed successfully! {trade.trade_type} {trade.quantity} shares of {stock.symbol} at ${trade.price:.2f}')
                 return redirect('soulstrader:trading')
             else:
-                messages.error(request, 'Failed to place order. Please check your inputs and try again.')
+                messages.error(request, f'Order failed: {result["error"]}')
                 
         except (ValueError, TypeError) as e:
             messages.error(request, 'Invalid input. Please check your values and try again.')
@@ -749,3 +796,160 @@ def get_stock_recommendations(request, symbol):
             messages.error(request, f'Error getting recommendations: {str(e)}')
     
     return redirect('soulstrader:stock_detail', symbol=symbol)
+
+
+@login_required
+def sell_shares_view(request):
+    """Handle sell orders from portfolio"""
+    if request.method == 'POST':
+        try:
+            # Get form data
+            stock_symbol = request.POST.get('symbol', '').upper()
+            quantity = int(request.POST.get('quantity', 0))
+            
+            # Get stock and portfolio
+            stock = get_object_or_404(Stock, symbol=stock_symbol, is_active=True)
+            portfolio = get_object_or_404(Portfolio, user=request.user)
+            
+            # Verify user owns the stock
+            try:
+                holding = portfolio.holdings.get(stock=stock)
+            except Holding.DoesNotExist:
+                messages.error(request, f'You do not own any {stock_symbol} shares.')
+                return redirect('soulstrader:portfolio')
+            
+            # Validate quantity
+            if quantity <= 0:
+                messages.error(request, 'Quantity must be greater than 0.')
+                return redirect('soulstrader:portfolio')
+                
+            if quantity > holding.quantity:
+                messages.error(request, f'You only own {holding.quantity} shares of {stock_symbol}.')
+                return redirect('soulstrader:portfolio')
+            
+            # Place the sell order
+            result = TradingService.place_order(
+                portfolio=portfolio,
+                stock=stock,
+                trade_type='SELL',
+                quantity=quantity,
+                order_type='MARKET',
+                notes=f'Sell order from portfolio for {quantity} shares'
+            )
+            
+            if result['success']:
+                trade = result['trade']
+                proceeds = trade.total_amount - trade.commission if trade.total_amount else 0
+                messages.success(request, 
+                    f'Successfully sold {quantity} shares of {stock_symbol} for ${proceeds:.2f} '
+                    f'(after ${trade.commission:.2f} commission)')
+            else:
+                messages.error(request, f'Sell order failed: {result["error"]}')
+                
+        except (ValueError, TypeError) as e:
+            messages.error(request, 'Invalid input. Please check your values and try again.')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+    
+    return redirect('soulstrader:portfolio')
+
+
+@login_required
+def buy_from_recommendations_view(request):
+    """Handle buy orders from recommendations page"""
+    if request.method == 'POST':
+        try:
+            # Get form data
+            stock_symbol = request.POST.get('symbol', '').upper()
+            quantity = int(request.POST.get('quantity', 0))
+            
+            # Get stock and portfolio
+            stock = get_object_or_404(Stock, symbol=stock_symbol, is_active=True)
+            portfolio = get_object_or_404(Portfolio, user=request.user)
+            
+            # Validate quantity
+            if quantity <= 0:
+                messages.error(request, 'Quantity must be greater than 0.')
+                return redirect('soulstrader:recommendations')
+            
+            # Place the buy order
+            result = TradingService.place_order(
+                portfolio=portfolio,
+                stock=stock,
+                trade_type='BUY',
+                quantity=quantity,
+                order_type='MARKET',
+                notes=f'Buy order from AI recommendation for {quantity} shares'
+            )
+            
+            if result['success']:
+                trade = result['trade']
+                total_cost = trade.total_amount + trade.commission if trade.total_amount else 0
+                messages.success(request, 
+                    f'Successfully bought {quantity} shares of {stock_symbol} for ${total_cost:.2f} '
+                    f'(including ${trade.commission:.2f} commission)')
+            else:
+                messages.error(request, f'Buy order failed: {result["error"]}')
+                
+        except (ValueError, TypeError) as e:
+            messages.error(request, 'Invalid input. Please check your values and try again.')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+    
+    return redirect('soulstrader:recommendations')
+
+
+@login_required
+def sell_from_recommendations_view(request):
+    """Handle sell orders from recommendations page"""
+    if request.method == 'POST':
+        try:
+            # Get form data
+            stock_symbol = request.POST.get('symbol', '').upper()
+            quantity = int(request.POST.get('quantity', 0))
+            
+            # Get stock and portfolio
+            stock = get_object_or_404(Stock, symbol=stock_symbol, is_active=True)
+            portfolio = get_object_or_404(Portfolio, user=request.user)
+            
+            # Verify user owns the stock
+            try:
+                holding = portfolio.holdings.get(stock=stock)
+            except Holding.DoesNotExist:
+                messages.error(request, f'You do not own any {stock_symbol} shares.')
+                return redirect('soulstrader:recommendations')
+            
+            # Validate quantity
+            if quantity <= 0:
+                messages.error(request, 'Quantity must be greater than 0.')
+                return redirect('soulstrader:recommendations')
+                
+            if quantity > holding.quantity:
+                messages.error(request, f'You only own {holding.quantity} shares of {stock_symbol}.')
+                return redirect('soulstrader:recommendations')
+            
+            # Place the sell order
+            result = TradingService.place_order(
+                portfolio=portfolio,
+                stock=stock,
+                trade_type='SELL',
+                quantity=quantity,
+                order_type='MARKET',
+                notes=f'Sell order from AI recommendation for {quantity} shares'
+            )
+            
+            if result['success']:
+                trade = result['trade']
+                proceeds = trade.total_amount - trade.commission if trade.total_amount else 0
+                messages.success(request, 
+                    f'Successfully sold {quantity} shares of {stock_symbol} for ${proceeds:.2f} '
+                    f'(after ${trade.commission:.2f} commission)')
+            else:
+                messages.error(request, f'Sell order failed: {result["error"]}')
+                
+        except (ValueError, TypeError) as e:
+            messages.error(request, 'Invalid input. Please check your values and try again.')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+    
+    return redirect('soulstrader:recommendations')

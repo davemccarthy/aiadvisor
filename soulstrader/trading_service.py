@@ -34,13 +34,17 @@ class TradingService:
             notes: Optional notes
             
         Returns:
-            Trade instance or None if validation fails
+            dict with 'success': bool, 'trade': Trade instance or None, 'error': str or None
         """
         
         # Validate the order
         validation_result = cls.validate_order(portfolio, stock, trade_type, quantity, order_type, price)
         if not validation_result['valid']:
-            return None
+            return {
+                'success': False,
+                'trade': None,
+                'error': validation_result['reason']
+            }
         
         # Create the trade
         trade = Trade.objects.create(
@@ -61,9 +65,19 @@ class TradingService:
         
         # Execute market orders immediately
         if order_type == 'MARKET':
-            cls.execute_market_order(trade)
+            execution_success = cls.execute_market_order(trade)
+            if not execution_success:
+                return {
+                    'success': False,
+                    'trade': trade,
+                    'error': trade.rejection_reason if hasattr(trade, 'rejection_reason') else 'Order execution failed'
+                }
         
-        return trade
+        return {
+            'success': True,
+            'trade': trade,
+            'error': None
+        }
     
     @classmethod
     def validate_order(cls, portfolio, stock, trade_type, quantity, order_type, price=None):

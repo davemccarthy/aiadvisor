@@ -26,8 +26,11 @@ urlpatterns = [
     path('trading/cancel-order/<uuid:trade_id>/', views.cancel_order_view, name='cancel_order'),
     path('trading/quick-trade/<str:symbol>/', views.quick_trade_view, name='quick_trade'),
     path('trading/simulate-market/', views.simulate_market, name='simulate_market'),
+    path('portfolio/sell-shares/', views.sell_shares_view, name='sell_shares'),
     
     # Recommendation actions
+    path('recommendations/buy-now/', views.buy_from_recommendations_view, name='buy_from_recommendations'),
+    path('recommendations/sell-now/', views.sell_from_recommendations_view, name='sell_from_recommendations'),
     path('recommendations/buy/<uuid:recommendation_id>/', views.quick_buy_from_recommendation, name='quick_buy_from_recommendation'),
     path('recommendations/sell/<uuid:recommendation_id>/', views.quick_sell_from_recommendation, name='quick_sell_from_recommendation'),
     

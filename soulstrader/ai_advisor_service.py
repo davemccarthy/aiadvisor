@@ -3,7 +3,8 @@ AI Advisor Service for SOULTRADER
 Manages multiple AI advisors and aggregates their recommendations
 """
 
-import openai
+from openai import OpenAI
+import google.generativeai as genai
 import requests
 import json
 import time
@@ -64,8 +65,6 @@ class OpenAIAdvisor(BaseAIAdvisor):
     
     def __init__(self, advisor_model):
         super().__init__(advisor_model)
-        if self.api_key:
-            openai.api_key = self.api_key
     
     def get_recommendation(self, stock):
         """Get stock recommendation from OpenAI GPT"""
@@ -83,7 +82,8 @@ class OpenAIAdvisor(BaseAIAdvisor):
             start_time = time.time()
             
             # Make API call
-            response = openai.ChatCompletion.create(
+            client = OpenAI(api_key=self.advisor.api_key)
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a professional stock analyst providing investment recommendations."},
@@ -114,7 +114,7 @@ class OpenAIAdvisor(BaseAIAdvisor):
                 reasoning=recommendation_data['reasoning'],
                 key_factors=recommendation_data.get('key_factors', []),
                 risk_factors=recommendation_data.get('risk_factors', []),
-                raw_response=response.to_dict(),
+                raw_response=response.model_dump(),
                 processing_time=Decimal(str(processing_time))
             )
             
@@ -255,6 +255,189 @@ RISK_FACTORS:
                 'recommendation_type': 'HOLD',
                 'confidence_level': 'LOW',
                 'confidence_score': 0.3,
+                'reasoning': response_text,
+                'key_factors': [],
+                'risk_factors': []
+            }
+
+
+class GeminiAdvisor(BaseAIAdvisor):
+    """Google Gemini advisor implementation"""
+    
+    def get_recommendation(self, stock):
+        """Get stock recommendation from Google Gemini"""
+        if not self.can_make_request():
+            return None
+        
+        try:
+            # Configure Gemini
+            genai.configure(api_key=self.advisor.api_key)
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            
+            # Get current stock data
+            from .yahoo_finance_service import YahooFinanceService
+            company_info = YahooFinanceService.get_company_info(stock.symbol)
+            historical_data = YahooFinanceService.get_historical_data(stock.symbol, period="1mo")
+            
+            # Build prompt
+            prompt = self.build_analysis_prompt(stock, company_info, historical_data)
+            
+            start_time = time.time()
+            
+            # Make API call
+            response = model.generate_content(prompt)
+            
+            processing_time = time.time() - start_time
+            
+            # Update usage
+            self.update_usage()
+            
+            # Parse response
+            recommendation_data = self.parse_gemini_response(response.text)
+            
+            # Create recommendation record
+            recommendation = AIAdvisorRecommendation.objects.create(
+                advisor=self.advisor,
+                stock=stock,
+                recommendation_type=recommendation_data['recommendation_type'],
+                confidence_level=recommendation_data['confidence_level'],
+                confidence_score=recommendation_data['confidence_score'],
+                target_price=recommendation_data.get('target_price'),
+                stop_loss=recommendation_data.get('stop_loss'),
+                price_at_recommendation=stock.current_price,
+                reasoning=recommendation_data['reasoning'],
+                key_factors=recommendation_data.get('key_factors', []),
+                risk_factors=recommendation_data.get('risk_factors', []),
+                raw_response={'text': response.text},
+                processing_time=Decimal(str(processing_time))
+            )
+            
+            logger.info(f"Gemini recommendation for {stock.symbol}: {recommendation.recommendation_type}")
+            return recommendation
+            
+        except Exception as e:
+            logger.error(f"Gemini API error for {stock.symbol}: {e}")
+            self.advisor.status = 'ERROR'
+            self.advisor.save()
+            return None
+    
+    def build_analysis_prompt(self, stock, company_info, historical_data):
+        """Build analysis prompt for Gemini"""
+        
+        # Calculate recent performance
+        if historical_data and len(historical_data) > 1:
+            recent_change = ((historical_data[-1]['close'] - historical_data[0]['close']) / historical_data[0]['close']) * 100
+        else:
+            recent_change = 0
+        
+        prompt = f"""
+Analyze {stock.symbol} ({company_info.get('name', stock.name)}) and provide an investment recommendation.
+
+Current Stock Information:
+- Symbol: {stock.symbol}
+- Current Price: ${stock.current_price}
+- Sector: {stock.sector}
+- Market Cap: {company_info.get('market_cap', 'N/A')}
+- Recent 1-month performance: {recent_change:.2f}%
+
+Company Overview:
+- Name: {company_info.get('name', stock.name)}
+- Industry: {company_info.get('industry', 'N/A')}
+- Description: {company_info.get('description', 'N/A')[:500]}
+
+Please provide your analysis in this exact format:
+
+RECOMMENDATION: [STRONG_BUY/BUY/HOLD/SELL/STRONG_SELL]
+CONFIDENCE: [LOW/MEDIUM/HIGH/VERY_HIGH]
+CONFIDENCE_SCORE: [0.0-1.0]
+TARGET_PRICE: $[price or N/A]
+STOP_LOSS: $[price or N/A]
+
+KEY_FACTORS:
+- [Factor 1]
+- [Factor 2]
+- [Factor 3]
+
+RISK_FACTORS:
+- [Risk 1]
+- [Risk 2]
+- [Risk 3]
+
+REASONING:
+[Detailed analysis explaining your recommendation]
+
+Focus on fundamental analysis, technical indicators, market conditions, and company-specific factors.
+"""
+        return prompt
+    
+    def parse_gemini_response(self, response_text):
+        """Parse Gemini response into structured data"""
+        try:
+            lines = response_text.strip().split('\n')
+            data = {
+                'recommendation_type': 'HOLD',
+                'confidence_level': 'MEDIUM',
+                'confidence_score': 0.5,
+                'reasoning': response_text,
+                'key_factors': [],
+                'risk_factors': []
+            }
+            
+            current_section = None
+            for line in lines:
+                line = line.strip()
+                if line.startswith('RECOMMENDATION:'):
+                    rec = line.split(':', 1)[1].strip()
+                    if rec in ['STRONG_BUY', 'BUY', 'HOLD', 'SELL', 'STRONG_SELL']:
+                        data['recommendation_type'] = rec
+                elif line.startswith('CONFIDENCE:'):
+                    conf = line.split(':', 1)[1].strip()
+                    if conf in ['LOW', 'MEDIUM', 'HIGH', 'VERY_HIGH']:
+                        data['confidence_level'] = conf
+                elif line.startswith('CONFIDENCE_SCORE:'):
+                    try:
+                        score = float(line.split(':', 1)[1].strip())
+                        if 0 <= score <= 1:
+                            data['confidence_score'] = score
+                    except:
+                        pass
+                elif line.startswith('TARGET_PRICE:'):
+                    try:
+                        price_str = line.split(':', 1)[1].strip().replace('$', '').replace('N/A', '')
+                        if price_str:
+                            data['target_price'] = Decimal(price_str)
+                    except:
+                        pass
+                elif line.startswith('STOP_LOSS:'):
+                    try:
+                        price_str = line.split(':', 1)[1].strip().replace('$', '').replace('N/A', '')
+                        if price_str:
+                            data['stop_loss'] = Decimal(price_str)
+                    except:
+                        pass
+                elif line.startswith('KEY_FACTORS:'):
+                    current_section = 'key_factors'
+                elif line.startswith('RISK_FACTORS:'):
+                    current_section = 'risk_factors'
+                elif line.startswith('REASONING:'):
+                    current_section = 'reasoning'
+                    data['reasoning'] = ''
+                elif line.startswith('- ') and current_section in ['key_factors', 'risk_factors']:
+                    data[current_section].append(line[2:])
+                elif current_section == 'reasoning' and line:
+                    if data['reasoning']:
+                        data['reasoning'] += '\n' + line
+                    else:
+                        data['reasoning'] = line
+            
+            return data
+            
+        except Exception as e:
+            logger.error(f"Error parsing Gemini response: {e}")
+            return {
+                'recommendation_type': 'HOLD',
+                'confidence_level': 'MEDIUM',
+                'confidence_score': 0.5,
                 'reasoning': response_text,
                 'key_factors': [],
                 'risk_factors': []
@@ -728,6 +911,195 @@ news sentiment, and fundamental metrics from Finnhub's market intelligence.
             }
 
 
+class PolygonAdvisor(BaseAIAdvisor):
+    """Polygon.io advisor implementation"""
+    
+    BASE_URL = "https://api.polygon.io/v2"
+    
+    def get_recommendation(self, stock):
+        """Get stock recommendation from Polygon.io analysis"""
+        if not self.can_make_request():
+            return None
+        
+        try:
+            start_time = time.time()
+            
+            # Get stock data from Polygon
+            stock_data = self.get_polygon_stock_data(stock.symbol)
+            
+            if not stock_data:
+                return None
+            
+            # Analyze the data
+            recommendation_data = self.analyze_polygon_data(stock, stock_data)
+            
+            processing_time = time.time() - start_time
+            
+            # Update usage
+            self.update_usage()
+            
+            # Create recommendation record
+            recommendation = AIAdvisorRecommendation.objects.create(
+                advisor=self.advisor,
+                stock=stock,
+                recommendation_type=recommendation_data['recommendation_type'],
+                confidence_level=recommendation_data['confidence_level'],
+                confidence_score=recommendation_data['confidence_score'],
+                target_price=recommendation_data.get('target_price'),
+                price_at_recommendation=stock.current_price,
+                reasoning=recommendation_data['reasoning'],
+                key_factors=recommendation_data.get('key_factors', []),
+                risk_factors=recommendation_data.get('risk_factors', []),
+                raw_response=stock_data,
+                processing_time=Decimal(str(processing_time))
+            )
+            
+            logger.info(f"Polygon recommendation for {stock.symbol}: {recommendation.recommendation_type}")
+            return recommendation
+            
+        except Exception as e:
+            logger.error(f"Polygon API error for {stock.symbol}: {e}")
+            self.advisor.status = 'ERROR'
+            self.advisor.save()
+            return None
+    
+    def get_polygon_stock_data(self, symbol):
+        """Get stock data from Polygon API"""
+        try:
+            # Get current stock price and basic info
+            ticker_url = f"{self.BASE_URL}/aggs/ticker/{symbol}/prev"
+            ticker_params = {"apikey": self.api_key}
+            
+            ticker_response = requests.get(ticker_url, params=ticker_params, timeout=10)
+            ticker_response.raise_for_status()
+            ticker_data = ticker_response.json()
+            
+            # Get technical indicators (SMA)
+            sma_url = f"{self.BASE_URL}/aggs/ticker/{symbol}/range/1/day/2024-01-01/2024-12-31"
+            sma_params = {"apikey": self.api_key, "limit": 50}
+            
+            sma_response = requests.get(sma_url, params=sma_params, timeout=10)
+            sma_response.raise_for_status()
+            sma_data = sma_response.json()
+            
+            return {
+                'ticker_data': ticker_data,
+                'price_history': sma_data,
+                'symbol': symbol
+            }
+            
+        except Exception as e:
+            logger.error(f"Error fetching Polygon data for {symbol}: {e}")
+            return None
+    
+    def analyze_polygon_data(self, stock, polygon_data):
+        """Analyze Polygon data to generate recommendation"""
+        try:
+            ticker_data = polygon_data.get('ticker_data', {})
+            price_history = polygon_data.get('price_history', {})
+            
+            # Get current price info
+            results = ticker_data.get('results', [])
+            if not results:
+                return self.default_recommendation("No price data available")
+            
+            current_data = results[0]
+            current_price = current_data.get('c', 0)  # Close price
+            volume = current_data.get('v', 0)
+            high = current_data.get('h', 0)
+            low = current_data.get('l', 0)
+            
+            # Calculate technical indicators
+            price_range = high - low if high and low else 0
+            volatility = (price_range / current_price * 100) if current_price else 0
+            
+            # Get historical data for trend analysis
+            historical_results = price_history.get('results', [])
+            if len(historical_results) >= 10:
+                recent_prices = [r.get('c', 0) for r in historical_results[-10:]]
+                sma_10 = sum(recent_prices) / len(recent_prices)
+                trend = "bullish" if current_price > sma_10 else "bearish"
+            else:
+                trend = "neutral"
+                sma_10 = current_price
+            
+            # Generate recommendation based on analysis
+            if trend == "bullish" and volatility < 5:
+                recommendation_type = "BUY"
+                confidence_level = "HIGH"
+                confidence_score = 0.75
+                target_price = current_price * 1.1
+            elif trend == "bullish":
+                recommendation_type = "BUY"
+                confidence_level = "MEDIUM"
+                confidence_score = 0.65
+                target_price = current_price * 1.05
+            elif trend == "bearish" and volatility > 8:
+                recommendation_type = "SELL"
+                confidence_level = "MEDIUM"
+                confidence_score = 0.60
+                target_price = current_price * 0.95
+            else:
+                recommendation_type = "HOLD"
+                confidence_level = "MEDIUM"
+                confidence_score = 0.50
+                target_price = current_price
+            
+            key_factors = [
+                f"Current price trend: {trend}",
+                f"Volatility: {volatility:.1f}%",
+                f"Trading volume: {volume:,}" if volume else "Volume data available"
+            ]
+            
+            risk_factors = []
+            if volatility > 10:
+                risk_factors.append("High volatility detected")
+            if volume < 100000:
+                risk_factors.append("Low trading volume")
+            
+            reasoning = f"""
+Polygon.io Technical Analysis for {stock.symbol}:
+
+Current Price: ${current_price:.2f}
+10-day SMA: ${sma_10:.2f}
+Daily Range: ${low:.2f} - ${high:.2f}
+Volatility: {volatility:.1f}%
+Trend: {trend.capitalize()}
+
+Technical indicators suggest a {recommendation_type.lower()} position based on:
+- Price momentum relative to moving average
+- Current volatility levels
+- Trading volume patterns
+
+Target price reflects expected movement based on technical analysis.
+"""
+            
+            return {
+                'recommendation_type': recommendation_type,
+                'confidence_level': confidence_level,
+                'confidence_score': confidence_score,
+                'target_price': Decimal(str(target_price)),
+                'reasoning': reasoning.strip(),
+                'key_factors': key_factors,
+                'risk_factors': risk_factors
+            }
+            
+        except Exception as e:
+            logger.error(f"Error analyzing Polygon data: {e}")
+            return self.default_recommendation("Technical analysis failed")
+    
+    def default_recommendation(self, reason):
+        """Return default recommendation when analysis fails"""
+        return {
+            'recommendation_type': 'HOLD',
+            'confidence_level': 'LOW',
+            'confidence_score': 0.3,
+            'reasoning': f'Polygon.io analysis unavailable: {reason}',
+            'key_factors': [],
+            'risk_factors': ['Technical analysis failed']
+        }
+
+
 class AIAdvisorManager:
     """Manager for coordinating multiple AI advisors"""
     
@@ -744,10 +1116,14 @@ class AIAdvisorManager:
                 # Create advisor instance based on type
                 if advisor.advisor_type == 'OPENAI_GPT':
                     advisor_instance = OpenAIAdvisor(advisor)
+                elif advisor.advisor_type == 'GEMINI':
+                    advisor_instance = GeminiAdvisor(advisor)
                 elif advisor.advisor_type == 'FMP':
                     advisor_instance = FMPAdvisor(advisor)
                 elif advisor.advisor_type == 'FINNHUB':
                     advisor_instance = FinnhubAdvisor(advisor)
+                elif advisor.advisor_type == 'POLYGON':
+                    advisor_instance = PolygonAdvisor(advisor)
                 elif advisor.advisor_type == 'YAHOO_ENHANCED':
                     from .enhanced_yahoo_advisor import EnhancedYahooAdvisor
                     advisor_instance = EnhancedYahooAdvisor(advisor)
@@ -921,7 +1297,7 @@ class AIAdvisorManager:
                 
                 if quantity > 0:
                     # Place trade
-                    trade = TradingService.place_order(
+                    result = TradingService.place_order(
                         portfolio=user_portfolio,
                         stock=consensus.stock,
                         trade_type=trade_type,
@@ -930,13 +1306,16 @@ class AIAdvisorManager:
                         notes=f'Auto-trade based on AI consensus: {consensus.consensus_type}'
                     )
                     
-                    if trade:
+                    if result['success']:
+                        trade = result['trade']
                         consensus.auto_trade_executed = True
                         consensus.auto_trade = trade
                         consensus.save()
                         executed_trades.append(trade)
                         
                         logger.info(f"Executed auto-trade: {trade_type} {quantity} {consensus.stock.symbol}")
+                    else:
+                        logger.warning(f"Auto-trade failed for {consensus.stock.symbol}: {result['error']}")
             
             except Exception as e:
                 logger.error(f"Error executing auto-trade for {consensus.stock.symbol}: {e}")
