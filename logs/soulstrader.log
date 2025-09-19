@@ -54,3 +54,52 @@ Error in Enhanced Yahoo analysis: Invalid format specifier '.1f if pe_ratio else
 Enhanced Yahoo recommendation for AAPL: HOLD
 Demo recommendation for AAPL: STRONG_BUY
 Enhanced Yahoo recommendation for AAPL: HOLD
+FMP API request failed: https://financialmodelingprep.com/api/v3/search - 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/search?query=AAPL&limit=1&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+FMP stock search failed for query 'AAPL': 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/search?query=AAPL&limit=1&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+FMP API request failed: https://financialmodelingprep.com/api/v3/search - 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/search?query=AAPL&limit=1&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+FMP stock search failed for query 'AAPL': 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/search?query=AAPL&limit=1&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+OpenAI API error for AAPL: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+Enhanced Yahoo recommendation for AAPL: HOLD
+Finnhub API error for TSLA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=TSLA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+FMP API error for TSLA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/TSLA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for TSLA: SELL
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Error getting recommendation from OpenAI GPT-3.5: name 'openai' is not defined
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+OpenAI API error for GOOGL: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+Finnhub API error for BA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=BA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+FMP API error for BA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/BA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BA: BUY
+Finnhub API error for DIS: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=DIS&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+FMP API error for DIS: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/DIS?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for DIS: BUY
+Gemini API error for DIS: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Error getting recommendation from Google Gemini: 'GeminiAdvisor' object has no attribute 'handle_api_error'
+Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Gemini recommendation for NVDA: BUY
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Gemini recommendation for MSFT: BUY
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for AAPL: BUY
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AAPL: HOLD
+Gemini recommendation for AAPL: BUY

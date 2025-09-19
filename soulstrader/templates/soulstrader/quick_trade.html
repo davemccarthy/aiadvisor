@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="card">
-    <h1 style="color: #667eea; margin-bottom: 1rem;">Quick Trade: {{ stock.symbol }}</h1>
+    <h1 style="color: #667eea; margin-bottom: 1rem;">⚡ Quick Trade: {{ stock.symbol }}</h1>
     <p style="color: #6c757d; margin-bottom: 2rem;">{{ stock.name }} - {{ stock.get_sector_display|default:"N/A" }}</p>
     
     {% if source_recommendation %}

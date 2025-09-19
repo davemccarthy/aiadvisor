@@ -141,6 +141,17 @@ class Stock(models.Model):
     esg_score = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True,
                                   validators=[MinValueValidator(0), MaxValueValidator(10)])
     
+    # FMP API specific fields
+    logo_url = models.URLField(blank=True, null=True, help_text="Company logo URL from FMP API")
+    fmp_grade = models.CharField(max_length=20, blank=True, null=True, help_text="FMP consensus grade (A+, A, B+, etc.)")
+    fmp_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="FMP numerical score")
+    analyst_target_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    analyst_rating_strong_buy = models.IntegerField(default=0)
+    analyst_rating_buy = models.IntegerField(default=0)
+    analyst_rating_hold = models.IntegerField(default=0)
+    analyst_rating_sell = models.IntegerField(default=0)
+    analyst_rating_strong_sell = models.IntegerField(default=0)
+    
     # Metadata
     is_active = models.BooleanField(default=True)
     last_updated = models.DateTimeField(auto_now=True)

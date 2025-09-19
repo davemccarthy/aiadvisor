@@ -24,10 +24,32 @@ class RiskAssessmentAdmin(admin.ModelAdmin):
 
 @admin.register(Stock)
 class StockAdmin(admin.ModelAdmin):
-    list_display = ['symbol', 'name', 'sector', 'market_cap_category', 'current_price', 'esg_score', 'is_active']
-    list_filter = ['sector', 'market_cap_category', 'is_active', 'created_at']
+    list_display = ['symbol', 'name', 'sector', 'market_cap_category', 'current_price', 'fmp_grade', 'esg_score', 'is_active']
+    list_filter = ['sector', 'market_cap_category', 'fmp_grade', 'is_active', 'created_at']
     search_fields = ['symbol', 'name', 'industry']
-    readonly_fields = ['created_at', 'last_updated']
+    readonly_fields = ['created_at', 'last_updated', 'logo_url']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('symbol', 'name', 'sector', 'industry', 'market_cap', 'market_cap_category')
+        }),
+        ('Current Pricing', {
+            'fields': ('current_price', 'previous_close', 'day_change', 'day_change_percent')
+        }),
+        ('Fundamental Data', {
+            'fields': ('pe_ratio', 'pb_ratio', 'dividend_yield', 'esg_score')
+        }),
+        ('FMP API Data', {
+            'fields': ('logo_url', 'fmp_grade', 'fmp_score', 'analyst_target_price', 
+                      'analyst_rating_strong_buy', 'analyst_rating_buy', 'analyst_rating_hold', 
+                      'analyst_rating_sell', 'analyst_rating_strong_sell'),
+            'description': 'Data from Financial Modeling Prep API'
+        }),
+        ('Status & Timestamps', {
+            'fields': ('is_active', 'created_at', 'last_updated'),
+            'classes': ('collapse',)
+        })
+    )
 
 
 @admin.register(StockPrice)

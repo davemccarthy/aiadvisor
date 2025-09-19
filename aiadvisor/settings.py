@@ -115,7 +115,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
+# Additional locations of static files
+STATICFILES_DIRS = [
+    BASE_DIR / 'soulstrader' / 'static',
+]
+
+# Static files will be collected here for production
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -130,6 +138,11 @@ LOGOUT_REDIRECT_URL = '/'
 # SOULTRADER Market Data Configuration
 ALPHA_VANTAGE_API_KEY = 'G0C346PZOQVFHNIF'
 ALPHA_VANTAGE_RATE_LIMIT_DELAY = 12  # seconds between API calls
+
+# Financial Modeling Prep API Configuration
+FMP_API_KEY = ''  # Add your FMP API key here
+FMP_RATE_LIMIT_PER_DAY = 250  # Free tier limit
+FMP_RATE_LIMIT_PER_MINUTE = 10
 
 # Logging configuration
 LOGGING = {
