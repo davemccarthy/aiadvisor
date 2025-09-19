@@ -342,6 +342,8 @@ http://127.0.0.1:8000/admin/
 - **Consistent Button Styling**: Professional red/green action buttons across all pages
 - **Enhanced Modals**: Professional modal interfaces for trading actions
 - **Real-time Calculations**: Live cost/proceeds estimates with commission transparency
+- **Emoji Headings**: Consistent emoji-prefixed headings across all pages
+- **Streamlined Navigation**: Simplified main menu focusing on core features
 
 ### **✅ System Reliability**
 - **Error Handling**: Comprehensive validation and user feedback
@@ -354,7 +356,19 @@ http://127.0.0.1:8000/admin/
 ## 💡 **For Future Development Sessions**
 
 ### **Quick Context for New AI Sessions**
-*"This is SOULTRADER, a Django AI stock advisor platform with 5 active AI advisors (Google Gemini, Polygon.io, FMP, Finnhub, Yahoo Enhanced). Features include portfolio management with one-click buy/sell modals, AI recommendations with direct trading, enhanced error handling, and local company logos. Test login: testuser/password123. Virtual env: ~/Development/scratch/python/tutorial-env"*
+*"This is SOULTRADER, a Django AI stock advisor platform with 5 active AI advisors (Google Gemini, Polygon.io, FMP, Finnhub, Yahoo Enhanced). Features include portfolio management with one-click buy/sell modals, AI recommendations with direct trading, enhanced error handling, and local company logos. Main navigation: Portfolio, Recommendations, Advisors, Profile. Test login: testuser/password123. Virtual env: ~/Development/scratch/python/tutorial-env"*
+
+### **Navigation Streamlining**
+**Hidden Pages** (still accessible via direct URLs):
+- **Dashboard** (`/dashboard/`) - Simplified to focus on core features
+- **Trading** (`/trading/`) - Trading functionality integrated into Portfolio and Recommendations
+- **Home** - Only shown to unauthenticated users
+
+**Core Navigation** (authenticated users):
+- **Portfolio** - Holdings management with direct sell functionality
+- **Recommendations** - AI analysis with direct buy/sell functionality  
+- **Advisors** - AI advisor management and performance
+- **Profile** - User settings and preferences
 
 ### **Key Integration Points**
 - **FMP Service**: `soulstrader/fmp_service.py`
