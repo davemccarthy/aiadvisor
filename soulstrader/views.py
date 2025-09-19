@@ -969,11 +969,20 @@ def smart_analysis_view(request):
         try:
             portfolio = get_object_or_404(Portfolio, user=request.user)
             
-            # Get all recent AI recommendations
-            recent_recommendations = AIAdvisorRecommendation.objects.filter(
+            # Get all recent AI recommendations (deduplicate by advisor per stock)
+            all_recommendations = AIAdvisorRecommendation.objects.filter(
                 status='ACTIVE',
                 created_at__gte=timezone.now() - timedelta(days=7)  # Last 7 days
-            ).select_related('stock', 'advisor')
+            ).select_related('stock', 'advisor').order_by('-created_at')
+            
+            # Deduplicate by advisor per stock (keep most recent per advisor per stock)
+            seen_combinations = set()
+            recent_recommendations = []
+            for rec in all_recommendations:
+                combo_key = (rec.stock.id, rec.advisor.id)
+                if combo_key not in seen_combinations:
+                    recent_recommendations.append(rec)
+                    seen_combinations.add(combo_key)
             
             # Get user's current holdings
             user_holdings = {
@@ -1280,12 +1289,23 @@ def advisor_details_view(request, symbol):
         stock = get_object_or_404(Stock, symbol=symbol.upper())
         portfolio = get_object_or_404(Portfolio, user=request.user)
         
-        # Get recent recommendations for this stock
-        recommendations = AIAdvisorRecommendation.objects.filter(
+        # Get recent recommendations for this stock (deduplicate by advisor)
+        all_recommendations = AIAdvisorRecommendation.objects.filter(
             stock=stock,
             status='ACTIVE',
             created_at__gte=timezone.now() - timedelta(days=7)
-        ).select_related('advisor').order_by('-confidence_score')
+        ).select_related('advisor').order_by('-created_at')
+        
+        # Deduplicate by advisor (keep most recent per advisor)
+        seen_advisors = set()
+        recommendations = []
+        for rec in all_recommendations:
+            if rec.advisor.id not in seen_advisors:
+                recommendations.append(rec)
+                seen_advisors.add(rec.advisor.id)
+        
+        # Sort by confidence score for display
+        recommendations.sort(key=lambda x: x.confidence_score, reverse=True)
         
         # Get user's holding if any
         user_holding = None
@@ -1294,9 +1314,42 @@ def advisor_details_view(request, symbol):
         except Holding.DoesNotExist:
             pass
         
+        # Get Smart Analysis context for this stock
+        user_holdings = {
+            holding.stock.symbol: holding 
+            for holding in portfolio.holdings.select_related('stock').all()
+        }
+        
+        # Get all recent recommendations to calculate ranking context (deduplicate by advisor per stock)
+        all_recs = AIAdvisorRecommendation.objects.filter(
+            status='ACTIVE',
+            created_at__gte=timezone.now() - timedelta(days=7)
+        ).select_related('stock', 'advisor').order_by('-created_at')
+        
+        # Deduplicate by advisor per stock
+        seen_combinations = set()
+        all_recent_recommendations = []
+        for rec in all_recs:
+            combo_key = (rec.stock.id, rec.advisor.id)
+            if combo_key not in seen_combinations:
+                all_recent_recommendations.append(rec)
+                seen_combinations.add(combo_key)
+        
+        # Process smart analysis to get ranking context
+        smart_analysis = process_smart_analysis(all_recent_recommendations, user_holdings, portfolio)
+        
+        # Find this stock's analysis data
+        stock_analysis_data = None
+        stock_rank = None
+        for rank, (sym, analysis) in enumerate(smart_analysis, 1):
+            if sym == symbol.upper():
+                stock_analysis_data = analysis
+                stock_rank = rank
+                break
+        
         # Generate detailed HTML
         try:
-            details_html = render_advisor_details_html(stock, recommendations, user_holding)
+            details_html = render_advisor_details_html(stock, recommendations, user_holding, stock_analysis_data, stock_rank)
         except Exception as html_error:
             return JsonResponse({
                 'success': False,
@@ -1318,7 +1371,7 @@ def advisor_details_view(request, symbol):
         })
 
 
-def render_advisor_details_html(stock, recommendations, user_holding):
+def render_advisor_details_html(stock, recommendations, user_holding, analysis_data=None, rank=None):
     """Render detailed advisor analysis as HTML"""
     
     # Stock and position info
@@ -1356,12 +1409,104 @@ def render_advisor_details_html(stock, recommendations, user_holding):
         <p style="color: #6c757d; margin: 0;">
             Current Price: <strong>${stock.current_price:.2f}</strong> | 
             Sector: {stock.sector} | 
-            {recommendations.count()} advisor recommendations
+            {len(recommendations)} advisor recommendations
         </p>
     </div>
+    """
     
-    {position_info}
+    # Add Smart Analysis explanation if available
+    if analysis_data and rank:
+        consensus = analysis_data['consensus_score']
+        action_type = analysis_data['action_type']
+        priority = analysis_data['action_priority']
+        buy_votes = analysis_data['buy_votes']
+        sell_votes = analysis_data['sell_votes']
+        total_advisors = analysis_data['total_advisors']
+        
+        # Generate explanation based on action type and context
+        if action_type == 'BUY':
+            action_explanation = f"Strong buy opportunity for a new position"
+            action_color = "#28a745"
+        elif action_type == 'BUY_MORE':
+            if user_holding:
+                current_price = float(stock.current_price)
+                avg_price = float(user_holding.average_price)
+                current_return = ((current_price - avg_price) / avg_price) * 100
+                
+                if current_return > 1:
+                    performance_text = f"current position is profitable (+{current_return:.1f}%)"
+                elif current_return < -1:
+                    performance_text = f"position is down ({current_return:.1f}%)"
+                else:
+                    performance_text = f"position is roughly break-even ({current_return:+.1f}%)"
+                
+                action_explanation = f"Add to existing position - {performance_text}"
+            else:
+                action_explanation = f"Add to existing position"
+            action_color = "#17a2b8"
+        elif action_type == 'SELL':
+            if user_holding:
+                action_explanation = f"Consider selling {user_holding.quantity} shares based on consensus"
+            else:
+                action_explanation = f"Sell recommendation (but you don't own this stock)"
+            action_color = "#dc3545"
+        else:
+            action_explanation = f"Hold current position - mixed advisor signals"
+            action_color = "#6c757d"
+        
+        # Consensus strength description
+        if consensus > 1.5:
+            consensus_desc = "Very Strong Buy"
+        elif consensus > 0.5:
+            consensus_desc = "Strong Buy"
+        elif consensus > 0:
+            consensus_desc = "Moderate Buy"
+        elif consensus > -0.5:
+            consensus_desc = "Neutral/Hold"
+        elif consensus > -1.5:
+            consensus_desc = "Moderate Sell"
+        else:
+            consensus_desc = "Strong Sell"
+        
+        html += f"""
+        <div style="padding: 1.5rem; background-color: #e8f4fd; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #667eea;">
+            <h4 style="color: #667eea; margin-bottom: 1rem;">🧠 Smart Analysis Summary</h4>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1rem;">
+                <div>
+                    <strong>Ranking:</strong><br>
+                    <span style="color: #667eea; font-size: 1.2rem; font-weight: bold;">#{rank}</span>
+                    <small style="color: #6c757d; display: block;">out of analyzed stocks</small>
+                </div>
+                <div>
+                    <strong>AI Consensus:</strong><br>
+                    <span style="color: {action_color}; font-size: 1.2rem; font-weight: bold;">{consensus_desc}</span>
+                    <small style="color: #6c757d; display: block;">Score: {consensus:.2f}</small>
+                </div>
+                <div>
+                    <strong>Advisor Agreement:</strong><br>
+                    <span style="color: #28a745; font-weight: bold;">{buy_votes} Buy</span> | 
+                    <span style="color: #dc3545; font-weight: bold;">{sell_votes} Sell</span>
+                    <small style="color: #6c757d; display: block;">of {total_advisors} advisors</small>
+                </div>
+                <div>
+                    <strong>Priority Score:</strong><br>
+                    <span style="color: #667eea; font-size: 1.2rem; font-weight: bold;">{priority:.0f}</span>
+                    <small style="color: #6c757d; display: block;">urgency rating</small>
+                </div>
+            </div>
+            
+            <div style="padding: 1rem; background-color: white; border-radius: 4px; border-left: 3px solid {action_color};">
+                <strong style="color: {action_color};">Recommended Action: {action_type.replace('_', ' ')}</strong>
+                <p style="margin: 0.5rem 0 0 0; color: #555;">
+                    {action_explanation}
+                </p>
+            </div>
+        </div>
+        """
     
+    html += position_info
+    html += """
     <h4 style="color: #333; margin-bottom: 1rem;">🤖 Individual Advisor Recommendations</h4>
     """
     
@@ -1427,10 +1572,10 @@ def render_advisor_details_html(stock, recommendations, user_holding):
             """
         
         # Add consensus summary
-        total_recs = recommendations.count()
-        buy_count = recommendations.filter(recommendation_type__in=['BUY', 'STRONG_BUY']).count()
-        sell_count = recommendations.filter(recommendation_type__in=['SELL', 'STRONG_SELL']).count()
-        hold_count = recommendations.filter(recommendation_type='HOLD').count()
+        total_recs = len(recommendations)
+        buy_count = len([r for r in recommendations if r.recommendation_type in ['BUY', 'STRONG_BUY']])
+        sell_count = len([r for r in recommendations if r.recommendation_type in ['SELL', 'STRONG_SELL']])
+        hold_count = len([r for r in recommendations if r.recommendation_type == 'HOLD'])
         
         html += f"""
         <div style="margin-top: 2rem; padding: 1.5rem; background-color: #e8f4fd; border-radius: 8px;">

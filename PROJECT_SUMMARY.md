@@ -336,6 +336,13 @@ http://127.0.0.1:8000/admin/
 - **Polygon.io Integration**: Technical analysis with indicators and trend detection
 - **OpenAI GPT Fixed**: Updated to modern API format (openai>=1.0.0)
 - **Multi-perspective Analysis**: AI + Technical + Financial recommendations
+- **Smart Analysis System**: Portfolio-aware AI recommendation analysis
+  - Tabbed interface on Recommendations page
+  - Filters irrelevant SELL recommendations for non-owned stocks
+  - Consolidates advisor opinions with consensus scoring
+  - Factors in user's cost basis for performance-aware suggestions
+  - Intelligent ranking with priority scoring algorithm
+  - One-click "Generate Analysis" with detailed explanations
 
 ### **✅ Visual & UX Improvements**
 - **Fixed Company Logos**: Boeing and Disney logos replaced (FMP provided blank images)
@@ -344,6 +351,11 @@ http://127.0.0.1:8000/admin/
 - **Real-time Calculations**: Live cost/proceeds estimates with commission transparency
 - **Emoji Headings**: Consistent emoji-prefixed headings across all pages
 - **Streamlined Navigation**: Simplified main menu focusing on core features
+- **Smart Analysis Details Modal**: Enhanced transparency with comprehensive breakdowns
+  - Smart Analysis explanation showing ranking logic and portfolio context
+  - Deduplicated advisor recommendations (one per advisor)
+  - Consensus voting summary (Buy/Hold/Sell counts)
+  - Professional styling with wider modal layout
 
 ### **✅ System Reliability**
 - **Error Handling**: Comprehensive validation and user feedback
@@ -356,7 +368,7 @@ http://127.0.0.1:8000/admin/
 ## 💡 **For Future Development Sessions**
 
 ### **Quick Context for New AI Sessions**
-*"This is SOULTRADER, a Django AI stock advisor platform with 5 active AI advisors (Google Gemini, Polygon.io, FMP, Finnhub, Yahoo Enhanced). Features include portfolio management with one-click buy/sell modals, AI recommendations with direct trading, enhanced error handling, and local company logos. Main navigation: Portfolio, Recommendations, Advisors, Profile. Test login: testuser/password123. Virtual env: ~/Development/scratch/python/tutorial-env"*
+*"This is SOULTRADER, a Django AI stock advisor platform with 5 active AI advisors (Google Gemini, Polygon.io, FMP, Finnhub, Yahoo Enhanced). Features include portfolio management with one-click buy/sell modals, AI recommendations with direct trading, Smart Analysis system for portfolio-aware recommendations, enhanced error handling, and local company logos. Main navigation: Portfolio, Recommendations (with Smart Analysis tab), Advisors, Profile. Test login: testuser/password123. Virtual env: ~/Development/scratch/python/tutorial-env"*
 
 ### **Navigation Streamlining**
 **Hidden Pages** (still accessible via direct URLs):
@@ -366,7 +378,7 @@ http://127.0.0.1:8000/admin/
 
 **Core Navigation** (authenticated users):
 - **Portfolio** - Holdings management with direct sell functionality
-- **Recommendations** - AI analysis with direct buy/sell functionality  
+- **Recommendations** - AI analysis with direct buy/sell functionality + Smart Analysis tab
 - **Advisors** - AI advisor management and performance
 - **Profile** - User settings and preferences
 
@@ -380,10 +392,10 @@ http://127.0.0.1:8000/admin/
 ---
 
 **Project Created**: September 2025  
-**Last Updated**: September 18, 2025  
-**Status**: Enhanced Production-ready Platform  
-**Active Features**: 5 AI advisors, one-click trading, enhanced UX, comprehensive error handling  
-**Next Steps**: Portfolio-aware recommendations, automated trading, advanced analytics
+**Last Updated**: September 19, 2025  
+**Status**: Enhanced Production-ready Platform with Smart Analysis  
+**Active Features**: 5 AI advisors, Smart Analysis system, one-click trading, enhanced UX, comprehensive error handling  
+**Next Steps**: Automated trading, advanced analytics, performance tracking, risk management
 
 ---
 
