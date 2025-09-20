@@ -126,6 +126,10 @@ class Stock(models.Model):
     market_cap = models.BigIntegerField(null=True, blank=True)
     market_cap_category = models.CharField(max_length=20, choices=MARKET_CAP_CATEGORIES, blank=True)
     
+    # International market support
+    currency = models.CharField(max_length=3, default='USD', help_text="Trading currency (USD, EUR, GBP, CHF, etc.)")
+    exchange = models.CharField(max_length=20, blank=True, help_text="Stock exchange (NYSE, LSE, SIX, etc.)")
+    
     # Current pricing
     current_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     previous_close = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -385,6 +389,7 @@ class AIAdvisor(models.Model):
         ('YAHOO_ENHANCED', 'Yahoo Finance Enhanced'),
         ('POLYGON', 'Polygon.io'),
         ('IEX_CLOUD', 'IEX Cloud'),
+        ('MARKET_SCREENING', 'Market Screening Service'),
         ('CUSTOM', 'Custom AI Service'),
     ]
     

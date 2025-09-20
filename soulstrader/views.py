@@ -1031,9 +1031,9 @@ def process_smart_analysis(recommendations, user_holdings, portfolio):
         # Apply portfolio-aware filtering
         holding = user_holdings.get(symbol)
         
-        # Filter SELL recommendations for stocks not owned
-        if rec.recommendation_type in ['SELL', 'STRONG_SELL'] and not holding:
-            continue  # Skip SELL recommendations for stocks not owned
+        # Filter SELL and HOLD recommendations for stocks not owned
+        if rec.recommendation_type in ['SELL', 'STRONG_SELL', 'HOLD'] and not holding:
+            continue  # Skip SELL and HOLD recommendations for stocks not owned
         
         # Add recommendation to analysis
         stock_analysis[symbol]['recommendations'].append(rec)

@@ -107,6 +107,8 @@ class YahooFinanceService:
                 'description': info.get('longBusinessSummary', ''),
                 'website': info.get('website', ''),
                 'employees': info.get('fullTimeEmployees'),
+                'currency': info.get('currency', 'USD'),
+                'exchange': info.get('exchange', ''),
             }
             
         except Exception as e:
@@ -287,6 +289,12 @@ class YahooMarketDataManager:
                     
                     if company_info['dividend_yield']:
                         stock.dividend_yield = Decimal(str(company_info['dividend_yield'] * 100))  # Convert to percentage
+                    
+                    # Set currency and exchange from Yahoo Finance info
+                    if 'currency' in company_info:
+                        stock.currency = company_info['currency']
+                    if 'exchange' in company_info:
+                        stock.exchange = company_info['exchange']
                         
                 except Exception as e:
                     logger.warning(f"Could not fetch company info for {symbol}: {e}")

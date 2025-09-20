@@ -72,16 +72,17 @@ aiadvisor/                    # Django project root
 
 ## 🤖 **AI Advisor System**
 
-### **Supported AI Advisors** (9 Total)
+### **Supported AI Advisors** (10 Total)
 1. **Financial Modeling Prep (FMP)** ✅ *Active*
 2. **Yahoo Finance Enhanced** ✅ *Active*  
 3. **Finnhub Market Intelligence** ✅ *Active*
-4. **Google Gemini** ✅ *Active* ⭐ *NEW!*
-5. **Polygon.io Market Data** ✅ *Active* ⭐ *NEW!*
-6. **OpenAI GPT** ⚠️ *Error State (Quota Exceeded)*
-7. **Anthropic Claude** ⚪ *Inactive*
-8. **Perplexity AI** ⚪ *Inactive*
-9. **IEX Cloud** ⚪ *Inactive*
+4. **Google Gemini** ✅ *Active*
+5. **Polygon.io Market Data** ✅ *Active*
+6. **Market Screening Service** ✅ *Active* ⭐ *NEW!*
+7. **OpenAI GPT** ⚠️ *Error State (Quota Exceeded)*
+8. **Anthropic Claude** ⚪ *Inactive*
+9. **Perplexity AI** ⚪ *Inactive*
+10. **IEX Cloud** ⚪ *Inactive*
 
 ### **Recommendation Types**
 - STRONG_BUY, BUY, HOLD, SELL, STRONG_SELL
@@ -126,24 +127,34 @@ analyst_rating_strong_sell = IntegerField()
 - **Authentication**: Django built-in with custom logout
 
 ### **Stock Data**
-- **12 Stocks** in database
+- **21 Stocks** in database (expanded from 12)
 - **8 Major US Stocks** with FMP integration:
   - AAPL (Apple), MSFT (Microsoft), GOOGL (Alphabet)
   - TSLA (Tesla), NVDA (NVIDIA), BA (Boeing)
   - DIS (Disney), NFLX (Netflix)
-- **4 International Stocks** (limited FMP support)
+- **4 European Stocks** with full international support:
+  - NVO (Novo Nordisk ADR), KYGA.L (Kerry Group)
+  - GLB.L (Glanbia), HOLN.SW (Holcim)
+- **6 Market Screening Stocks** (auto-discovered):
+  - AGMH, CJET, ARQQW (top gainers)
+  - SHOTW, LSBPW (top losers)
+- **3 Legacy International Tesla Variants** (some delisted)
 
 ### **Portfolio Data**
-- **testuser Portfolio**: 4 holdings
-  - MSFT: 100 shares
-  - GOOGL: 100 shares  
-  - AAPL: 25 shares
-  - TSLA: 100 shares
+- **testuser Portfolio**: 11 holdings (expanded from 4)
+  - **Major US Holdings**: MSFT (120 shares, $62,151), AAPL (31 shares, $7,610), GOOGL (20 shares, $5,094), TSLA (10 shares, $4,260), NVDA (50 shares, $8,833)
+  - **Traditional Holdings**: BA (15 shares, $3,234), DIS (10 shares, $1,137)
+  - **International**: NVO (10 shares, $614 USD)
+  - **Market Screening Positions**: CJET (10,000 shares, $2,900), ARQQW (5,000 shares, $4,900), AGMH (10 shares, $103)
+- **Portfolio Value**: $100,989.30 total ($100,840 holdings + $149 cash)
+- **Fresh Prices**: All updated within last 4 minutes
 
 ### **AI Recommendations**
-- **34 Total Recommendations**
-- **8 FMP Recommendations** (all BUY ratings)
-- **26 Legacy Recommendations** from other sources
+- **58+ Total Recommendations** (expanded from 34)
+- **6 Active AI Advisors**: FMP, Yahoo Enhanced, Polygon.io, Google Gemini, Finnhub, Market Screening Service
+- **Proactive Recommendations**: 5 from Market Screening Service (3 BUY, 2 STRONG_SELL)
+- **International Coverage**: Recommendations working on European stocks
+- **Smart Analysis**: Portfolio-aware filtering and consensus scoring
 
 ---
 
@@ -268,7 +279,15 @@ python manage.py runserver
 http://127.0.0.1:8000/
 ```
 
-### **Common Tasks**
+### **Daily Workflow** (Recommended)
+```bash
+# Morning routine (uses 24/25 Alpha Vantage API calls)
+python manage.py get_market_movers --category all      # 3 API calls
+python manage.py update_market_data --all              # 21 API calls
+python manage.py get_market_movers --summary           # Shows market sentiment
+```
+
+### **Other Common Tasks**
 ```bash
 # Update FMP data
 python manage.py update_fmp_data --all
@@ -279,9 +298,19 @@ python manage.py download_company_logos --symbols SYMBOL
 # Create recommendations
 python manage.py create_fmp_recommendations --all
 
+# Selective price updates (if needed)
+python manage.py update_market_data --symbols AAPL,MSFT,GOOGL
+
 # Access admin
 http://127.0.0.1:8000/admin/
 ```
+
+### **API Rate Limits**
+- **Alpha Vantage**: 25 requests/day (market data & screening)
+- **FMP**: 250/day, 10/minute (grades & analyst data)  
+- **Yahoo Finance**: Unlimited (no API key required)
+- **Polygon.io**: 1000/day (technical analysis)
+- **Google Gemini**: 1500/day (AI recommendations)
 
 ---
 
@@ -331,24 +360,52 @@ http://127.0.0.1:8000/admin/
   - Smart validation (sell only available if user owns stock)
 
 ### **✅ AI Advisor System Expansion**
-- **5 Active Advisors** (up from 3): 56% activation rate
+- **6 Active Advisors** (up from 5): Market Screening Service added
 - **Google Gemini Integration**: Full AI analysis with structured prompts
 - **Polygon.io Integration**: Technical analysis with indicators and trend detection
 - **OpenAI GPT Fixed**: Updated to modern API format (openai>=1.0.0)
 - **Multi-perspective Analysis**: AI + Technical + Financial recommendations
 - **Smart Analysis System**: Portfolio-aware AI recommendation analysis
   - Tabbed interface on Recommendations page
-  - Filters irrelevant SELL recommendations for non-owned stocks
+  - Filters irrelevant SELL and HOLD recommendations for non-owned stocks
   - Consolidates advisor opinions with consensus scoring
   - Factors in user's cost basis for performance-aware suggestions
   - Intelligent ranking with priority scoring algorithm
   - One-click "Generate Analysis" with detailed explanations
+
+### **🌍 International Market Support** ⭐ *NEW!*
+- **Multi-Currency Support**: EUR, GBP, CHF, USD with proper currency symbols
+- **International Exchanges**: LSE, EBS, SIX Swiss Exchange, Copenhagen, Frankfurt
+- **4 European Stocks Added**: 
+  - 🇩🇰 NVO (Novo Nordisk A/S ADR) - $61.40 USD
+  - 🇮🇪 KYGA.L (Kerry Group plc) - €77.20 EUR (LSE)
+  - 🇮🇪 GLB.L (Glanbia plc) - €13.70 EUR (LSE)
+  - 🇨🇭 HOLN.SW (Holcim AG) - CHF69.06 CHF (SIX)
+- **Database Enhancements**: Added currency and exchange fields to Stock model
+- **Yahoo Finance Integration**: Full support for international symbols (.L, .SW, .CO suffixes)
+- **AI Compatibility**: All advisors work seamlessly with international stocks
+
+### **📈 Proactive Market Recommendations** ⭐ *NEW!*
+- **Market Screening Service**: New AI advisor for proactive stock discovery
+- **Alpha Vantage Integration**: TOP_GAINERS_LOSERS endpoint for market movers
+- **Real-time Market Data**: Top gainers, losers, most actively traded stocks
+- **Automatic Stock Discovery**: System finds and adds new stocks automatically
+- **Smart Categorization**:
+  - Top Gainers → BUY recommendations
+  - Top Losers → Contrarian STRONG_SELL opportunities
+  - Most Active → HOLD recommendations for high-volume stocks
+- **Management Command**: `python manage.py get_market_movers`
+  - `--category gainers/losers/active/all`
+  - `--summary` for market sentiment analysis
+  - `--dry-run` for preview without saving
+- **Market Sentiment Analysis**: Bullish/Bearish/Neutral based on gainer/loser ratios
 
 ### **✅ Visual & UX Improvements**
 - **Fixed Company Logos**: Boeing and Disney logos replaced (FMP provided blank images)
 - **Consistent Button Styling**: Professional red/green action buttons across all pages
 - **Enhanced Modals**: Professional modal interfaces for trading actions
 - **Real-time Calculations**: Live cost/proceeds estimates with commission transparency
+- **Multi-Currency Display**: Proper currency symbols (€, £, CHF, $) throughout UI
 - **Emoji Headings**: Consistent emoji-prefixed headings across all pages
 - **Streamlined Navigation**: Simplified main menu focusing on core features
 - **Smart Analysis Details Modal**: Enhanced transparency with comprehensive breakdowns
@@ -357,18 +414,20 @@ http://127.0.0.1:8000/admin/
   - Consensus voting summary (Buy/Hold/Sell counts)
   - Professional styling with wider modal layout
 
-### **✅ System Reliability**
+### **✅ System Reliability & Performance**
 - **Error Handling**: Comprehensive validation and user feedback
 - **API Compatibility**: Updated integrations for modern API versions
 - **Portfolio Management**: Clean transaction reversal and position management
 - **Logo Fallback System**: Clearbit Logo API as backup for missing FMP logos
+- **Smart Analysis Filtering**: Fixed to exclude HOLD recommendations for non-owned stocks
+- **Fresh Price Data**: All portfolio prices updated with current market values
 
 ---
 
 ## 💡 **For Future Development Sessions**
 
 ### **Quick Context for New AI Sessions**
-*"This is SOULTRADER, a Django AI stock advisor platform with 5 active AI advisors (Google Gemini, Polygon.io, FMP, Finnhub, Yahoo Enhanced). Features include portfolio management with one-click buy/sell modals, AI recommendations with direct trading, Smart Analysis system for portfolio-aware recommendations, enhanced error handling, and local company logos. Main navigation: Portfolio, Recommendations (with Smart Analysis tab), Advisors, Profile. Test login: testuser/password123. Virtual env: ~/Development/scratch/python/tutorial-env"*
+*"This is SOULTRADER, a Django AI stock advisor platform with 6 active AI advisors including proactive Market Screening Service. Features include international stock support (EUR, GBP, CHF), portfolio management with one-click buy/sell modals, proactive market recommendations, Smart Analysis system with portfolio-aware filtering, and fresh price data. Supports 21 stocks across US and European markets. Main navigation: Portfolio, Recommendations (with Smart Analysis tab), Advisors, Profile. Test login: testuser/password123. Virtual env: ~/Development/scratch/python/tutorial-env"*
 
 ### **Navigation Streamlining**
 **Hidden Pages** (still accessible via direct URLs):
@@ -384,18 +443,20 @@ http://127.0.0.1:8000/admin/
 
 ### **Key Integration Points**
 - **FMP Service**: `soulstrader/fmp_service.py`
-- **Models**: Comprehensive stock/portfolio/AI system
+- **Market Screening Service**: `soulstrader/market_screening_service.py` ⭐ *NEW!*
+- **Yahoo Finance Service**: `soulstrader/yahoo_finance_service.py` (international support)
+- **Models**: Comprehensive stock/portfolio/AI system with currency fields
 - **Admin**: Full CRUD for all models
-- **Management Commands**: 14 commands for automation
-- **Templates**: Professional UI with logos and grades
+- **Management Commands**: 15+ commands for automation (including `get_market_movers`)
+- **Templates**: Professional UI with logos, grades, and multi-currency display
 
 ---
 
 **Project Created**: September 2025  
-**Last Updated**: September 19, 2025  
-**Status**: Enhanced Production-ready Platform with Smart Analysis  
-**Active Features**: 5 AI advisors, Smart Analysis system, one-click trading, enhanced UX, comprehensive error handling  
-**Next Steps**: Automated trading, advanced analytics, performance tracking, risk management
+**Last Updated**: September 20, 2025  
+**Status**: International Multi-Market Platform with Proactive Recommendations  
+**Active Features**: 6 AI advisors, international markets, proactive market screening, Smart Analysis system, one-click trading, multi-currency support  
+**Next Steps**: Automated trading, advanced analytics, performance tracking, risk management, expanded international coverage
 
 ---
 
