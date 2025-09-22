@@ -19,7 +19,7 @@ class TradingService:
     
     @classmethod
     def place_order(cls, portfolio, stock, trade_type, quantity, order_type='MARKET', 
-                   price=None, stop_price=None, notes=''):
+                   price=None, stop_price=None, notes='', trade_source='MANUAL', source_reference=''):
         """
         Place a new trading order
         
@@ -31,7 +31,9 @@ class TradingService:
             order_type: 'MARKET', 'LIMIT', 'STOP', 'STOP_LIMIT'
             price: Limit price for limit orders
             stop_price: Stop price for stop orders
-            notes: Optional notes
+            notes: Optional notes with detailed explanation
+            trade_source: Source of the trade (MANUAL, AI_RECOMMENDATION, etc.)
+            source_reference: Reference to source (advisor name, recommendation ID, etc.)
             
         Returns:
             dict with 'success': bool, 'trade': Trade instance or None, 'error': str or None
@@ -56,6 +58,8 @@ class TradingService:
             price=price,
             stop_price=stop_price,
             notes=notes,
+            trade_source=trade_source,
+            source_reference=source_reference,
             status='PENDING'
         )
         
@@ -300,6 +304,155 @@ class TradingService:
         stock.day_change = new_price - stock.previous_close
         stock.day_change_percent = (stock.day_change / stock.previous_close) * 100
         stock.save()
+    
+    @classmethod
+    def place_ai_recommendation_trade(cls, portfolio, stock, trade_type, quantity, 
+                                    advisor_name, recommendation_data, order_type='MARKET'):
+        """
+        Place a trade based on AI recommendation with detailed explanation
+        
+        Args:
+            portfolio: Portfolio instance
+            stock: Stock instance
+            trade_type: 'BUY' or 'SELL'
+            quantity: Number of shares
+            advisor_name: Name of the AI advisor
+            recommendation_data: Dict with recommendation details
+            order_type: Order type (default MARKET)
+        """
+        
+        # Create detailed explanation
+        explanation_parts = [
+            f"Trade based on recommendation by {advisor_name}:"
+        ]
+        
+        if recommendation_data.get('recommendation_type'):
+            explanation_parts.append(f"Recommendation: {recommendation_data['recommendation_type']}")
+        
+        if recommendation_data.get('confidence_level'):
+            explanation_parts.append(f"Confidence: {recommendation_data['confidence_level']}")
+        
+        if recommendation_data.get('target_price'):
+            explanation_parts.append(f"Target Price: ${recommendation_data['target_price']}")
+        
+        if recommendation_data.get('reasoning'):
+            explanation_parts.append(f"Reasoning: {recommendation_data['reasoning']}")
+        
+        # Add market data if available
+        if recommendation_data.get('change_percent'):
+            explanation_parts.append(f"Market Change: {recommendation_data['change_percent']}%")
+        
+        if recommendation_data.get('volume'):
+            explanation_parts.append(f"Volume: {recommendation_data['volume']:,}")
+        
+        notes = ". ".join(explanation_parts)
+        
+        return cls.place_order(
+            portfolio=portfolio,
+            stock=stock,
+            trade_type=trade_type,
+            quantity=quantity,
+            order_type=order_type,
+            notes=notes,
+            trade_source='AI_RECOMMENDATION',
+            source_reference=advisor_name
+        )
+    
+    @classmethod
+    def place_smart_analysis_trade(cls, portfolio, stock, trade_type, quantity, 
+                                 analysis_data, order_type='MARKET'):
+        """
+        Place a trade based on Smart Analysis with detailed explanation
+        
+        Args:
+            portfolio: Portfolio instance
+            stock: Stock instance
+            trade_type: 'BUY' or 'SELL'
+            quantity: Number of shares
+            analysis_data: Dict with analysis details
+            order_type: Order type (default MARKET)
+        """
+        
+        # Create detailed explanation
+        explanation_parts = [
+            f"Trade based on smart analysis of {analysis_data.get('advisor_count', 'multiple')} recommendations."
+        ]
+        
+        if analysis_data.get('action'):
+            explanation_parts.append(f"Recommended Action: {analysis_data['action']}")
+        
+        if analysis_data.get('position_context'):
+            explanation_parts.append(analysis_data['position_context'])
+        
+        if analysis_data.get('performance_context'):
+            explanation_parts.append(f"Position performance: {analysis_data['performance_context']}")
+        
+        if analysis_data.get('consensus_summary'):
+            explanation_parts.append(f"Consensus: {analysis_data['consensus_summary']}")
+        
+        notes = ". ".join(explanation_parts)
+        
+        return cls.place_order(
+            portfolio=portfolio,
+            stock=stock,
+            trade_type=trade_type,
+            quantity=quantity,
+            order_type=order_type,
+            notes=notes,
+            trade_source='SMART_ANALYSIS',
+            source_reference=f"Analysis of {analysis_data.get('advisor_count', 'N/A')} recommendations"
+        )
+    
+    @classmethod
+    def place_market_screening_trade(cls, portfolio, stock, trade_type, quantity, 
+                                   screening_data, order_type='MARKET'):
+        """
+        Place a trade based on Market Screening with detailed explanation
+        
+        Args:
+            portfolio: Portfolio instance
+            stock: Stock instance
+            trade_type: 'BUY' or 'SELL'
+            quantity: Number of shares
+            screening_data: Dict with screening details
+            order_type: Order type (default MARKET)
+        """
+        
+        # Create detailed explanation
+        explanation_parts = [
+            f"Trade based on recommendation by Market Screening Service:"
+        ]
+        
+        if screening_data.get('category'):
+            category_map = {
+                'gainers': 'Top market gainer',
+                'losers': 'Top market loser', 
+                'active': 'Most actively traded'
+            }
+            category_desc = category_map.get(screening_data['category'], screening_data['category'])
+            explanation_parts.append(f"{category_desc}: {stock.symbol}")
+        
+        if screening_data.get('change_percent'):
+            explanation_parts.append(f"{screening_data['change_percent']}% change")
+        
+        if screening_data.get('volume'):
+            explanation_parts.append(f"volume: {screening_data['volume']:,}")
+        
+        if screening_data.get('price'):
+            explanation_parts.append(f"price: ${screening_data['price']}")
+        
+        notes = ", ".join(explanation_parts)
+        
+        return cls.place_order(
+            portfolio=portfolio,
+            stock=stock,
+            trade_type=trade_type,
+            quantity=quantity,
+            order_type=order_type,
+            notes=notes,
+            trade_source='MARKET_SCREENING',
+            source_reference='Market Screening Service'
+        )
     
     @classmethod
     def get_trade_summary(cls, portfolio):

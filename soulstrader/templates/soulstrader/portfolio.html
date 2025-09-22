@@ -155,75 +155,94 @@
 <!-- Recent Trades -->
 {% if recent_trades %}
 <div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">Recent Trades</h2>
-    <div class="table">
-        <table>
-            <thead>
-                <tr>
-                    <th>Stock</th>
-                    <th>Type</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Total Amount</th>
-                    <th>Notes</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for trade in recent_trades %}
-                <tr>
-                    <td>
-                        <strong>{{ trade.stock.symbol }}</strong><br>
-                        <small>{{ trade.stock.name }}</small>
-                    </td>
-                    <td>
-                        <span class="{% if trade.trade_type == 'BUY' %}positive{% else %}negative{% endif %}">
-                            {{ trade.get_trade_type_display }}
-                        </span>
-                    </td>
-                    <td>{{ trade.quantity }}</td>
-                    <td>
-                        {% if trade.average_fill_price %}
-                            ${{ trade.average_fill_price|floatformat:2 }}
-                        {% elif trade.price %}
-                            ${{ trade.price|floatformat:2 }}
-                        {% else %}
-                            -
+    <h2 style="margin-bottom: 1.5rem; color: #333;">📊 Recent Trades</h2>
+    
+    {% for trade in recent_trades %}
+    <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; background-color: #f8f9fa;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div>
+                <h3 style="margin: 0; color: #333;">
+                    <a href="{% url 'soulstrader:stock_detail' trade.stock.symbol %}" style="color: #667eea; text-decoration: none;">
+                        {{ trade.stock.symbol }} - {{ trade.stock.name }}
+                    </a>
+                </h3>
+                <p style="margin: 0.5rem 0 0 0; color: #6c757d; font-size: 0.9rem;">
+                    {{ trade.get_source_display_with_icon }} • {{ trade.created_at|date:"M d, Y H:i" }}
+                </p>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem;">
+                    <span class="{% if trade.trade_type == 'BUY' %}positive{% else %}negative{% endif %}">
+                        {{ trade.get_trade_type_display }} {{ trade.quantity }} shares
+                    </span>
+                </div>
+                <div style="font-size: 0.9rem; color: #6c757d;">
+                    <span style="
+                        {% if trade.status == 'FILLED' %}color: #28a745; font-weight: bold;
+                        {% elif trade.status == 'CANCELLED' or trade.status == 'REJECTED' %}color: #dc3545; font-weight: bold;
+                        {% elif trade.status == 'PENDING' %}color: #ffc107; font-weight: bold;
+                        {% elif trade.status == 'PARTIALLY_FILLED' %}color: #17a2b8; font-weight: bold;
+                        {% else %}color: #6c757d; font-weight: bold;
                         {% endif %}
-                    </td>
-                    <td>
-                        {% if trade.total_amount %}
-                            ${{ trade.total_amount|floatformat:2 }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if trade.notes %}
-                            <small>{{ trade.notes|truncatechars:30 }}</small>
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>{{ trade.created_at|date:"M d, Y H:i" }}</td>
-                    <td>
-                        <span style="
-                            {% if trade.status == 'FILLED' %}color: #28a745; font-weight: bold;
-                            {% elif trade.status == 'CANCELLED' or trade.status == 'REJECTED' %}color: #dc3545; font-weight: bold;
-                            {% elif trade.status == 'PENDING' %}color: #ffc107; font-weight: bold;
-                            {% elif trade.status == 'PARTIALLY_FILLED' %}color: #17a2b8; font-weight: bold;
-                            {% else %}color: #6c757d; font-weight: bold;
-                            {% endif %}
-                        ">
-                            {{ trade.get_status_display }}
-                        </span>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    ">
+                        {{ trade.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div>
+                <strong>Price:</strong><br>
+                <span style="color: #28a745;">
+                    {% if trade.average_fill_price %}
+                        ${{ trade.average_fill_price|floatformat:2 }}
+                    {% elif trade.price %}
+                        ${{ trade.price|floatformat:2 }}
+                    {% else %}
+                        Market
+                    {% endif %}
+                </span>
+            </div>
+            <div>
+                <strong>Total Amount:</strong><br>
+                <span style="color: #667eea;">
+                    {% if trade.total_amount %}
+                        ${{ trade.total_amount|floatformat:2 }}
+                    {% else %}
+                        Pending
+                    {% endif %}
+                </span>
+            </div>
+            {% if trade.commission %}
+            <div>
+                <strong>Commission:</strong><br>
+                <span style="color: #dc3545;">${{ trade.commission|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+            {% if trade.source_reference %}
+            <div>
+                <strong>Source:</strong><br>
+                <span style="color: #6c757d; font-size: 0.9rem;">{{ trade.source_reference }}</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if trade.notes %}
+        <div style="margin-top: 1rem; padding: 1rem; background-color: #fff; border-radius: 4px; border-left: 4px solid #667eea;">
+            <strong>Explanation:</strong><br>
+            <span style="color: #495057; font-size: 0.9rem; line-height: 1.4;">{{ trade.notes }}</span>
+        </div>
+        {% endif %}
+        
+        {% if trade.rejection_reason %}
+        <div style="margin-top: 1rem; padding: 1rem; background-color: #f8d7da; border-radius: 4px; border-left: 4px solid #dc3545;">
+            <strong>Rejection Reason:</strong><br>
+            <span style="color: #721c24; font-size: 0.9rem;">{{ trade.rejection_reason }}</span>
+        </div>
+        {% endif %}
     </div>
+    {% endfor %}
 </div>
 {% endif %}
 

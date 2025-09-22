@@ -122,7 +122,8 @@ analyst_rating_strong_sell = IntegerField()
 ## 📈 **Current Data Status**
 
 ### **Users & Authentication**
-- **2 Users**: `admin` (superuser), `testuser` (regular)
+- **1 Active User**: `testuser` (regular user, others disabled for API optimization)
+- **2 Disabled Users**: `admin` (superuser), `user1` (disabled to minimize API calls)
 - **Login**: testuser / password123
 - **Authentication**: Django built-in with custom logout
 
@@ -154,7 +155,8 @@ analyst_rating_strong_sell = IntegerField()
 - **6 Active AI Advisors**: FMP, Yahoo Enhanced, Polygon.io, Google Gemini, Finnhub, Market Screening Service
 - **Proactive Recommendations**: 5 from Market Screening Service (3 BUY, 2 STRONG_SELL)
 - **International Coverage**: Recommendations working on European stocks
-- **Smart Analysis**: Portfolio-aware filtering and consensus scoring
+- **Smart Analysis**: Automated portfolio optimization with stored recommendations
+- **Smart Recommendations**: Database-stored optimization results with buy algorithm calculations
 
 ---
 
@@ -194,6 +196,8 @@ analyst_rating_strong_sell = IntegerField()
 - `get_ai_recommendations` - Generate AI recommendations
 - `demo_ai_recommendations` - Create demo recommendations
 - `create_sample_data` - Generate sample portfolio data
+- `smartanalyse` - Run automated portfolio optimization analysis
+- `cleanup_users` - Manage user accounts (disable/delete for API optimization)
 
 ---
 
@@ -345,6 +349,24 @@ http://127.0.0.1:8000/admin/
 
 ## 🚀 **Recent Enhancements (September 2025)**
 
+### **🧠 Smart Analysis & Portfolio Optimization Engine** ⭐ *MAJOR UPDATE!*
+- **Automated Portfolio Optimization**: Complete transformation from on-demand to stored analysis system
+- **Smart Analysis Service**: Centralized `SmartAnalysisService` with comprehensive buy algorithm
+- **Database Models**: New `SmartRecommendation`, `RiskProfile`, and `SmartAnalysisSession` models
+- **Management Command**: `python manage.py smartanalyse [username|--all]` for automated execution
+- **Real Market Screening**: Integration with Alpha Vantage for dynamic "best buy" candidates
+- **Buy Algorithm**: Multi-pass proportional cash allocation with anti-repetition logic
+  - Initial cash spend calculation (configurable % of available cash)
+  - Risk profile filtering (max purchase %, min confidence score)
+  - Proportional weighting by priority scores
+  - Dynamic rebalancing with existing position adjustments
+  - Two-pass share calculation with weight redistribution
+- **Risk Profile Settings**: User-configurable parameters (max purchase %, min confidence, cash spend %)
+- **Execution Tracking**: Automatic marking of recommendations as executed when trades are placed
+- **Daily Automation**: `run_daily_smart_analysis.py` script for once-daily execution
+- **Details Button**: Comprehensive recommendation breakdown with full AI reasoning and advisor analysis
+- **User Cleanup**: Disabled all users except `testuser` to minimize API calls during development
+
 ### **✅ Trading System Improvements**
 - **Enhanced Error Messages**: Trading validation now provides specific error feedback
   - "Insufficient funds: Required $X, Available $Y"
@@ -453,10 +475,10 @@ http://127.0.0.1:8000/admin/
 ---
 
 **Project Created**: September 2025  
-**Last Updated**: September 20, 2025  
-**Status**: International Multi-Market Platform with Proactive Recommendations  
-**Active Features**: 6 AI advisors, international markets, proactive market screening, Smart Analysis system, one-click trading, multi-currency support  
-**Next Steps**: Automated trading, advanced analytics, performance tracking, risk management, expanded international coverage
+**Last Updated**: September 22, 2025  
+**Status**: Automated Portfolio Optimization Platform with Smart Analysis Engine  
+**Active Features**: 6 AI advisors, international markets, proactive market screening, Smart Analysis system with automated optimization, one-click trading, multi-currency support, stored recommendations with buy algorithm  
+**Next Steps**: Advanced analytics, performance tracking, risk management, expanded international coverage, automated execution
 
 ---
 

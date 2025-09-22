@@ -205,32 +205,8 @@
 <!-- Tab Content: Smart Analysis -->
 <div id="smart-analysis-content" class="tab-content" style="display: none;">
     <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h2 style="color: #333; margin: 0;">🧠 Portfolio-Aware Smart Analysis</h2>
-            <button class="btn" style="background-color: #667eea;" onclick="generateSmartAnalysis()">
-                Generate Analysis
-            </button>
-        </div>
-        
-        <div id="smart-analysis-results" style="display: none;">
+        <div id="smart-analysis-results">
             <!-- Smart analysis results will be loaded here -->
-        </div>
-        
-        <div id="smart-analysis-placeholder" style="text-align: center; padding: 3rem; color: #6c757d;">
-            <h3 style="margin-bottom: 1rem;">Portfolio-Aware AI Analysis</h3>
-            <p style="margin-bottom: 2rem;">
-                Get intelligent, personalized recommendations based on your current holdings:
-            </p>
-            <ul style="text-align: left; max-width: 500px; margin: 0 auto 2rem auto; color: #555;">
-                <li>✅ <strong>Portfolio Context</strong> - Only relevant SELL recommendations for stocks you own</li>
-                <li>✅ <strong>Consolidated Analysis</strong> - Multiple advisor opinions per stock</li>
-                <li>✅ <strong>Cost Basis Awareness</strong> - Factors in your average purchase prices</li>
-                <li>✅ <strong>Intelligent Ranking</strong> - Best opportunities prioritized</li>
-                <li>✅ <strong>Actionable Insights</strong> - Tailored to your specific portfolio</li>
-            </ul>
-            <button class="btn" style="background-color: #28a745; font-size: 1.1rem; padding: 0.75rem 2rem;" onclick="generateSmartAnalysis()">
-                🧠 Generate Smart Analysis
-            </button>
         </div>
     </div>
 </div>
@@ -382,7 +358,63 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Tab functionality
+
+// Smart Analysis functionality
+function loadSmartAnalysis() {
+    const results = document.getElementById('smart-analysis-results');
+    
+    // Show loading state
+    results.innerHTML = `
+        <div style="text-align: center; padding: 3rem;">
+            <h3 style="color: #667eea;">🧠 Loading Smart Analysis...</h3>
+            <p style="color: #6c757d;">Retrieving stored portfolio optimization recommendations</p>
+            <div style="margin: 2rem 0;">
+                <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            </div>
+        </div>
+    `;
+    
+    // Make AJAX request to get stored smart analysis
+    fetch('/recommendations/smart-analysis/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            results.innerHTML = data.html;
+        } else {
+            results.innerHTML = `
+                <div style="text-align: center; padding: 3rem; color: #dc3545;">
+                    <h3>Analysis Failed</h3>
+                    <p>${data.error || 'Unknown error occurred'}</p>
+                    <button class="btn" onclick="loadSmartAnalysis()">Try Again</button>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        results.innerHTML = `
+            <div style="text-align: center; padding: 3rem; color: #dc3545;">
+                <h3>Connection Error</h3>
+                <p>Unable to load analysis. Please try again.</p>
+                <button class="btn" onclick="loadSmartAnalysis()">Try Again</button>
+            </div>
+        `;
+    });
+}
+
+function showSmartRecommendationDetails(recommendationId) {
+    // Open details in a new window/tab
+    window.open(`/smart-recommendation/details/${recommendationId}/`, '_blank', 'width=1000,height=800,scrollbars=yes,resizable=yes');
+}
+
+// Load Smart Analysis when tab is shown
 function showTab(tabName) {
     // Hide all tab contents
     document.querySelectorAll('.tab-content').forEach(content => {
@@ -399,59 +431,11 @@ function showTab(tabName) {
     
     // Add active class to selected tab button
     document.getElementById('tab-' + tabName).classList.add('active');
-}
-
-// Smart Analysis functionality
-function generateSmartAnalysis() {
-    const placeholder = document.getElementById('smart-analysis-placeholder');
-    const results = document.getElementById('smart-analysis-results');
     
-    // Show loading state
-    placeholder.innerHTML = `
-        <div style="text-align: center; padding: 3rem;">
-            <h3 style="color: #667eea;">🧠 Analyzing Your Portfolio...</h3>
-            <p style="color: #6c757d;">Processing AI recommendations with portfolio context</p>
-            <div style="margin: 2rem 0;">
-                <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            </div>
-        </div>
-    `;
-    
-    // Make AJAX request to get smart analysis
-    fetch('/recommendations/smart-analysis/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify({})
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            placeholder.style.display = 'none';
-            results.innerHTML = data.html;
-            results.style.display = 'block';
-        } else {
-            placeholder.innerHTML = `
-                <div style="text-align: center; padding: 3rem; color: #dc3545;">
-                    <h3>Analysis Failed</h3>
-                    <p>${data.error || 'Unknown error occurred'}</p>
-                    <button class="btn" onclick="generateSmartAnalysis()">Try Again</button>
-                </div>
-            `;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        placeholder.innerHTML = `
-            <div style="text-align: center; padding: 3rem; color: #dc3545;">
-                <h3>Connection Error</h3>
-                <p>Unable to generate analysis. Please try again.</p>
-                <button class="btn" onclick="generateSmartAnalysis()">Try Again</button>
-            </div>
-        `;
-    });
+    // Load Smart Analysis when tab is shown
+    if (tabName === 'smart-analysis') {
+        loadSmartAnalysis();
+    }
 }
 
 // Sell Modal Functions
@@ -521,59 +505,6 @@ document.getElementById('sellRecModal').addEventListener('click', function(e) {
     }
 });
 
-// Advisor Details Modal Functions
-function showAdvisorDetails(symbol) {
-    const modal = document.getElementById('advisorDetailsModal');
-    const content = document.getElementById('advisorDetailsContent');
-    
-    // Show loading state
-    content.innerHTML = `
-        <div style="text-align: center; padding: 3rem;">
-            <h3 style="color: #667eea;">🔍 Loading Advisor Details...</h3>
-            <div style="margin: 2rem 0;">
-                <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            </div>
-        </div>
-    `;
-    
-    modal.style.display = 'block';
-    
-    // Fetch advisor details
-    fetch(`/recommendations/advisor-details/${symbol}/`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                content.innerHTML = data.html;
-            } else {
-                content.innerHTML = `
-                    <div style="text-align: center; padding: 3rem; color: #dc3545;">
-                        <h3>Error Loading Details</h3>
-                        <p>${data.error || 'Unknown error occurred'}</p>
-                    </div>
-                `;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            content.innerHTML = `
-                <div style="text-align: center; padding: 3rem; color: #dc3545;">
-                    <h3>Connection Error</h3>
-                    <p>Unable to load advisor details. Please try again.</p>
-                </div>
-            `;
-        });
-}
-
-function closeAdvisorDetailsModal() {
-    document.getElementById('advisorDetailsModal').style.display = 'none';
-}
-
-// Close details modal when clicking outside
-document.getElementById('advisorDetailsModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeAdvisorDetailsModal();
-    }
-});
 </script>
 
 <!-- Sell Modal -->
@@ -640,18 +571,5 @@ document.getElementById('advisorDetailsModal').addEventListener('click', functio
     </div>
 </div>
 
-<!-- Advisor Details Modal -->
-<div id="advisorDetailsModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-    <div style="background-color: white; margin: 3% auto; padding: 2rem; width: 95%; max-width: 1000px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-height: 85vh; overflow-y: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h2 style="color: #333; margin: 0;">🔍 Advisor Analysis Details</h2>
-            <button onclick="closeAdvisorDetailsModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6c757d;">&times;</button>
-        </div>
-        
-        <div id="advisorDetailsContent">
-            <!-- Content will be loaded here -->
-        </div>
-    </div>
-</div>
 
 {% endblock %}

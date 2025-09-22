@@ -297,6 +297,17 @@ class Trade(models.Model):
         ('EXPIRED', 'Expired'),
     ]
     
+    TRADE_SOURCES = [
+        ('MANUAL', 'Manual Trade'),
+        ('AI_RECOMMENDATION', 'AI Recommendation'),
+        ('SMART_ANALYSIS', 'Smart Analysis'),
+        ('MARKET_SCREENING', 'Market Screening'),
+        ('AUTOMATED_STRATEGY', 'Automated Strategy'),
+        ('REBALANCING', 'Portfolio Rebalancing'),
+        ('STOP_LOSS', 'Stop Loss Trigger'),
+        ('TAKE_PROFIT', 'Take Profit Trigger'),
+    ]
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='trades')
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
@@ -322,8 +333,12 @@ class Trade(models.Model):
     executed_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     
-    # Additional fields
-    notes = models.TextField(blank=True)
+    # Trade source and explanation
+    trade_source = models.CharField(max_length=20, choices=TRADE_SOURCES, default='MANUAL')
+    source_reference = models.CharField(max_length=200, blank=True, help_text="Reference to source (e.g., advisor name, recommendation ID)")
+    
+    # Additional fields (expanded notes for detailed explanations)
+    notes = models.TextField(blank=True, help_text="Detailed explanation of trade reasoning")
     rejection_reason = models.TextField(blank=True)
     
     class Meta:
@@ -346,6 +361,27 @@ class Trade(models.Model):
     def is_active(self):
         """Check if order is still active"""
         return self.status in ['PENDING', 'PARTIALLY_FILLED']
+    
+    @property
+    def is_automated(self):
+        """Check if trade was automated"""
+        return self.trade_source != 'MANUAL'
+    
+    def get_source_display_with_icon(self):
+        """Get trade source with appropriate icon"""
+        source_icons = {
+            'MANUAL': '👤',
+            'AI_RECOMMENDATION': '🤖',
+            'SMART_ANALYSIS': '🧠',
+            'MARKET_SCREENING': '📈',
+            'AUTOMATED_STRATEGY': '⚙️',
+            'REBALANCING': '⚖️',
+            'STOP_LOSS': '🛑',
+            'TAKE_PROFIT': '🎯',
+        }
+        icon = source_icons.get(self.trade_source, '📊')
+        display = self.get_trade_source_display()
+        return f"{icon} {display}"
     
     def save(self, *args, **kwargs):
         # Calculate total amount based on filled quantity and average price
@@ -733,3 +769,218 @@ class UserNotification(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.notification_type} - {self.title}"
+
+
+# =============================================================================
+# SMART ANALYSIS & PORTFOLIO OPTIMIZATION MODELS
+# =============================================================================
+
+class RiskProfile(models.Model):
+    """User's risk profile settings for automated portfolio optimization"""
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='risk_profile')
+    
+    # Portfolio optimization settings
+    max_purchase_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal('5.00'),
+        help_text="Maximum percentage of portfolio value that can be invested in a single stock"
+    )
+    min_confidence_score = models.DecimalField(
+        max_digits=3, decimal_places=2, default=Decimal('0.70'),
+        help_text="Minimum confidence score threshold for recommendations"
+    )
+    cash_spend_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal('20.00'),
+        help_text="Percentage of available cash to spend on new positions"
+    )
+    
+    # Anti-repetition settings
+    cooldown_period_days = models.IntegerField(
+        default=7,
+        help_text="Minimum days between purchases of the same stock"
+    )
+    max_rebuy_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal('50.00'),
+        help_text="Maximum percentage of existing position that can be added in a single buy"
+    )
+    
+    # Diversification rules
+    max_sector_allocation = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal('30.00'),
+        help_text="Maximum percentage of portfolio in any single sector"
+    )
+    min_diversification_stocks = models.IntegerField(
+        default=5,
+        help_text="Minimum number of different stocks to maintain"
+    )
+    
+    # Automation settings
+    auto_execute_trades = models.BooleanField(
+        default=False,
+        help_text="Automatically execute recommended trades"
+    )
+    auto_rebalance_enabled = models.BooleanField(
+        default=True,
+        help_text="Enable automatic portfolio rebalancing"
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - Risk Profile"
+
+
+class SmartRecommendation(models.Model):
+    """Consolidated smart recommendations from automated portfolio optimization"""
+    
+    RECOMMENDATION_TYPES = [
+        ('BUY', 'Buy'),
+        ('SELL', 'Sell'),
+        ('HOLD', 'Hold'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('EXECUTED', 'Executed'),
+        ('CANCELLED', 'Cancelled'),
+        ('EXPIRED', 'Expired'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='smart_recommendations')
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name='smart_recommendations')
+    
+    # Recommendation details
+    recommendation_type = models.CharField(max_length=10, choices=RECOMMENDATION_TYPES)
+    priority_score = models.DecimalField(max_digits=5, decimal_places=2, help_text="Consolidated priority score")
+    confidence_score = models.DecimalField(max_digits=3, decimal_places=2, help_text="Overall confidence score")
+    
+    # Buy algorithm fields
+    initial_weight = models.DecimalField(max_digits=5, decimal_places=4, null=True, blank=True)
+    adjusted_weight = models.DecimalField(max_digits=5, decimal_places=4, null=True, blank=True)
+    shares_to_buy = models.IntegerField(null=True, blank=True)
+    cash_allocated = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    
+    # Portfolio context
+    existing_shares = models.IntegerField(default=0, help_text="Current shares owned")
+    current_position_value = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    position_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    
+    # Price information
+    current_price = models.DecimalField(max_digits=10, decimal_places=2)
+    target_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    stop_loss = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    # Analysis details
+    reasoning = models.TextField(help_text="Consolidated reasoning from all advisors")
+    key_factors = models.JSONField(default=list, blank=True)
+    risk_factors = models.JSONField(default=list, blank=True)
+    
+    # Related recommendations
+    advisor_recommendations = models.ManyToManyField(
+        AIAdvisorRecommendation, 
+        related_name='smart_recommendations',
+        blank=True
+    )
+    
+    # Execution tracking
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    executed_trade = models.ForeignKey(
+        Trade, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='smart_recommendation'
+    )
+    
+    # Performance tracking
+    is_successful = models.BooleanField(null=True, blank=True)
+    actual_return = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    
+    # Timing
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    executed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-priority_score', '-created_at']
+        indexes = [
+            models.Index(fields=['user', 'status', '-created_at']),
+            models.Index(fields=['recommendation_type', '-priority_score']),
+            models.Index(fields=['stock', '-created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.stock.symbol} - {self.recommendation_type} (PS: {self.priority_score})"
+    
+    @property
+    def is_expired(self):
+        """Check if recommendation has expired"""
+        from django.utils import timezone
+        return self.expires_at and timezone.now() > self.expires_at
+    
+    @property
+    def current_return(self):
+        """Calculate current return since recommendation"""
+        if self.stock.current_price and self.current_price:
+            return ((self.stock.current_price - self.current_price) / self.current_price) * 100
+        return 0
+
+
+class SmartAnalysisSession(models.Model):
+    """Track automated portfolio optimization sessions"""
+    
+    STATUS_CHOICES = [
+        ('RUNNING', 'Running'),
+        ('COMPLETED', 'Completed'),
+        ('FAILED', 'Failed'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='smart_analysis_sessions')
+    
+    # Session details
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='RUNNING')
+    total_recommendations = models.IntegerField(default=0)
+    executed_recommendations = models.IntegerField(default=0)
+    
+    # Portfolio state at time of analysis
+    portfolio_value = models.DecimalField(max_digits=12, decimal_places=2)
+    available_cash = models.DecimalField(max_digits=12, decimal_places=2)
+    total_cash_spend = models.DecimalField(max_digits=12, decimal_places=2)
+    
+    # Analysis parameters
+    risk_profile_snapshot = models.JSONField(default=dict, help_text="Risk profile settings at time of analysis")
+    advisor_weights = models.JSONField(default=dict, help_text="Advisor weights used in analysis")
+    
+    # Results summary
+    recommendations_summary = models.JSONField(default=dict, blank=True)
+    execution_summary = models.JSONField(default=dict, blank=True)
+    
+    # Timing
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    processing_time_seconds = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    
+    # Error handling
+    error_message = models.TextField(blank=True)
+    error_details = models.JSONField(default=dict, blank=True)
+    
+    class Meta:
+        ordering = ['-started_at']
+        indexes = [
+            models.Index(fields=['user', '-started_at']),
+            models.Index(fields=['status', '-started_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - Smart Analysis - {self.started_at.strftime('%Y-%m-%d %H:%M')}"
+    
+    @property
+    def success_rate(self):
+        """Calculate success rate of executed recommendations"""
+        if self.total_recommendations > 0:
+            return (self.executed_recommendations / self.total_recommendations) * 100
+        return 0

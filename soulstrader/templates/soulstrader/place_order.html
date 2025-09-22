@@ -13,7 +13,8 @@
         <div class="form-group">
             <label for="stock_symbol">Stock Symbol *</label>
             <input type="text" id="stock_symbol" name="stock_symbol" required 
-                   placeholder="e.g., AAPL, MSFT, TSLA" style="text-transform: uppercase;">
+                   placeholder="e.g., AAPL, MSFT, TSLA" style="text-transform: uppercase;"
+                   value="{{ prefill_symbol }}">
             <small style="color: #6c757d;">Enter the stock symbol you want to trade</small>
         </div>
         
@@ -22,7 +23,7 @@
             <select id="trade_type" name="trade_type" required>
                 <option value="">Select Order Type</option>
                 {% for value, label in trade_types %}
-                    <option value="{{ value }}">{{ label }}</option>
+                    <option value="{{ value }}" {% if value == prefill_action %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -39,7 +40,7 @@
         <div class="form-group">
             <label for="quantity">Quantity *</label>
             <input type="number" id="quantity" name="quantity" required min="1" 
-                   placeholder="Number of shares">
+                   placeholder="Number of shares" value="{{ prefill_quantity }}">
         </div>
         
         <div class="form-group" id="price_group" style="display: none;">

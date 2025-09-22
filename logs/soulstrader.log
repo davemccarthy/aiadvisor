@@ -103,3 +103,916 @@ Polygon recommendation for AAPL: BUY
 FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
 Enhanced Yahoo recommendation for AAPL: HOLD
 Gemini recommendation for AAPL: BUY
+Updated quote for NVO: $61.4
+Updated quote for KYGA.L: $77.2
+Updated quote for GLB.L: $13.7
+Updated quote for HOLN.SW: $69.06
+Updated quote for GLB.L: $13.7
+Updated quote for HOLN.SW: $69.06
+Updated quote for KYGA.L: $77.2
+Failed to get quote for TL0.DEX: No price data available for TL0.DEX
+Failed to update quote for TL0.DEX: Failed to fetch quote for TL0.DEX: No price data available for TL0.DEX
+Failed to get quote for TL0.FRK: No price data available for TL0.FRK
+Failed to update quote for TL0.FRK: Failed to fetch quote for TL0.FRK: No price data available for TL0.FRK
+Failed to get quote for TSLA.TRT: No price data available for TSLA.TRT
+Failed to update quote for TSLA.TRT: Failed to fetch quote for TSLA.TRT: No price data available for TSLA.TRT
+Failed to get quote for TSLA34.SAO: No price data available for TSLA34.SAO
+Failed to update quote for TSLA34.SAO: Failed to fetch quote for TSLA34.SAO: No price data available for TSLA34.SAO
+Updated quote for NVO: $61.4
+Finnhub API error for NVO: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVO&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for NVO: HOLD
+FMP API error for NVO: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVO?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVO: BUY
+Gemini recommendation for NVO: BUY
+Finnhub API error for HOLN.SW: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/recommendation?symbol=HOLN.SW&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for HOLN.SW: HOLD
+FMP API error for HOLN.SW: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/HOLN.SW?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for HOLN.SW: BUY
+Gemini recommendation for HOLN.SW: HOLD
+Successfully retrieved market movers from Alpha Vantage
+Successfully retrieved market movers from Alpha Vantage
+Updated quote for AGMH: $10.34
+Updated quote for CJET: $0.2909
+Updated quote for ARQQW: $0.9799
+Created 3 proactive gainers recommendations
+Failed to save proactive recommendations: Invalid field name(s) for model AIAdvisor: 'confidence_threshold'.
+Created Market Screening advisor
+Successfully retrieved market movers from Alpha Vantage
+Created 3 proactive gainers recommendations
+Saved proactive recommendation: AGMH - BUY
+Saved proactive recommendation: CJET - BUY
+Saved proactive recommendation: ARQQW - BUY
+Saved 3 proactive gainers recommendations
+Successfully retrieved market movers from Alpha Vantage
+Updated quote for SHOTW: $0.0156
+Updated quote for LSBPW: $0.0102
+Created 2 proactive losers recommendations
+Saved proactive recommendation: SHOTW - STRONG_SELL
+Saved proactive recommendation: LSBPW - STRONG_SELL
+Saved 2 proactive losers recommendations
+Updated quote for AAPL: $245.5000
+Updated quote for AGMH: $10.3400
+Updated quote for ARQQW: $0.9799
+Updated quote for BA: $215.6500
+Updated quote for CJET: $0.2909
+Updated quote for DIS: $113.7600
+Updated quote for GLB.L: $13.7000
+Updated quote for GOOGL: $254.7200
+Updated quote for HOLN.SW: $0
+Updated quote for KYGA.L: $77.2000
+Updated quote for LSBPW: $0.0102
+Updated quote for MSFT: $517.9300
+Updated quote for NFLX: $1226.9700
+Updated quote for NVDA: $176.6700
+Updated quote for NVO: $61.4000
+Updated quote for SHOTW: $0.0156
+Updated quote for TL0.DEX: $360.9500
+Updated quote for TL0.FRK: $362.0500
+Updated quote for TSLA: $426.0700
+Updated quote for TSLA.TRT: $37.8700
+Failed to update quote for TSLA34.SAO: Alpha Vantage API Information: We have detected your API key as G0C346PZOQVFHNIF and our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly remove all daily rate limits.
+Failed to update TSLA34.SAO: Alpha Vantage API Information: We have detected your API key as G0C346PZOQVFHNIF and our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly remove all daily rate limits.
+Starting Smart Analysis for user: testuser
+Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for NVDA: BUY
+FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Gemini recommendation for NVDA: BUY
+Finnhub API error for BA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=BA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for BA: BUY
+FMP API error for BA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/BA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BA: BUY
+Gemini recommendation for BA: BUY
+Stock META not found in database
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for MSFT: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/MSFT/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Gemini recommendation for MSFT: BUY
+Finnhub API error for TSLA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=TSLA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for TSLA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/TSLA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for TSLA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/TSLA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for TSLA: SELL
+Gemini recommendation for TSLA: BUY
+Stock AMZN not found in database
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AAPL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AAPL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AAPL: HOLD
+Gemini recommendation for AAPL: BUY
+Finnhub API error for NFLX: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NFLX&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NFLX: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NFLX/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for NFLX: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NFLX?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NFLX: BUY
+Gemini recommendation for NFLX: HOLD
+Finnhub API error for DIS: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=DIS&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for DIS: BUY
+FMP API error for DIS: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/DIS?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for DIS: BUY
+Gemini recommendation for DIS: HOLD
+Finnhub API error for AGMH: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AGMH&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for AGMH: SELL
+FMP API error for AGMH: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AGMH?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AGMH: BUY
+Gemini recommendation for AGMH: HOLD
+Finnhub API error for ARQQW: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=ARQQW&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for ARQQW: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/ARQQW/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for ARQQW: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/ARQQW?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for ARQQW: SELL
+Gemini recommendation for ARQQW: HOLD
+Finnhub API error for CJET: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=CJET&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for CJET: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/CJET/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for CJET: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/CJET?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for CJET: SELL
+Gemini recommendation for CJET: STRONG_SELL
+Finnhub API error for NVO: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVO&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for NVO: HOLD
+FMP API error for NVO: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVO?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVO: BUY
+Gemini recommendation for NVO: BUY
+Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for GOOGL: BUY
+FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+Gemini recommendation for GOOGL: BUY
+Smart Analysis failed for user: testuser. Error: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+Smart Analysis failed for user testuser: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+Smart Analysis failed for user testuser: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+Starting Smart Analysis for user: testuser
+Finnhub API error for ARQQW: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=ARQQW&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for ARQQW: BUY
+FMP API error for ARQQW: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/ARQQW?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for ARQQW: SELL
+Gemini recommendation for ARQQW: HOLD
+Finnhub API error for BA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=BA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for BA: BUY
+FMP API error for BA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/BA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BA: BUY
+Gemini recommendation for BA: BUY
+Finnhub API error for CJET: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=CJET&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for CJET: SELL
+FMP API error for CJET: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/CJET?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for CJET: SELL
+Gemini recommendation for CJET: STRONG_SELL
+Finnhub API error for TSLA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=TSLA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for TSLA: BUY
+FMP API error for TSLA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/TSLA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for TSLA: SELL
+Gemini recommendation for TSLA: HOLD
+Finnhub API error for NFLX: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NFLX&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NFLX: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NFLX/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for NFLX: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NFLX?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NFLX: BUY
+Gemini recommendation for NFLX: HOLD
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AAPL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AAPL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AAPL: HOLD
+Gemini recommendation for AAPL: BUY
+Finnhub API error for NVO: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVO&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NVO: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NVO/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for NVO: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVO?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVO: BUY
+Gemini recommendation for NVO: BUY
+Finnhub API error for DIS: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=DIS&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for DIS: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/DIS/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for DIS: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/DIS?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for DIS: BUY
+Gemini recommendation for DIS: HOLD
+Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for GOOGL: BUY
+FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+Gemini recommendation for GOOGL: BUY
+Finnhub API error for AGMH: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AGMH&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for AGMH: SELL
+FMP API error for AGMH: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AGMH?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AGMH: BUY
+Gemini recommendation for AGMH: SELL
+Stock META not found in database
+Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NVDA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NVDA/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Gemini recommendation for NVDA: BUY
+Stock AMZN not found in database
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for MSFT: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/MSFT/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Gemini recommendation for MSFT: BUY
+Smart Analysis failed for user: testuser. Error: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+Smart Analysis failed for user testuser: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+Smart Analysis failed for user testuser: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+Starting Smart Analysis for user: testuser
+Stock AMZN not found in database
+Finnhub API error for TSLA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=TSLA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for TSLA: BUY
+FMP API error for TSLA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/TSLA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for TSLA: SELL
+Gemini recommendation for TSLA: BUY
+Stock META not found in database
+Finnhub API error for NFLX: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NFLX&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for NFLX: BUY
+FMP API error for NFLX: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NFLX?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NFLX: BUY
+Gemini recommendation for NFLX: HOLD
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for MSFT: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/MSFT/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Gemini recommendation for MSFT: BUY
+Finnhub API error for DIS: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=DIS&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for DIS: BUY
+FMP API error for DIS: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/DIS?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for DIS: BUY
+Gemini recommendation for DIS: BUY
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for AAPL: BUY
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AAPL: HOLD
+Gemini recommendation for AAPL: BUY
+Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NVDA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NVDA/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Gemini recommendation for NVDA: BUY
+Finnhub API error for AGMH: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AGMH&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AGMH: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AGMH/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AGMH: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AGMH?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AGMH: BUY
+Gemini recommendation for AGMH: SELL
+Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for GOOGL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/GOOGL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+Gemini recommendation for GOOGL: BUY
+Finnhub API error for ARQQW: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=ARQQW&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for ARQQW: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/ARQQW/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for ARQQW: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/ARQQW?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for ARQQW: SELL
+Gemini recommendation for ARQQW: HOLD
+Finnhub API error for CJET: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=CJET&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for CJET: SELL
+FMP API error for CJET: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/CJET?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for CJET: SELL
+Gemini recommendation for CJET: STRONG_SELL
+Finnhub API error for BA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=BA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for BA: BUY
+FMP API error for BA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/BA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BA: BUY
+Gemini recommendation for BA: HOLD
+Finnhub API error for NVO: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVO&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NVO: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NVO/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for NVO: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVO?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVO: BUY
+Gemini recommendation for NVO: BUY
+Smart Analysis failed for user: testuser. Error: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+Smart Analysis failed for user testuser: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+Smart Analysis failed for user testuser: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+Starting Smart Analysis for user: testuser
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for MSFT: BUY
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Gemini recommendation for MSFT: BUY
+Finnhub API error for BA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=BA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for BA: BUY
+FMP API error for BA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/BA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BA: BUY
+Gemini recommendation for BA: BUY
+Stock META not found in database
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AAPL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AAPL: HOLD
+Gemini recommendation for AAPL: BUY
+Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for NVDA: BUY
+FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Gemini recommendation for NVDA: BUY
+Finnhub API error for DIS: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=DIS&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for DIS: BUY
+FMP API error for DIS: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/DIS?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for DIS: BUY
+Gemini recommendation for DIS: HOLD
+Stock AMZN not found in database
+Finnhub API error for NFLX: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NFLX&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NFLX: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NFLX/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for NFLX: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NFLX?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NFLX: BUY
+Gemini recommendation for NFLX: HOLD
+Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for GOOGL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/GOOGL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+Gemini recommendation for GOOGL: BUY
+Finnhub API error for CJET: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=CJET&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for CJET: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/CJET/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for CJET: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/CJET?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for CJET: SELL
+Gemini recommendation for CJET: STRONG_SELL
+Finnhub API error for TSLA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=TSLA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for TSLA: BUY
+FMP API error for TSLA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/TSLA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for TSLA: SELL
+Gemini recommendation for TSLA: BUY
+Finnhub API error for NVO: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVO&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for NVO: HOLD
+FMP API error for NVO: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVO?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVO: BUY
+Gemini recommendation for NVO: BUY
+Finnhub API error for ARQQW: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=ARQQW&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for ARQQW: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/ARQQW/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for ARQQW: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/ARQQW?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for ARQQW: SELL
+Gemini recommendation for ARQQW: HOLD
+Finnhub API error for AGMH: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AGMH&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AGMH: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AGMH/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AGMH: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AGMH?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AGMH: BUY
+Gemini recommendation for AGMH: SELL
+Smart Analysis failed for user: testuser. Error: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+Traceback: Traceback (most recent call last):
+  File "/Users/davidmccarthy/Development/CursorAI/Django/aiadvisor/soulstrader/smart_analysis_service.py", line 72, in smart_analyse
+    smart_recommendations = self._consolidate_recommendations(
+        user, advisor_recommendations, holdings, risk_profile
+    )
+  File "/Users/davidmccarthy/Development/CursorAI/Django/aiadvisor/soulstrader/smart_analysis_service.py", line 242, in _consolidate_recommendations
+    priority_score = self._calculate_priority_score(recs)
+  File "/Users/davidmccarthy/Development/CursorAI/Django/aiadvisor/soulstrader/smart_analysis_service.py", line 308, in _calculate_priority_score
+    weighted_score = base_score * confidence_multiplier * advisor_weight
+                     ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+TypeError: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+
+Smart Analysis failed for user testuser: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+Smart Analysis failed for user testuser: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+Starting Smart Analysis for user: testuser
+Finnhub API error for CJET: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=CJET&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for CJET: SELL
+FMP API error for CJET: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/CJET?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for CJET: SELL
+Gemini recommendation for CJET: STRONG_SELL
+Finnhub API error for NVO: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVO&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for NVO: HOLD
+FMP API error for NVO: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVO?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVO: BUY
+Gemini recommendation for NVO: BUY
+Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for GOOGL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/GOOGL/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+Gemini API error for GOOGL: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 50
+Please retry in 11.141168174s. [violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-1.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 50
+}
+, links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, retry_delay {
+  seconds: 11
+}
+]
+Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NVDA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NVDA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Finnhub API error for ARQQW: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=ARQQW&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for ARQQW: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/ARQQW/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for ARQQW: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/ARQQW?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for ARQQW: SELL
+Finnhub API error for DIS: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=DIS&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for DIS: BUY
+FMP API error for DIS: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/DIS?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for DIS: BUY
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for MSFT: BUY
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Finnhub API error for NFLX: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NFLX&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NFLX: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NFLX/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for NFLX: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NFLX?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NFLX: BUY
+Finnhub API error for BA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=BA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for BA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/BA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for BA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/BA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BA: BUY
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AAPL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AAPL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AAPL: HOLD
+Stock AMZN not found in database
+Finnhub API error for AGMH: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AGMH&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AGMH: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AGMH/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AGMH: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AGMH?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AGMH: BUY
+Finnhub API error for TSLA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=TSLA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for TSLA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/TSLA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for TSLA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/TSLA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for TSLA: SELL
+Stock META not found in database
+Smart Analysis failed for user: testuser. Error: unsupported operand type(s) for /: 'float' and 'decimal.Decimal'
+Traceback: Traceback (most recent call last):
+  File "/Users/davidmccarthy/Development/CursorAI/Django/aiadvisor/soulstrader/smart_analysis_service.py", line 72, in smart_analyse
+    smart_recommendations = self._consolidate_recommendations(
+        user, advisor_recommendations, holdings, risk_profile
+    )
+  File "/Users/davidmccarthy/Development/CursorAI/Django/aiadvisor/soulstrader/smart_analysis_service.py", line 243, in _consolidate_recommendations
+    confidence_score = self._calculate_confidence_score(recs)
+  File "/Users/davidmccarthy/Development/CursorAI/Django/aiadvisor/soulstrader/smart_analysis_service.py", line 322, in _calculate_confidence_score
+    return (total_confidence / Decimal(str(len(recommendations)))).quantize(Decimal('0.01'))
+            ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TypeError: unsupported operand type(s) for /: 'float' and 'decimal.Decimal'
+
+Smart Analysis failed for user testuser: unsupported operand type(s) for /: 'float' and 'decimal.Decimal'
+Smart Analysis failed for user testuser: unsupported operand type(s) for /: 'float' and 'decimal.Decimal'
+Starting Smart Analysis for user: testuser
+Finnhub API error for AGMH: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AGMH&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for AGMH: SELL
+FMP API error for AGMH: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AGMH?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AGMH: BUY
+Gemini API error for AGMH: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 50
+Please retry in 49.415135895s. [violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-1.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 50
+}
+, links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, retry_delay {
+  seconds: 49
+}
+]
+Stock AMZN not found in database
+Stock META not found in database
+Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for NVDA: BUY
+FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for MSFT: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/MSFT/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Finnhub API error for DIS: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=DIS&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for DIS: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/DIS/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for DIS: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/DIS?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for DIS: BUY
+Finnhub API error for NFLX: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NFLX&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NFLX: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NFLX/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for NFLX: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NFLX?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NFLX: BUY
+Finnhub API error for ARQQW: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=ARQQW&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for ARQQW: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/ARQQW/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for ARQQW: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/ARQQW?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for ARQQW: SELL
+Finnhub API error for TSLA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=TSLA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for TSLA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/TSLA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for TSLA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/TSLA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for TSLA: SELL
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AAPL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AAPL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AAPL: HOLD
+Finnhub API error for NVO: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVO&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NVO: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NVO/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for NVO: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVO?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVO: BUY
+Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for GOOGL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/GOOGL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+Finnhub API error for CJET: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=CJET&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for CJET: SELL
+FMP API error for CJET: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/CJET?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for CJET: SELL
+Finnhub API error for BA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=BA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for BA: BUY
+FMP API error for BA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/BA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BA: BUY
+Smart Analysis failed for user: testuser. Error: Object of type Decimal is not JSON serializable
+Traceback: Traceback (most recent call last):
+  File "/Users/davidmccarthy/Development/CursorAI/Django/aiadvisor/soulstrader/smart_analysis_service.py", line 101, in smart_analyse
+    session.save()
+    ~~~~~~~~~~~~^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1138, in _save_table
+    updated = self._do_update(
+        base_qs, using, pk_val, values, update_fields, forced_update
+    )
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1203, in _do_update
+    return filtered._update(values) > 0
+           ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/query.py", line 1286, in _update
+    return query.get_compiler(self.db).execute_sql(ROW_COUNT)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 2060, in execute_sql
+    row_count = super().execute_sql(result_type)
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 1610, in execute_sql
+    sql, params = self.as_sql()
+                  ~~~~~~~~~~~^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 2023, in as_sql
+    val = field.get_db_prep_save(val, connection=self.connection)
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/json.py", line 118, in get_db_prep_save
+    return super().get_db_prep_save(value, connection)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/__init__.py", line 1012, in get_db_prep_save
+    return self.get_db_prep_value(value, connection=connection, prepared=False)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/json.py", line 102, in get_db_prep_value
+    return connection.ops.adapt_json_value(value, self.encoder)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/backends/base/operations.py", line 598, in adapt_json_value
+    return json.dumps(value, cls=encoder)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+                    f'is not JSON serializable')
+TypeError: Object of type Decimal is not JSON serializable
+
+Smart Analysis failed for user testuser: Object of type Decimal is not JSON serializable
+Smart Analysis failed for user testuser: Object of type Decimal is not JSON serializable
+Starting Smart Analysis for user: testuser
+Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for GOOGL: BUY
+FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+Gemini API error for GOOGL: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 50
+Please retry in 4.738364375s. [violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-1.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 50
+}
+, links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, retry_delay {
+  seconds: 4
+}
+]
+Finnhub API error for NVO: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVO&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for NVO: HOLD
+FMP API error for NVO: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVO?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVO: BUY
+Finnhub API error for ARQQW: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=ARQQW&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for ARQQW: BUY
+FMP API error for ARQQW: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/ARQQW?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for ARQQW: SELL
+Finnhub API error for CJET: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=CJET&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for CJET: SELL
+FMP API error for CJET: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/CJET?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for CJET: SELL
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for MSFT: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/MSFT/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NVDA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NVDA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Finnhub API error for DIS: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=DIS&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for DIS: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/DIS/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for DIS: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/DIS?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for DIS: BUY
+Finnhub API error for BA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=BA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for BA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/BA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for BA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/BA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BA: BUY
+Finnhub API error for AGMH: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AGMH&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AGMH: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AGMH/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AGMH: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AGMH?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AGMH: BUY
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AAPL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AAPL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AAPL: HOLD
+Smart Analysis failed for user: testuser. Error: Object of type Decimal is not JSON serializable
+Traceback: Traceback (most recent call last):
+  File "/Users/davidmccarthy/Development/CursorAI/Django/aiadvisor/soulstrader/smart_analysis_service.py", line 101, in smart_analyse
+    session.save()
+    ~~~~~~~~~~~~^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1138, in _save_table
+    updated = self._do_update(
+        base_qs, using, pk_val, values, update_fields, forced_update
+    )
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1203, in _do_update
+    return filtered._update(values) > 0
+           ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/query.py", line 1286, in _update
+    return query.get_compiler(self.db).execute_sql(ROW_COUNT)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 2060, in execute_sql
+    row_count = super().execute_sql(result_type)
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 1610, in execute_sql
+    sql, params = self.as_sql()
+                  ~~~~~~~~~~~^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 2023, in as_sql
+    val = field.get_db_prep_save(val, connection=self.connection)
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/json.py", line 118, in get_db_prep_save
+    return super().get_db_prep_save(value, connection)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/__init__.py", line 1012, in get_db_prep_save
+    return self.get_db_prep_value(value, connection=connection, prepared=False)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/json.py", line 102, in get_db_prep_value
+    return connection.ops.adapt_json_value(value, self.encoder)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/backends/base/operations.py", line 598, in adapt_json_value
+    return json.dumps(value, cls=encoder)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+                    f'is not JSON serializable')
+TypeError: Object of type Decimal is not JSON serializable
+
+Starting Smart Analysis for user: admin
+Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for GOOGL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/GOOGL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for MSFT: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/MSFT/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for NVDA: BUY
+FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for AAPL: BUY
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AAPL: HOLD
+Smart Analysis failed for user: admin. Error: Object of type Decimal is not JSON serializable
+Traceback: Traceback (most recent call last):
+  File "/Users/davidmccarthy/Development/CursorAI/Django/aiadvisor/soulstrader/smart_analysis_service.py", line 101, in smart_analyse
+    session.save()
+    ~~~~~~~~~~~~^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1138, in _save_table
+    updated = self._do_update(
+        base_qs, using, pk_val, values, update_fields, forced_update
+    )
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1203, in _do_update
+    return filtered._update(values) > 0
+           ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/query.py", line 1286, in _update
+    return query.get_compiler(self.db).execute_sql(ROW_COUNT)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 2060, in execute_sql
+    row_count = super().execute_sql(result_type)
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 1610, in execute_sql
+    sql, params = self.as_sql()
+                  ~~~~~~~~~~~^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 2023, in as_sql
+    val = field.get_db_prep_save(val, connection=self.connection)
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/json.py", line 118, in get_db_prep_save
+    return super().get_db_prep_save(value, connection)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/__init__.py", line 1012, in get_db_prep_save
+    return self.get_db_prep_value(value, connection=connection, prepared=False)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/json.py", line 102, in get_db_prep_value
+    return connection.ops.adapt_json_value(value, self.encoder)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/backends/base/operations.py", line 598, in adapt_json_value
+    return json.dumps(value, cls=encoder)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+                    f'is not JSON serializable')
+TypeError: Object of type Decimal is not JSON serializable
+
+Starting Smart Analysis for user: testuser
+Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for NVDA: BUY
+FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for MSFT: BUY
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Finnhub API error for DIS: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=DIS&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for DIS: BUY
+FMP API error for DIS: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/DIS?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for DIS: BUY
+Finnhub API error for CJET: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=CJET&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for CJET: SELL
+FMP API error for CJET: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/CJET?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for CJET: SELL
+Finnhub API error for AGMH: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AGMH&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AGMH: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AGMH/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for AGMH: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AGMH?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AGMH: BUY
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AAPL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AAPL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AAPL: HOLD
+Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for GOOGL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/GOOGL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+Finnhub API error for NVO: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVO&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NVO: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NVO/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for NVO: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVO?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVO: BUY
+Finnhub API error for BA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=BA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for BA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/BA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for BA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/BA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BA: BUY
+Finnhub API error for ARQQW: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=ARQQW&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for ARQQW: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/ARQQW/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for ARQQW: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/ARQQW?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for ARQQW: SELL
+Smart Analysis completed for user: testuser. Generated 3 recommendations
+Starting Smart Analysis for user: user1
+Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for NVDA: BUY
+FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for MSFT: BUY
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for GOOGL: BUY
+FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for AAPL: BUY
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AAPL: HOLD
+Smart Analysis completed for user: user1. Generated 3 recommendations
+Starting Smart Analysis for user: user1
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for MSFT: BUY
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Finnhub API error for NFLX: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NFLX&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for NFLX: BUY
+FMP API error for NFLX: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NFLX?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NFLX: BUY
+Finnhub API error for TSLA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=TSLA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for TSLA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/TSLA/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for TSLA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/TSLA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for TSLA: SELL
+Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AAPL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AAPL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AAPL: HOLD
+Finnhub API error for BA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=BA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for BA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/BA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for BA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/BA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BA: BUY
+Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NVDA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NVDA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Finnhub API error for DIS: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=DIS&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for DIS: BUY
+FMP API error for DIS: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/DIS?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for DIS: BUY
+Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for GOOGL: BUY
+FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+Smart Analysis completed for user: user1. Generated 3 recommendations
+Starting Smart Analysis for user: user1
+Successfully retrieved market movers from Alpha Vantage
+Found 15 market screening candidates: ['CAPTW', 'CJET', 'YAAS', 'ADAP', 'ARQQW', 'QUBX', 'SNAP', 'OKLL', 'NVDA', 'WBD', 'HOOD', 'SAIHW', 'AGMH', 'DFSCW', 'INTC']
+Stock CAPTW not found in database
+Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for MSFT: BUY
+FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Finnhub API error for CJET: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=CJET&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Polygon recommendation for CJET: SELL
+FMP API error for CJET: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/CJET?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for CJET: SELL
+Stock YAAS not found in database
+Stock ADAP not found in database
+Finnhub API error for ARQQW: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=ARQQW&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for ARQQW: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/ARQQW/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for ARQQW: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/ARQQW?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for ARQQW: SELL
+Stock QUBX not found in database
+Stock SNAP not found in database
+Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for NVDA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NVDA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Stock OKLL not found in database
+Stock WBD not found in database
+Stock SAIHW not found in database
+Finnhub API error for AGMH: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AGMH&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for AGMH: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AGMH/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AGMH: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AGMH?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AGMH: BUY
+Stock DFSCW not found in database
+Stock INTC not found in database
+Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+Error fetching Polygon data for GOOGL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/GOOGL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+Stock HOOD not found in database
+Smart Analysis completed for user: user1. Generated 1 recommendations
+Error getting recommendation details: Cannot resolve keyword 'user' into field. Choices are: actual_return, advisor, advisor_id, confidence_level, confidence_score, consensus_recommendations, created_at, evaluated_at, expires_at, id, is_successful, key_factors, price_at_recommendation, processing_time, raw_response, reasoning, recommendation_type, risk_factors, smart_recommendations, status, stock, stock_id, stop_loss, target_price, technical_indicators

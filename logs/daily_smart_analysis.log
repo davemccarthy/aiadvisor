@@ -1,0 +1,215 @@
+2025-09-22 11:18:48,352 - __main__ - INFO - Starting Daily Smart Analysis
+2025-09-22 11:18:48,364 - __main__ - INFO - Found 2 active users with portfolios
+2025-09-22 11:18:48,364 - __main__ - INFO - Running Smart Analysis for user: testuser
+2025-09-22 11:18:48,364 - soulstrader.smart_analysis_service - INFO - Starting Smart Analysis for user: testuser
+2025-09-22 11:18:48,729 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:18:50,353 - soulstrader.ai_advisor_service - INFO - Polygon recommendation for GOOGL: BUY
+2025-09-22 11:18:51,762 - soulstrader.ai_advisor_service - ERROR - FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:18:53,736 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+2025-09-22 11:18:55,197 - soulstrader.ai_advisor_service - ERROR - Gemini API error for GOOGL: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 50
+Please retry in 4.738364375s. [violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-1.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 50
+}
+, links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, retry_delay {
+  seconds: 4
+}
+]
+2025-09-22 11:18:56,473 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for NVO: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVO&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:18:58,071 - soulstrader.ai_advisor_service - INFO - Polygon recommendation for NVO: HOLD
+2025-09-22 11:18:59,461 - soulstrader.ai_advisor_service - ERROR - FMP API error for NVO: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVO?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:19:01,237 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for NVO: BUY
+2025-09-22 11:19:02,577 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for ARQQW: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=ARQQW&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:19:04,184 - soulstrader.ai_advisor_service - INFO - Polygon recommendation for ARQQW: BUY
+2025-09-22 11:19:05,571 - soulstrader.ai_advisor_service - ERROR - FMP API error for ARQQW: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/ARQQW?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:19:07,515 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for ARQQW: SELL
+2025-09-22 11:19:08,829 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for CJET: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=CJET&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:19:10,465 - soulstrader.ai_advisor_service - INFO - Polygon recommendation for CJET: SELL
+2025-09-22 11:19:11,854 - soulstrader.ai_advisor_service - ERROR - FMP API error for CJET: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/CJET?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:19:13,464 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for CJET: SELL
+2025-09-22 11:19:14,729 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:19:16,300 - soulstrader.ai_advisor_service - ERROR - Error fetching Polygon data for MSFT: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/MSFT/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+2025-09-22 11:19:17,685 - soulstrader.ai_advisor_service - ERROR - FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:19:19,366 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+2025-09-22 11:19:20,654 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:19:21,978 - soulstrader.ai_advisor_service - ERROR - Error fetching Polygon data for NVDA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NVDA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+2025-09-22 11:19:23,367 - soulstrader.ai_advisor_service - ERROR - FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:19:25,030 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+2025-09-22 11:19:26,300 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for DIS: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=DIS&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:19:27,581 - soulstrader.ai_advisor_service - ERROR - Error fetching Polygon data for DIS: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/DIS/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+2025-09-22 11:19:28,969 - soulstrader.ai_advisor_service - ERROR - FMP API error for DIS: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/DIS?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:19:30,729 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for DIS: BUY
+2025-09-22 11:19:32,012 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for BA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=BA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:19:33,761 - soulstrader.ai_advisor_service - ERROR - Error fetching Polygon data for BA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/BA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+2025-09-22 11:19:35,148 - soulstrader.ai_advisor_service - ERROR - FMP API error for BA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/BA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:19:36,914 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for BA: BUY
+2025-09-22 11:19:38,214 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for AGMH: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AGMH&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:19:39,502 - soulstrader.ai_advisor_service - ERROR - Error fetching Polygon data for AGMH: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AGMH/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+2025-09-22 11:19:41,026 - soulstrader.ai_advisor_service - ERROR - FMP API error for AGMH: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AGMH?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:19:42,646 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for AGMH: BUY
+2025-09-22 11:19:43,924 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:19:45,216 - soulstrader.ai_advisor_service - ERROR - Error fetching Polygon data for AAPL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AAPL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+2025-09-22 11:19:46,608 - soulstrader.ai_advisor_service - ERROR - FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:19:48,376 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for AAPL: HOLD
+2025-09-22 11:19:49,519 - soulstrader.smart_analysis_service - ERROR - Smart Analysis failed for user: testuser. Error: Object of type Decimal is not JSON serializable
+2025-09-22 11:19:49,528 - soulstrader.smart_analysis_service - ERROR - Traceback: Traceback (most recent call last):
+  File "/Users/davidmccarthy/Development/CursorAI/Django/aiadvisor/soulstrader/smart_analysis_service.py", line 101, in smart_analyse
+    session.save()
+    ~~~~~~~~~~~~^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1138, in _save_table
+    updated = self._do_update(
+        base_qs, using, pk_val, values, update_fields, forced_update
+    )
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1203, in _do_update
+    return filtered._update(values) > 0
+           ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/query.py", line 1286, in _update
+    return query.get_compiler(self.db).execute_sql(ROW_COUNT)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 2060, in execute_sql
+    row_count = super().execute_sql(result_type)
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 1610, in execute_sql
+    sql, params = self.as_sql()
+                  ~~~~~~~~~~~^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 2023, in as_sql
+    val = field.get_db_prep_save(val, connection=self.connection)
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/json.py", line 118, in get_db_prep_save
+    return super().get_db_prep_save(value, connection)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/__init__.py", line 1012, in get_db_prep_save
+    return self.get_db_prep_value(value, connection=connection, prepared=False)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/json.py", line 102, in get_db_prep_value
+    return connection.ops.adapt_json_value(value, self.encoder)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/backends/base/operations.py", line 598, in adapt_json_value
+    return json.dumps(value, cls=encoder)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+                    f'is not JSON serializable')
+TypeError: Object of type Decimal is not JSON serializable
+
+2025-09-22 11:19:49,530 - __main__ - ERROR - ✗ Analysis failed for testuser: Object of type Decimal is not JSON serializable
+2025-09-22 11:19:49,530 - __main__ - INFO - Running Smart Analysis for user: admin
+2025-09-22 11:19:49,531 - soulstrader.smart_analysis_service - INFO - Starting Smart Analysis for user: admin
+2025-09-22 11:19:49,818 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for GOOGL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=GOOGL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:19:51,106 - soulstrader.ai_advisor_service - ERROR - Error fetching Polygon data for GOOGL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/GOOGL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+2025-09-22 11:19:53,425 - soulstrader.ai_advisor_service - ERROR - FMP API error for GOOGL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/GOOGL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:19:54,723 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for GOOGL: STRONG_BUY
+2025-09-22 11:19:56,014 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for MSFT: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=MSFT&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:19:57,298 - soulstrader.ai_advisor_service - ERROR - Error fetching Polygon data for MSFT: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/MSFT/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+2025-09-22 11:19:58,688 - soulstrader.ai_advisor_service - ERROR - FMP API error for MSFT: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/MSFT?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:20:00,033 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+2025-09-22 11:20:01,321 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for NVDA: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=NVDA&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:20:02,922 - soulstrader.ai_advisor_service - INFO - Polygon recommendation for NVDA: BUY
+2025-09-22 11:20:04,346 - soulstrader.ai_advisor_service - ERROR - FMP API error for NVDA: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/NVDA?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:20:05,666 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+2025-09-22 11:20:06,950 - soulstrader.ai_advisor_service - ERROR - Finnhub API error for AAPL: 403 Client Error: Forbidden for url: https://finnhub.io/api/v1/stock/price-target?symbol=AAPL&token=d35b88pr01qhqkb1ljkgd35b88pr01qhqkb1ljl0
+2025-09-22 11:20:08,568 - soulstrader.ai_advisor_service - INFO - Polygon recommendation for AAPL: BUY
+2025-09-22 11:20:10,011 - soulstrader.ai_advisor_service - ERROR - FMP API error for AAPL: 403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/profile/AAPL?apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+2025-09-22 11:20:11,418 - soulstrader.enhanced_yahoo_advisor - INFO - Enhanced Yahoo recommendation for AAPL: HOLD
+2025-09-22 11:20:12,442 - soulstrader.smart_analysis_service - ERROR - Smart Analysis failed for user: admin. Error: Object of type Decimal is not JSON serializable
+2025-09-22 11:20:12,446 - soulstrader.smart_analysis_service - ERROR - Traceback: Traceback (most recent call last):
+  File "/Users/davidmccarthy/Development/CursorAI/Django/aiadvisor/soulstrader/smart_analysis_service.py", line 101, in smart_analyse
+    session.save()
+    ~~~~~~~~~~~~^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1138, in _save_table
+    updated = self._do_update(
+        base_qs, using, pk_val, values, update_fields, forced_update
+    )
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/base.py", line 1203, in _do_update
+    return filtered._update(values) > 0
+           ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/query.py", line 1286, in _update
+    return query.get_compiler(self.db).execute_sql(ROW_COUNT)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 2060, in execute_sql
+    row_count = super().execute_sql(result_type)
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 1610, in execute_sql
+    sql, params = self.as_sql()
+                  ~~~~~~~~~~~^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/sql/compiler.py", line 2023, in as_sql
+    val = field.get_db_prep_save(val, connection=self.connection)
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/json.py", line 118, in get_db_prep_save
+    return super().get_db_prep_save(value, connection)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/__init__.py", line 1012, in get_db_prep_save
+    return self.get_db_prep_value(value, connection=connection, prepared=False)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/models/fields/json.py", line 102, in get_db_prep_value
+    return connection.ops.adapt_json_value(value, self.encoder)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/davidmccarthy/Development/scratch/python/tutorial-env/lib/python3.13/site-packages/django/db/backends/base/operations.py", line 598, in adapt_json_value
+    return json.dumps(value, cls=encoder)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+  File "/usr/local/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+                    f'is not JSON serializable')
+TypeError: Object of type Decimal is not JSON serializable
+
+2025-09-22 11:20:12,447 - __main__ - ERROR - ✗ Analysis failed for admin: Object of type Decimal is not JSON serializable
+2025-09-22 11:20:12,447 - __main__ - INFO - Daily Smart Analysis completed:
+2025-09-22 11:20:12,447 - __main__ - INFO -   Successful: 0
+2025-09-22 11:20:12,448 - __main__ - INFO -   Failed: 2
+2025-09-22 11:20:12,448 - __main__ - INFO -   Total: 2

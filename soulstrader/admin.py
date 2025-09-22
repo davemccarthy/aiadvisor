@@ -2,7 +2,8 @@ from django.contrib import admin
 from .models import (
     UserProfile, RiskAssessment, Stock, StockPrice, Portfolio, 
     Holding, Trade, OrderBook, AIRecommendation, PerformanceMetrics, UserNotification,
-    AIAdvisor, AIAdvisorRecommendation, ConsensusRecommendation
+    AIAdvisor, AIAdvisorRecommendation, ConsensusRecommendation,
+    RiskProfile, SmartRecommendation, SmartAnalysisSession
 )
 
 
@@ -78,11 +79,28 @@ class HoldingAdmin(admin.ModelAdmin):
 
 @admin.register(Trade)
 class TradeAdmin(admin.ModelAdmin):
-    list_display = ['portfolio', 'stock', 'trade_type', 'order_type', 'quantity', 'price', 'status', 'created_at']
-    list_filter = ['trade_type', 'order_type', 'status', 'created_at']
-    search_fields = ['portfolio__user__username', 'stock__symbol', 'stock__name']
+    list_display = ['portfolio', 'stock', 'trade_type', 'trade_source', 'quantity', 'price', 'status', 'created_at']
+    list_filter = ['trade_type', 'order_type', 'trade_source', 'status', 'created_at']
+    search_fields = ['portfolio__user__username', 'stock__symbol', 'stock__name', 'source_reference', 'notes']
     readonly_fields = ['id', 'total_amount', 'created_at', 'executed_at', 'updated_at']
     date_hierarchy = 'created_at'
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('portfolio', 'stock', 'trade_type', 'order_type', 'quantity')
+        }),
+        ('Pricing', {
+            'fields': ('price', 'stop_price', 'average_fill_price', 'total_amount', 'commission')
+        }),
+        ('Source & Explanation', {
+            'fields': ('trade_source', 'source_reference', 'notes')
+        }),
+        ('Execution Details', {
+            'fields': ('filled_quantity', 'status', 'rejection_reason')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at', 'executed_at', 'expires_at')
+        }),
+    )
 
 
 @admin.register(OrderBook)
@@ -221,3 +239,112 @@ class ConsensusRecommendationAdmin(admin.ModelAdmin):
     def consensus_percentage(self, obj):
         return f"{obj.consensus_percentage:.1f}%"
     consensus_percentage.short_description = 'Consensus %'
+
+
+# =============================================================================
+# SMART ANALYSIS & PORTFOLIO OPTIMIZATION ADMIN
+# =============================================================================
+
+@admin.register(RiskProfile)
+class RiskProfileAdmin(admin.ModelAdmin):
+    list_display = ['user', 'max_purchase_percentage', 'min_confidence_score', 'cash_spend_percentage', 'auto_execute_trades', 'created_at']
+    list_filter = ['auto_execute_trades', 'auto_rebalance_enabled', 'created_at']
+    search_fields = ['user__username', 'user__email']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Portfolio Optimization', {
+            'fields': ('max_purchase_percentage', 'min_confidence_score', 'cash_spend_percentage'),
+            'description': 'Core settings for automated portfolio optimization'
+        }),
+        ('Anti-Repetition Settings', {
+            'fields': ('cooldown_period_days', 'max_rebuy_percentage'),
+            'description': 'Settings to prevent repeatedly buying the same stocks'
+        }),
+        ('Diversification Rules', {
+            'fields': ('max_sector_allocation', 'min_diversification_stocks'),
+            'description': 'Rules to maintain portfolio diversification'
+        }),
+        ('Automation Settings', {
+            'fields': ('auto_execute_trades', 'auto_rebalance_enabled'),
+            'description': 'Enable/disable automated features'
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(SmartRecommendation)
+class SmartRecommendationAdmin(admin.ModelAdmin):
+    list_display = ['user', 'stock', 'recommendation_type', 'priority_score', 'confidence_score', 'shares_to_buy', 'cash_allocated', 'status', 'created_at']
+    list_filter = ['recommendation_type', 'status', 'created_at']
+    search_fields = ['user__username', 'stock__symbol', 'stock__name', 'reasoning']
+    readonly_fields = ['id', 'current_return', 'created_at', 'executed_at']
+    date_hierarchy = 'created_at'
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('user', 'stock', 'recommendation_type', 'priority_score', 'confidence_score')
+        }),
+        ('Buy Algorithm Results', {
+            'fields': ('initial_weight', 'adjusted_weight', 'shares_to_buy', 'cash_allocated'),
+            'description': 'Results from the automated buy algorithm'
+        }),
+        ('Portfolio Context', {
+            'fields': ('existing_shares', 'current_position_value', 'position_percentage')
+        }),
+        ('Price Information', {
+            'fields': ('current_price', 'target_price', 'stop_loss', 'current_return')
+        }),
+        ('Analysis', {
+            'fields': ('reasoning', 'key_factors', 'risk_factors')
+        }),
+        ('Execution', {
+            'fields': ('status', 'executed_trade', 'is_successful', 'actual_return', 'expires_at')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'executed_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(SmartAnalysisSession)
+class SmartAnalysisSessionAdmin(admin.ModelAdmin):
+    list_display = ['user', 'status', 'total_recommendations', 'executed_recommendations', 'success_rate', 'processing_time_seconds', 'started_at']
+    list_filter = ['status', 'started_at']
+    search_fields = ['user__username']
+    readonly_fields = ['id', 'success_rate', 'started_at', 'completed_at', 'processing_time_seconds']
+    date_hierarchy = 'started_at'
+    
+    fieldsets = (
+        ('Session Information', {
+            'fields': ('user', 'status', 'total_recommendations', 'executed_recommendations', 'success_rate')
+        }),
+        ('Portfolio State', {
+            'fields': ('portfolio_value', 'available_cash', 'total_cash_spend'),
+            'description': 'Portfolio state at time of analysis'
+        }),
+        ('Analysis Parameters', {
+            'fields': ('risk_profile_snapshot', 'advisor_weights'),
+            'classes': ('collapse',)
+        }),
+        ('Results Summary', {
+            'fields': ('recommendations_summary', 'execution_summary'),
+            'classes': ('collapse',)
+        }),
+        ('Error Handling', {
+            'fields': ('error_message', 'error_details'),
+            'classes': ('collapse',)
+        }),
+        ('Timing', {
+            'fields': ('started_at', 'completed_at', 'processing_time_seconds'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def success_rate(self, obj):
+        return f"{obj.success_rate:.1f}%"
+    success_rate.short_description = 'Success Rate'

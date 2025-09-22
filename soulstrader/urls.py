@@ -32,9 +32,13 @@ urlpatterns = [
     path('recommendations/buy-now/', views.buy_from_recommendations_view, name='buy_from_recommendations'),
     path('recommendations/sell-now/', views.sell_from_recommendations_view, name='sell_from_recommendations'),
     path('recommendations/smart-analysis/', views.smart_analysis_view, name='smart_analysis'),
-    path('recommendations/advisor-details/<str:symbol>/', views.advisor_details_view, name='advisor_details'),
     path('recommendations/buy/<uuid:recommendation_id>/', views.quick_buy_from_recommendation, name='quick_buy_from_recommendation'),
     path('recommendations/sell/<uuid:recommendation_id>/', views.quick_sell_from_recommendation, name='quick_sell_from_recommendation'),
+    
+    # Smart Recommendation execution
+    path('smart-recommendation/execute/', views.execute_smart_recommendation, name='execute_smart_recommendation'),
+    path('smart-recommendation/mark-executed/', views.mark_smart_recommendation_executed, name='mark_smart_recommendation_executed'),
+    path('smart-recommendation/details/<uuid:recommendation_id>/', views.smart_recommendation_details, name='smart_recommendation_details'),
     
     # API endpoints
     path('api/stock-info/<str:symbol>/', views.get_stock_info, name='get_stock_info'),

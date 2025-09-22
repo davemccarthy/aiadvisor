@@ -1,0 +1,226 @@
+{% extends 'soulstrader/base.html' %}
+{% load static %}
+
+{% block title %}Smart Recommendation Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        📋 Smart Recommendation Details
+                    </h4>
+                    <button type="button" class="btn-close" onclick="closeDetailsModal()" aria-label="Close"></button>
+                </div>
+                <div class="card-body">
+                    <!-- Main Recommendation Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>{{ recommendation.stock.symbol }} - {{ recommendation.stock.name }}</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>Recommendation:</strong><br>
+                                    <span class="badge bg-{% if recommendation.recommendation_type == 'BUY' %}success{% else %}danger{% endif %} fs-6">
+                                        {{ recommendation.recommendation_type }}
+                                    </span>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Status:</strong><br>
+                                    <span class="badge bg-{% if recommendation.status == 'EXECUTED' %}success{% elif recommendation.status == 'PENDING' %}warning{% else %}secondary{% endif %} fs-6">
+                                        {{ recommendation.status }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>Current Price:</strong><br>
+                                    <span class="fs-5 text-primary">${{ recommendation.current_price|floatformat:2 }}</span>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Priority Score:</strong><br>
+                                    <span class="fs-5 text-info">{{ recommendation.priority_score|floatformat:1 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Metrics -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Confidence Score</h6>
+                                    <h4 class="text-success">{{ recommendation.confidence_score|floatformat:2 }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Shares to Buy</h6>
+                                    <h4 class="text-primary">{{ recommendation.shares_to_buy|default:"N/A" }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Cash Allocated</h6>
+                                    <h4 class="text-success">${{ recommendation.cash_allocated|floatformat:2|default:"N/A" }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Existing Shares</h6>
+                                    <h4 class="text-info">{{ recommendation.existing_shares }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buy Algorithm Details -->
+                    {% if recommendation.initial_weight or recommendation.adjusted_weight %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5>🎯 Buy Algorithm Details</h5>
+                            <div class="row">
+                                {% if recommendation.initial_weight %}
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Initial Weight</h6>
+                                            <h4 class="text-primary">{{ recommendation.initial_weight|floatformat:4 }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if recommendation.adjusted_weight %}
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Adjusted Weight</h6>
+                                            <h4 class="text-warning">{{ recommendation.adjusted_weight|floatformat:4 }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Full Reasoning -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5>🧠 AI Reasoning</h5>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <p class="mb-0">{{ recommendation.reasoning }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Related Advisor Recommendations -->
+                    {% if related_recommendations %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>🤖 Individual Advisor Analysis</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Advisor</th>
+                                            <th>Recommendation</th>
+                                            <th>Confidence</th>
+                                            <th>Reasoning</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for rec in related_recommendations %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ rec.advisor.name }}</strong><br>
+                                                <small class="text-muted">{{ rec.advisor.advisor_type }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{% if rec.recommendation_type == 'BUY' %}success{% else %}danger{% endif %}">
+                                                    {{ rec.recommendation_type }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">{{ rec.confidence_score|floatformat:2 }}</span>
+                                            </td>
+                                            <td>
+                                                <small>{{ rec.reasoning|truncatechars:100 }}</small>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Execution Details -->
+                    {% if recommendation.executed_trade %}
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5>✅ Execution Details</h5>
+                            <div class="card bg-success bg-opacity-10">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>Executed At:</strong> {{ recommendation.executed_at|date:"M d, Y H:i" }}<br>
+                                            <strong>Trade ID:</strong> {{ recommendation.executed_trade.id }}<br>
+                                            <strong>Quantity:</strong> {{ recommendation.executed_trade.quantity }} shares
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Fill Price:</strong> ${{ recommendation.executed_trade.average_fill_price|floatformat:2 }}<br>
+                                            <strong>Total Value:</strong> ${{ recommendation.executed_trade.total_value|floatformat:2 }}<br>
+                                            <strong>Status:</strong> {{ recommendation.executed_trade.status }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Timestamps -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <small class="text-muted">
+                                <strong>Created:</strong> {{ recommendation.created_at|date:"M d, Y H:i" }}<br>
+                                {% if recommendation.updated_at != recommendation.created_at %}
+                                <strong>Updated:</strong> {{ recommendation.updated_at|date:"M d, Y H:i" }}
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function closeDetailsModal() {
+    // Close the modal by removing it from the DOM or hiding it
+    const modal = document.querySelector('.modal');
+    if (modal) {
+        modal.remove();
+    } else {
+        // If not in a modal, go back to recommendations
+        window.location.href = '/recommendations/';
+    }
+}
+</script>
+{% endblock %}
