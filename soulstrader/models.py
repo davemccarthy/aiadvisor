@@ -814,6 +814,20 @@ class RiskProfile(models.Model):
         help_text="Minimum number of different stocks to maintain"
     )
     
+    # Risk tolerance settings
+    allow_penny_stocks = models.BooleanField(
+        default=False,
+        help_text="Allow penny stocks (price < $5) and micro-cap stocks (market cap < $100M) in recommendations"
+    )
+    min_stock_price = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal('5.00'),
+        help_text="Minimum stock price threshold (penny stock filter)"
+    )
+    min_market_cap = models.BigIntegerField(
+        default=100_000_000,
+        help_text="Minimum market cap threshold in USD (micro-cap filter)"
+    )
+    
     # Automation settings
     auto_execute_trades = models.BooleanField(
         default=False,

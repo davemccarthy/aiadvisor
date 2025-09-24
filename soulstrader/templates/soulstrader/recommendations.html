@@ -392,6 +392,7 @@ function loadSmartAnalysis() {
                 <div style="text-align: center; padding: 3rem; color: #dc3545;">
                     <h3>Analysis Failed</h3>
                     <p>${data.error || 'Unknown error occurred'}</p>
+                    ${data.traceback ? `<details style="text-align: left; margin: 1rem 0;"><summary>Technical Details</summary><pre style="background: #f8f9fa; padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.8rem;">${data.traceback}</pre></details>` : ''}
                     <button class="btn" onclick="loadSmartAnalysis()">Try Again</button>
                 </div>
             `;

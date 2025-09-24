@@ -117,8 +117,8 @@ def dashboard(request):
         portfolio=portfolio
     ).order_by('-date')[:30]
     
-    # Get user's holdings
-    holdings = portfolio.holdings.select_related('stock').all()
+    # Get user's holdings - ordered by most recently purchased/updated
+    holdings = portfolio.holdings.select_related('stock').order_by('-last_updated', '-purchase_date')
     
     context = {
         'profile': profile,
@@ -137,7 +137,7 @@ def dashboard(request):
 def portfolio_view(request):
     """Detailed portfolio view"""
     portfolio = get_object_or_404(Portfolio, user=request.user)
-    holdings = portfolio.holdings.select_related('stock').all()
+    holdings = portfolio.holdings.select_related('stock').order_by('-last_updated', '-purchase_date')
     
     # Calculate portfolio metrics
     total_invested = sum(holding.quantity * holding.average_price for holding in holdings)
@@ -270,7 +270,17 @@ def stock_detail(request, symbol):
 @login_required
 def profile_view(request):
     """User profile and settings"""
-    profile = get_object_or_404(UserProfile, user=request.user)
+    # Get or create UserProfile
+    profile, created = UserProfile.objects.get_or_create(
+        user=request.user,
+        defaults={
+            'risk_level': 'MODERATE',
+            'investment_goal': 'GROWTH',
+            'time_horizon': 'MEDIUM_TERM',
+            'initial_capital': 50000.00,
+            'esg_focused': False,
+        }
+    )
     
     # Get risk assessment if exists
     try:
@@ -362,14 +372,14 @@ def place_order_view(request):
             order_type = request.POST.get('order_type', 'MARKET')
             price = request.POST.get('price')
             notes = request.POST.get('notes', '')
-            
+
             # Get stock and portfolio
             stock = get_object_or_404(Stock, symbol=stock_symbol, is_active=True)
             portfolio = get_object_or_404(Portfolio, user=request.user)
-            
+
             # Convert price to Decimal if provided
             limit_price = Decimal(price) if price else None
-            
+
             # Place the order
             result = TradingService.place_order(
                 portfolio=portfolio,
@@ -406,9 +416,11 @@ def place_order_view(request):
                     recommendation.save()
                 
                 if order_type == 'MARKET':
-                    messages.success(request, f'Market order executed successfully! {trade.trade_type} {trade.quantity} shares of {stock.symbol} at ${trade.average_fill_price:.2f}')
+                    price_str = f"{trade.average_fill_price:.2f}" if trade.average_fill_price is not None else "0.00"
+                    messages.success(request, f'Market order executed successfully! {trade.trade_type} {trade.quantity} shares of {stock.symbol} at ${price_str}')
                 else:
-                    messages.success(request, f'Limit order placed successfully! {trade.trade_type} {trade.quantity} shares of {stock.symbol} at ${trade.price:.2f}')
+                    price_str = f"{trade.price:.2f}" if trade.price is not None else "0.00"
+                    messages.success(request, f'Limit order placed successfully! {trade.trade_type} {trade.quantity} shares of {stock.symbol} at ${price_str}')
                 return redirect('soulstrader:trading')
             else:
                 messages.error(request, f'Order failed: {result["error"]}')
@@ -417,15 +429,33 @@ def place_order_view(request):
             messages.error(request, 'Invalid input. Please check your values and try again.')
         except Exception as e:
             messages.error(request, f'An error occurred: {str(e)}')
+
+    # Get available stocks for the form, filtering out any with decimal conversion issues
+    from django.db import connection
     
-    # Get available stocks for the form
-    stocks = Stock.objects.filter(is_active=True).order_by('symbol')
+    # Get stock IDs first to avoid decimal conversion issues
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT id FROM soulstrader_stock WHERE is_active = 1 ORDER BY symbol")
+        stock_ids = [row[0] for row in cursor.fetchall()]
+    
+    # Get stocks one by one, skipping any with decimal conversion issues
+    stocks = []
+    for stock_id in stock_ids:
+        try:
+            stock = Stock.objects.get(id=stock_id)
+            # Test accessing decimal fields
+            _ = stock.current_price
+            _ = stock.day_change_percent
+            stocks.append(stock)
+        except Exception:
+            # Skip problematic stocks
+            continue
     
     # Get URL parameters for pre-filling forms
     prefill_symbol = request.GET.get('symbol', '').upper()
     prefill_action = request.GET.get('action', '').upper()
     prefill_quantity = request.GET.get('quantity', '')
-    
+
     # Validate prefill data
     if prefill_action and prefill_action not in ['BUY', 'SELL']:
         prefill_action = ''
@@ -439,7 +469,7 @@ def place_order_view(request):
         'prefill_action': prefill_action,
         'prefill_quantity': prefill_quantity,
     }
-    
+
     return render(request, 'soulstrader/place_order.html', context)
 
 
@@ -892,9 +922,11 @@ def sell_shares_view(request):
             if result['success']:
                 trade = result['trade']
                 proceeds = trade.total_amount - trade.commission if trade.total_amount else 0
+                proceeds_str = f"{proceeds:.2f}" if proceeds is not None else "0.00"
+                commission_str = f"{trade.commission:.2f}" if trade.commission is not None else "0.00"
                 messages.success(request, 
-                    f'Successfully sold {quantity} shares of {stock_symbol} for ${proceeds:.2f} '
-                    f'(after ${trade.commission:.2f} commission)')
+                    f'Successfully sold {quantity} shares of {stock_symbol} for ${proceeds_str} '
+                    f'(after ${commission_str} commission)')
             else:
                 messages.error(request, f'Sell order failed: {result["error"]}')
                 
@@ -939,9 +971,11 @@ def buy_from_recommendations_view(request):
             if result['success']:
                 trade = result['trade']
                 total_cost = trade.total_amount + trade.commission if trade.total_amount else 0
+                total_cost_str = f"{total_cost:.2f}" if total_cost is not None else "0.00"
+                commission_str = f"{trade.commission:.2f}" if trade.commission is not None else "0.00"
                 messages.success(request, 
-                    f'Successfully bought {quantity} shares of {stock_symbol} for ${total_cost:.2f} '
-                    f'(including ${trade.commission:.2f} commission)')
+                    f'Successfully bought {quantity} shares of {stock_symbol} for ${total_cost_str} '
+                    f'(including ${commission_str} commission)')
             else:
                 messages.error(request, f'Buy order failed: {result["error"]}')
                 
@@ -997,9 +1031,11 @@ def sell_from_recommendations_view(request):
             if result['success']:
                 trade = result['trade']
                 proceeds = trade.total_amount - trade.commission if trade.total_amount else 0
+                proceeds_str = f"{proceeds:.2f}" if proceeds is not None else "0.00"
+                commission_str = f"{trade.commission:.2f}" if trade.commission is not None else "0.00"
                 messages.success(request, 
-                    f'Successfully sold {quantity} shares of {stock_symbol} for ${proceeds:.2f} '
-                    f'(after ${trade.commission:.2f} commission)')
+                    f'Successfully sold {quantity} shares of {stock_symbol} for ${proceeds_str} '
+                    f'(after ${commission_str} commission)')
             else:
                 messages.error(request, f'Sell order failed: {result["error"]}')
                 
@@ -1025,7 +1061,7 @@ def smart_analysis_view(request):
                 user=request.user
             ).order_by('-started_at')[:5]  # Last 5 sessions
             
-            # Get user's Smart Recommendations - PENDING first, then by priority and date
+            # Get user's Smart Recommendations - PENDING first, then EXECUTED by most recent
             from django.db.models import Case, When, IntegerField
             recommendations = SmartRecommendation.objects.filter(
                 user=request.user
@@ -1036,7 +1072,7 @@ def smart_analysis_view(request):
                     default=2,
                     output_field=IntegerField(),
                 )
-            ).order_by('status_order', '-priority_score', '-created_at')[:20]  # Last 20 recommendations
+            ).order_by('status_order', '-executed_at', '-created_at')[:30]  # PENDING first, then EXECUTED by most recent
             
             # Get user's risk profile
             risk_profile, created = RiskProfile.objects.get_or_create(
@@ -1057,9 +1093,11 @@ def smart_analysis_view(request):
             })
             
         except Exception as e:
+            import traceback
             return JsonResponse({
                 'success': False,
-                'error': f'Analysis failed: {str(e)}'
+                'error': f'Analysis failed: {str(e)}',
+                'traceback': traceback.format_exc()
             })
     
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
@@ -1205,9 +1243,9 @@ def render_smart_analysis_stored_html(sessions, recommendations, risk_profile):
                 align-items: center;
             ">
                 <div>
-                    <div style="font-weight: bold;">{session.started_at.strftime('%Y-%m-%d %H:%M')}</div>
+                    <div style="font-weight: bold;">{session.started_at.strftime('%Y-%m-%d %H:%M') if session.started_at else 'Unknown'}</div>
                     <div style="font-size: 0.9rem; color: #6c757d;">
-                        {session.total_recommendations} recommendations • {session.processing_time_seconds:.1f}s
+                        {session.total_recommendations if session.total_recommendations is not None else 0} recommendations • {f"{session.processing_time_seconds:.1f}" if session.processing_time_seconds is not None else "0.0"}s
                     </div>
                 </div>
                 <div style="color: {status_color}; font-weight: bold;">{session.status}</div>
@@ -1268,8 +1306,8 @@ def render_smart_analysis_stored_html(sessions, recommendations, risk_profile):
                         <span>{status_text}</span>
                     </div>
                     <div style="font-size: 0.8rem; color: #6c757d;">
-                        {rec.created_at.strftime('%m/%d %H:%M')}
-                        {f' • Executed: {rec.executed_at.strftime("%m/%d %H:%M")}' if rec.executed_at else ''}
+                        {rec.created_at.strftime('%m/%d %H:%M') if rec.created_at else 'Unknown'}
+                        {f' • Executed: {rec.executed_at.strftime("%m/%d %H:%M")}' if rec.executed_at is not None else ''}
                     </div>
                 </div>
             </div>
@@ -1277,15 +1315,15 @@ def render_smart_analysis_stored_html(sessions, recommendations, risk_profile):
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                 <div>
                     <div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.2rem;">Current Price</div>
-                    <div style="font-size: 1.1rem; font-weight: bold;">${rec.current_price:.2f}</div>
+                    <div style="font-size: 1.1rem; font-weight: bold;">${f"{rec.current_price:.2f}" if rec.current_price is not None else "0.00"}</div>
                 </div>
                 <div>
                     <div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.2rem;">Priority Score</div>
-                    <div style="font-size: 1.1rem; font-weight: bold; color: #667eea;">{rec.priority_score:.1f}</div>
+                    <div style="font-size: 1.1rem; font-weight: bold; color: #667eea;">{f"{rec.priority_score:.1f}" if rec.priority_score is not None else "0.0"}</div>
                 </div>
                 <div>
                     <div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.2rem;">Confidence</div>
-                    <div style="font-size: 1.1rem; font-weight: bold; color: #28a745;">{rec.confidence_score:.2f}</div>
+                    <div style="font-size: 1.1rem; font-weight: bold; color: #28a745;">{f"{rec.confidence_score:.2f}" if rec.confidence_score is not None else "0.00"}</div>
                 </div>
                 <div>
                     <div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.2rem;">Shares to Buy</div>
@@ -1298,14 +1336,14 @@ def render_smart_analysis_stored_html(sessions, recommendations, risk_profile):
             {f'''
             <div style="margin-bottom: 1rem;">
                 <div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.2rem;">Cash Allocation</div>
-                <div style="font-size: 1.1rem; font-weight: bold; color: #28a745;">${rec.cash_allocated:,.2f}</div>
+                <div style="font-size: 1.1rem; font-weight: bold; color: #28a745;">${f"{rec.cash_allocated:,.2f}" if rec.cash_allocated is not None else "0.00"}</div>
             </div>
-            ''' if rec.cash_allocated else ''}
+            ''' if rec.cash_allocated is not None else ''}
             
             <div style="margin-bottom: 1rem;">
                 <div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.5rem;">Reasoning:</div>
                 <div style="font-size: 0.9rem; line-height: 1.4; color: #495057;">
-                    {rec.reasoning[:200]}{'...' if len(rec.reasoning) > 200 else ''}
+                    {rec.reasoning[:200] if rec.reasoning else 'No reasoning provided'}{'...' if rec.reasoning and len(rec.reasoning) > 200 else ''}
                 </div>
             </div>
             
@@ -1314,7 +1352,7 @@ def render_smart_analysis_stored_html(sessions, recommendations, risk_profile):
                     <span>📊 {rec.existing_shares} existing</span>
                     <span>•</span>
                     <span>🎯 {rec.recommendation_type}</span>
-                    {f'<span>•</span><span>💰 ${rec.cash_allocated:,.0f}' if rec.cash_allocated else ''}
+                    {f'<span>•</span><span>💰 ${f"{rec.cash_allocated:,.0f}" if rec.cash_allocated is not None else "0"}' if rec.cash_allocated is not None else ''}
                 </div>
                 
                <div style="display: flex; gap: 0.5rem;">

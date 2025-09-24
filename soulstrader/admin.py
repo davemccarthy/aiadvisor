@@ -247,8 +247,8 @@ class ConsensusRecommendationAdmin(admin.ModelAdmin):
 
 @admin.register(RiskProfile)
 class RiskProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'max_purchase_percentage', 'min_confidence_score', 'cash_spend_percentage', 'auto_execute_trades', 'created_at']
-    list_filter = ['auto_execute_trades', 'auto_rebalance_enabled', 'created_at']
+    list_display = ['user', 'max_purchase_percentage', 'min_confidence_score', 'cash_spend_percentage', 'allow_penny_stocks', 'auto_execute_trades', 'created_at']
+    list_filter = ['allow_penny_stocks', 'auto_execute_trades', 'auto_rebalance_enabled', 'created_at']
     search_fields = ['user__username', 'user__email']
     readonly_fields = ['created_at', 'updated_at']
     
@@ -256,6 +256,10 @@ class RiskProfileAdmin(admin.ModelAdmin):
         ('Portfolio Optimization', {
             'fields': ('max_purchase_percentage', 'min_confidence_score', 'cash_spend_percentage'),
             'description': 'Core settings for automated portfolio optimization'
+        }),
+        ('Risk Tolerance Settings', {
+            'fields': ('allow_penny_stocks', 'min_stock_price', 'min_market_cap'),
+            'description': 'Configure risk tolerance for penny stocks and micro-cap stocks'
         }),
         ('Anti-Repetition Settings', {
             'fields': ('cooldown_period_days', 'max_rebuy_percentage'),

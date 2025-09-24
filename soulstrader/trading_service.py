@@ -38,7 +38,7 @@ class TradingService:
         Returns:
             dict with 'success': bool, 'trade': Trade instance or None, 'error': str or None
         """
-        
+
         # Validate the order
         validation_result = cls.validate_order(portfolio, stock, trade_type, quantity, order_type, price)
         if not validation_result['valid']:
@@ -47,7 +47,7 @@ class TradingService:
                 'trade': None,
                 'error': validation_result['reason']
             }
-        
+
         # Create the trade
         trade = Trade.objects.create(
             portfolio=portfolio,
@@ -62,7 +62,7 @@ class TradingService:
             source_reference=source_reference,
             status='PENDING'
         )
-        
+
         # Add to order book if not a market order
         if order_type != 'MARKET':
             OrderBook.objects.create(trade=trade)
@@ -235,7 +235,7 @@ class TradingService:
                 # Update existing holding with weighted average price
                 total_shares = holding.quantity + trade.filled_quantity
                 total_cost_basis = (holding.quantity * holding.average_price) + trade.total_amount
-                holding.average_price = total_cost_basis / total_shares
+                holding.average_price = total_cost_basis / Decimal(str(total_shares))
                 holding.quantity = total_shares
                 holding.save()
         
@@ -302,7 +302,7 @@ class TradingService:
         stock.previous_close = stock.current_price
         stock.current_price = new_price
         stock.day_change = new_price - stock.previous_close
-        stock.day_change_percent = (stock.day_change / stock.previous_close) * 100
+        stock.day_change_percent = (stock.day_change / stock.previous_close) * Decimal('100')
         stock.save()
     
     @classmethod
@@ -473,5 +473,5 @@ class TradingService:
             'pending_trades': pending_trades,
             'total_volume': total_volume,
             'total_commission': total_commission,
-            'success_rate': (filled_trades / total_trades * 100) if total_trades > 0 else 0
+            'success_rate': (Decimal(str(filled_trades)) / Decimal(str(total_trades)) * Decimal('100')) if total_trades > 0 else Decimal('0')
         }

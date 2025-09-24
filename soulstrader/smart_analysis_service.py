@@ -139,6 +139,9 @@ class SmartAnalysisService:
                 'max_rebuy_percentage': Decimal('50.00'),
                 'max_sector_allocation': Decimal('30.00'),
                 'min_diversification_stocks': 5,
+                'allow_penny_stocks': False,  # Default: conservative (no penny stocks)
+                'min_stock_price': Decimal('5.00'),  # Default: $5 minimum
+                'min_market_cap': 100_000_000,  # Default: $100M minimum
                 'auto_execute_trades': False,
                 'auto_rebalance_enabled': True,
             }
@@ -169,6 +172,7 @@ class SmartAnalysisService:
         - Best buys from market screening
         - Best sells for owned stocks
         - Current holdings for rebalancing
+        - High-confidence BUY recommendations (alternative stock discovery)
         """
         ticker_list = set()
         
@@ -182,6 +186,10 @@ class SmartAnalysisService:
         # Add stocks for potential selling (owned stocks with sell signals)
         sell_candidates = self._get_sell_candidates(holdings)
         ticker_list.update(sell_candidates)
+        
+        # Add high-confidence BUY recommendations for alternative stock discovery
+        high_confidence_buys = self._get_high_confidence_buy_candidates()
+        ticker_list.update(high_confidence_buys)
         
         return list(ticker_list)
     
@@ -230,6 +238,41 @@ class SmartAnalysisService:
         # This would check for sell signals on owned stocks
         # For now, return all holdings for potential rebalancing
         return list(holdings.keys())
+    
+    def _get_high_confidence_buy_candidates(self) -> List[str]:
+        """
+        Get stocks with high-confidence BUY recommendations for alternative stock discovery.
+        This helps find quality stocks like NVO that have consistent BUY signals
+        but may not be in current market screening.
+        """
+        from .models import AIAdvisorRecommendation, Stock
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        try:
+            # Look for recent BUY recommendations with high confidence (>= 0.7)
+            # from the last 7 days to ensure they're still relevant
+            cutoff_date = timezone.now() - timedelta(days=7)
+            
+            high_confidence_buys = AIAdvisorRecommendation.objects.filter(
+                recommendation_type='BUY',
+                confidence_score__gte=0.7,
+                created_at__gte=cutoff_date
+            ).values_list('stock__symbol', flat=True).distinct()
+            
+            # Convert to list and limit to top 15 to avoid overwhelming the system
+            candidate_symbols = list(high_confidence_buys)[:15]
+            
+            if candidate_symbols:
+                logger.info(f"Found {len(candidate_symbols)} high-confidence BUY candidates: {candidate_symbols}")
+                return candidate_symbols
+            else:
+                logger.info("No high-confidence BUY candidates found in recent recommendations")
+                return []
+                
+        except Exception as e:
+            logger.warning(f"Failed to get high-confidence BUY candidates: {e}")
+            return []
     
     def _get_advisor_recommendations(self, ticker_list: List[str]) -> List[AIAdvisorRecommendation]:
         """Get recommendations from all active advisors"""
@@ -280,6 +323,21 @@ class SmartAnalysisService:
             if confidence_score < risk_profile.min_confidence_score:
                 continue
             
+            # Apply risk-based penny stock and micro-cap filters
+            stock = recs[0].stock
+            if not risk_profile.allow_penny_stocks:
+                # Filter out penny stocks based on user's risk tolerance
+                if stock.current_price and stock.current_price < risk_profile.min_stock_price:
+                    logger.info(f"Filtering out penny stock: {symbol} (price: ${stock.current_price}, min: ${risk_profile.min_stock_price})")
+                    continue
+                
+                # Filter out micro-cap stocks based on user's risk tolerance
+                if stock.market_cap and stock.market_cap < risk_profile.min_market_cap:
+                    logger.info(f"Filtering out micro-cap stock: {symbol} (market cap: ${stock.market_cap:,}, min: ${risk_profile.min_market_cap:,})")
+                    continue
+            else:
+                logger.info(f"Penny stocks allowed for {user.username} - including {symbol} (price: ${stock.current_price}, market cap: ${stock.market_cap or 'N/A'})")
+            
             # Get portfolio context
             existing_holding = holdings.get(symbol)
             existing_shares = existing_holding.quantity if existing_holding else 0
@@ -293,7 +351,7 @@ class SmartAnalysisService:
             
             # Calculate position context
             position_value = existing_shares * recs[0].stock.current_price if existing_shares > 0 else Decimal('0.00')
-            position_percentage = (position_value / user.portfolio.total_value * 100) if user.portfolio.total_value > 0 else Decimal('0.00')
+            position_percentage = (position_value / user.portfolio.total_value * Decimal('100')) if user.portfolio.total_value > 0 else Decimal('0.00')
             
             consolidated.append({
                 'stock': recs[0].stock,
@@ -336,6 +394,7 @@ class SmartAnalysisService:
             }
             
             base_score = Decimal(str(type_scores.get(rec.recommendation_type, 50)))
+            # Ensure all values are Decimal objects
             confidence_multiplier = Decimal(str(rec.confidence_score))
             advisor_weight = Decimal(str(rec.advisor.weight))
             
@@ -352,8 +411,8 @@ class SmartAnalysisService:
         if not recommendations:
             return Decimal('0.00')
         
-        total_confidence = sum(Decimal(str(rec.confidence_score)) for rec in recommendations)
-        return (total_confidence / Decimal(str(len(recommendations)))).quantize(Decimal('0.01'))
+        total_confidence = sum(rec.confidence_score for rec in recommendations)
+        return (Decimal(str(total_confidence)) / Decimal(str(len(recommendations)))).quantize(Decimal('0.01'))
     
     def _determine_recommendation_type(
         self, 
@@ -471,7 +530,7 @@ class SmartAnalysisService:
                 # Re-evaluate weight based on existing shares
                 # If oldShareCount: 100, newShareCount: 20, weight changes from .44 to .088
                 if rec['existing_shares'] > 0:
-                    weight_reduction = Decimal(str(rec['existing_shares'])) / Decimal(str(rec['existing_shares'] + net_shares))
+                    weight_reduction = Decimal(rec['existing_shares']) / Decimal(rec['existing_shares'] + net_shares)
                     rec['adjusted_weight'] = rec['initial_weight'] * (Decimal('1') - weight_reduction)
                 else:
                     rec['adjusted_weight'] = rec['initial_weight']
@@ -617,8 +676,8 @@ class SmartAnalysisService:
             'sell_recommendations': len([r for r in recommendations if r.recommendation_type == 'SELL']),
             'hold_recommendations': len([r for r in recommendations if r.recommendation_type == 'HOLD']),
             'total_cash_allocated': float(sum(r.cash_allocated or Decimal('0') for r in recommendations)),
-            'average_priority_score': float(sum(r.priority_score for r in recommendations) / Decimal(str(len(recommendations)))) if recommendations else 0.0,
-            'average_confidence_score': float(sum(r.confidence_score for r in recommendations) / Decimal(str(len(recommendations)))) if recommendations else 0.0,
+            'average_priority_score': float(sum(r.priority_score for r in recommendations) / len(recommendations)) if recommendations else 0.0,
+            'average_confidence_score': float(sum(r.confidence_score for r in recommendations) / len(recommendations)) if recommendations else 0.0,
         }
         return summary
 
@@ -642,7 +701,7 @@ class SmartAnalysisService:
                 trade_type=recommendation.recommendation_type,
                 quantity=recommendation.shares_to_buy,
                 order_type='MARKET',
-                price=recommendation.current_price,
+                price=None,  # Market orders don't need a price - will use current market price
                 notes=f'Smart Analysis: {recommendation.reasoning[:100]}...',
                 trade_source='SMART_ANALYSIS',
                 source_reference=f'SmartRecommendation-{recommendation.id}'
