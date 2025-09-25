@@ -9,6 +9,9 @@
     
     <form method="post" style="max-width: 600px;">
         {% csrf_token %}
+        {% if return_to %}
+        <input type="hidden" name="return_to" value="{{ return_to }}">
+        {% endif %}
         
         <div class="form-group">
             <label for="stock_symbol">Stock Symbol *</label>
@@ -58,7 +61,7 @@
         
         <div style="display: flex; gap: 1rem; margin-top: 2rem;">
             <button type="submit" class="btn">Place Order</button>
-            <a href="{% url 'soulstrader:trading' %}" class="btn btn-secondary">Cancel</a>
+            <a href="{% url 'soulstrader:portfolio' %}" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
 </div>

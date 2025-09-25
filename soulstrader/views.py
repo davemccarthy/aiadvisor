@@ -221,6 +221,45 @@ def recommendations_view(request):
     # Sort by creation date (newest first)
     all_recommendations.sort(key=lambda x: x['created_at'], reverse=True)
     
+    # Get Smart Analysis data for the primary tab
+    try:
+        # Get user's Smart Analysis sessions
+        smart_sessions = SmartAnalysisSession.objects.filter(
+            user=request.user
+        ).order_by('-started_at')[:5]  # Last 5 sessions
+        
+        # Get user's Smart Recommendations - PENDING first, then EXECUTED by most recent
+        from django.db.models import Case, When, IntegerField
+        smart_recommendations = SmartRecommendation.objects.filter(
+            user=request.user
+        ).select_related('stock').annotate(
+            status_order=Case(
+                When(status='PENDING', then=0),
+                When(status='EXECUTED', then=1),
+                default=2,
+                output_field=IntegerField(),
+            )
+        ).order_by('status_order', '-executed_at', '-created_at')[:30]  # PENDING first, then EXECUTED by most recent
+        
+        # Get user's risk profile
+        smart_risk_profile, created = RiskProfile.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'max_purchase_percentage': Decimal('5.00'),
+                'min_confidence_score': Decimal('0.70'),
+                'cash_spend_percentage': Decimal('20.00'),
+            }
+        )
+        
+        # Generate Smart Analysis HTML
+        smart_analysis_html = render_smart_analysis_stored_html(smart_sessions, smart_recommendations, smart_risk_profile)
+        
+    except Exception as e:
+        # If Smart Analysis fails, provide empty data
+        smart_sessions = []
+        smart_recommendations = []
+        smart_analysis_html = f'<div style="text-align: center; padding: 3rem; color: #dc3545;"><h3>Smart Analysis Error</h3><p>Unable to load Smart Analysis: {str(e)}</p></div>'
+    
     context = {
         'all_recommendations': all_recommendations,
         'legacy_count': legacy_recommendations.count(),
@@ -229,6 +268,9 @@ def recommendations_view(request):
         'recommendation_types': AIRecommendation.RECOMMENDATION_TYPES,
         'confidence_levels': AIRecommendation.CONFIDENCE_LEVELS,
         'current_page': 'recommendations',
+        'smart_analysis_html': smart_analysis_html,
+        'smart_sessions': smart_sessions,
+        'smart_recommendations': smart_recommendations,
     }
     
     return render(request, 'soulstrader/recommendations.html', context)
@@ -269,18 +311,38 @@ def stock_detail(request, symbol):
 
 @login_required
 def profile_view(request):
-    """User profile and settings"""
+    """User profile and settings with comprehensive risk variables"""
     # Get or create UserProfile
     profile, created = UserProfile.objects.get_or_create(
         user=request.user,
         defaults={
             'risk_level': 'MODERATE',
-            'investment_goal': 'GROWTH',
-            'time_horizon': 'MEDIUM_TERM',
-            'initial_capital': 50000.00,
+            'investment_goal': 'BALANCED',
+            'time_horizon': 'MEDIUM',
+            'initial_capital': 100000.00,
             'esg_focused': False,
         }
     )
+    
+    # Get or create RiskProfile for Smart Analysis settings
+    risk_profile, risk_created = RiskProfile.objects.get_or_create(
+        user=request.user,
+        defaults={
+            'max_purchase_percentage': Decimal('5.00'),
+            'min_confidence_score': Decimal('0.70'),
+            'cash_spend_percentage': Decimal('20.00'),
+            'cooldown_period_days': 7,
+            'max_rebuy_percentage': Decimal('50.00'),
+            'max_sector_allocation': Decimal('30.00'),
+            'min_diversification_stocks': 5,
+            'allow_penny_stocks': False,
+            'min_stock_price': Decimal('5.00'),
+            'min_market_cap': 100_000_000,
+        }
+    )
+    
+    # Get user's portfolio
+    portfolio = get_object_or_404(Portfolio, user=request.user)
     
     # Get risk assessment if exists
     try:
@@ -290,6 +352,8 @@ def profile_view(request):
     
     context = {
         'profile': profile,
+        'risk_profile': risk_profile,
+        'portfolio': portfolio,
         'risk_assessment': risk_assessment,
         'current_page': 'profile',
     }
@@ -318,47 +382,6 @@ def notifications_view(request):
 # =============================================================================
 # TRADING VIEWS
 # =============================================================================
-
-@login_required
-def trading_view(request):
-    """Main trading interface"""
-    portfolio = get_object_or_404(Portfolio, user=request.user)
-    
-    # Get recent trades
-    recent_trades = portfolio.trades.select_related('stock').order_by('-created_at')[:10]
-    
-    # Get pending orders
-    pending_orders = portfolio.trades.filter(
-        status__in=['PENDING', 'PARTIALLY_FILLED']
-    ).select_related('stock').order_by('-created_at')
-    
-    # Get trading summary
-    trading_summary = TradingService.get_trade_summary(portfolio)
-    
-    # Get URL parameters for pre-filling forms
-    prefill_symbol = request.GET.get('symbol', '').upper()
-    prefill_action = request.GET.get('action', '').upper()
-    prefill_quantity = request.GET.get('quantity', '')
-    
-    # Validate prefill data
-    if prefill_action and prefill_action not in ['BUY', 'SELL']:
-        prefill_action = ''
-    
-    context = {
-        'portfolio': portfolio,
-        'recent_trades': recent_trades,
-        'pending_orders': pending_orders,
-        'trading_summary': trading_summary,
-        'order_types': Trade.ORDER_TYPES,
-        'trade_types': Trade.TRADE_TYPES,
-        'current_page': 'trading',
-        'prefill_symbol': prefill_symbol,
-        'prefill_action': prefill_action,
-        'prefill_quantity': prefill_quantity,
-    }
-    
-    return render(request, 'soulstrader/trading.html', context)
-
 
 @login_required
 def place_order_view(request):
@@ -421,7 +444,12 @@ def place_order_view(request):
                 else:
                     price_str = f"{trade.price:.2f}" if trade.price is not None else "0.00"
                     messages.success(request, f'Limit order placed successfully! {trade.trade_type} {trade.quantity} shares of {stock.symbol} at ${price_str}')
-                return redirect('soulstrader:trading')
+                # Check if user wants to return to a specific page
+                return_to = request.GET.get('return_to') or request.POST.get('return_to')
+                if return_to == 'recommendations':
+                    return redirect('soulstrader:recommendations')
+                else:
+                    return redirect('soulstrader:portfolio')
             else:
                 messages.error(request, f'Order failed: {result["error"]}')
                 
@@ -460,6 +488,9 @@ def place_order_view(request):
     if prefill_action and prefill_action not in ['BUY', 'SELL']:
         prefill_action = ''
     
+    # Get return_to parameter for redirect after successful trade
+    return_to = request.GET.get('return_to', '')
+    
     context = {
         'stocks': stocks,
         'order_types': Trade.ORDER_TYPES,
@@ -468,6 +499,7 @@ def place_order_view(request):
         'prefill_symbol': prefill_symbol,
         'prefill_action': prefill_action,
         'prefill_quantity': prefill_quantity,
+        'return_to': return_to,
     }
 
     return render(request, 'soulstrader/place_order.html', context)
@@ -527,7 +559,7 @@ def cancel_order_view(request, trade_id):
     except Exception as e:
         messages.error(request, f'Error cancelling order: {str(e)}')
     
-    return redirect('soulstrader:trading')
+    return redirect('soulstrader:portfolio')
 
 
 @login_required
@@ -618,7 +650,7 @@ def simulate_market(request):
         except Exception as e:
             messages.error(request, f'Simulation error: {str(e)}')
     
-    return redirect('soulstrader:trading')
+    return redirect('soulstrader:portfolio')
 
 
 @login_required
@@ -701,7 +733,7 @@ def search_stocks(request):
             except Exception as e:
                 messages.error(request, f'Search failed: {str(e)}')
         
-        return redirect('soulstrader:trading')
+        return redirect('soulstrader:portfolio')
     
     return render(request, 'soulstrader/search_stocks.html', {'current_page': 'trading'})
 
@@ -1189,69 +1221,18 @@ def render_smart_analysis_stored_html(sessions, recommendations, risk_profile):
         </div>
         """
     
+    # Count recommendations by status
+    pending_count = sum(1 for rec in recommendations if rec.status == 'PENDING')
+    executed_count = sum(1 for rec in recommendations if rec.status == 'EXECUTED')
+    
     html = f"""
-        <h3 style="color: #667eea; margin-bottom: 0.5rem;">🧠 Smart Analysis Results</h3>
-        <p style="color: #6c757d; margin-bottom: 1.5rem; font-size: 0.9rem;">
-            Automated portfolio optimization recommendations
-        </p>
+        <h2 style="margin-bottom: 1.5rem; color: #333;">
+            🧠 Smart Analysis Results ({len(recommendations)} found)
+            {f'<span style="color: #28a745;">• {pending_count} Pending</span>' if pending_count > 0 else ''}
+            {f'<span style="color: #17a2b8;">• {executed_count} Executed</span>' if executed_count > 0 else ''}
+        </h2>
     """
     
-    # Show risk profile settings
-    html += f"""
-        <div style="
-            background: #f8f9fa; 
-            border: 1px solid #e9ecef; 
-            border-radius: 8px; 
-            padding: 1rem; 
-            margin-bottom: 1.5rem;
-        ">
-            <h4 style="color: #495057; margin-bottom: 0.5rem;">⚙️ Risk Profile Settings</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
-                <div>
-                    <div style="color: #6c757d;">Max Purchase %</div>
-                    <div style="font-weight: bold;">{risk_profile.max_purchase_percentage}%</div>
-                </div>
-                <div>
-                    <div style="color: #6c757d;">Min Confidence</div>
-                    <div style="font-weight: bold;">{risk_profile.min_confidence_score}</div>
-                </div>
-                <div>
-                    <div style="color: #6c757d;">Cash Spend %</div>
-                    <div style="font-weight: bold;">{risk_profile.cash_spend_percentage}%</div>
-                </div>
-            </div>
-        </div>
-    """
-    
-    # Show recent sessions
-    if sessions:
-        html += """
-        <div style="margin-bottom: 1.5rem;">
-            <h4 style="color: #495057; margin-bottom: 0.5rem;">📊 Recent Analysis Sessions</h4>
-        """
-        for session in sessions:
-            status_color = '#28a745' if session.status == 'COMPLETED' else '#dc3545' if session.status == 'FAILED' else '#ffc107'
-            html += f"""
-            <div style="
-                background: white; 
-                border: 1px solid #e9ecef; 
-                border-radius: 6px; 
-                padding: 0.75rem; 
-                margin-bottom: 0.5rem;
-                display: flex; 
-                justify-content: space-between; 
-                align-items: center;
-            ">
-                <div>
-                    <div style="font-weight: bold;">{session.started_at.strftime('%Y-%m-%d %H:%M') if session.started_at else 'Unknown'}</div>
-                    <div style="font-size: 0.9rem; color: #6c757d;">
-                        {session.total_recommendations if session.total_recommendations is not None else 0} recommendations • {f"{session.processing_time_seconds:.1f}" if session.processing_time_seconds is not None else "0.0"}s
-                    </div>
-                </div>
-                <div style="color: {status_color}; font-weight: bold;">{session.status}</div>
-            </div>
-            """
-        html += "</div>"
     
     # Show recommendations
     html += """
@@ -1356,7 +1337,7 @@ def render_smart_analysis_stored_html(sessions, recommendations, risk_profile):
                 </div>
                 
                <div style="display: flex; gap: 0.5rem;">
-                   <button style="
+                   <a href="/smart-recommendation/details/{rec.id}/" style="
                        padding: 0.5rem 1rem; 
                        font-size: 0.9rem; 
                        background-color: #17a2b8; 
@@ -1364,9 +1345,11 @@ def render_smart_analysis_stored_html(sessions, recommendations, risk_profile):
                        cursor: pointer; 
                        color: white; 
                        border-radius: 4px;
-                   " onclick="showSmartRecommendationDetails('{rec.id}')">
+                       text-decoration: none;
+                       display: inline-block;
+                   ">
                        📋 Details
-                   </button>
+                   </a>
                    
                    {f'''
                    <button style="
@@ -1382,7 +1365,7 @@ def render_smart_analysis_stored_html(sessions, recommendations, risk_profile):
                        ✅ Already Executed
                    </button>
                    ''' if is_executed else f'''
-                   <a href="/trading/place-order/?symbol={rec.stock.symbol}&action={rec.recommendation_type.lower()}&quantity={rec.shares_to_buy or (10 if rec.recommendation_type == 'BUY' else 1)}" style="
+                   <a href="/trading/place-order/?symbol={rec.stock.symbol}&action={rec.recommendation_type.lower()}&quantity={rec.shares_to_buy or (10 if rec.recommendation_type == 'BUY' else 1)}&return_to=recommendations" style="
                        padding: 0.5rem 1rem; 
                        font-size: 0.9rem; 
                        background-color: {'#28a745' if rec.recommendation_type == 'BUY' else '#dc3545'}; 
@@ -1406,6 +1389,36 @@ def render_smart_analysis_stored_html(sessions, recommendations, risk_profile):
     
     """
     
+    # Show recent sessions (moved to bottom)
+    if sessions:
+        html += """
+        <div style="margin-top: 2rem;">
+            <h4 style="color: #495057; margin-bottom: 0.5rem;">📊 Recent Analysis Sessions</h4>
+        """
+        for session in sessions:
+            status_color = '#28a745' if session.status == 'COMPLETED' else '#dc3545' if session.status == 'FAILED' else '#ffc107'
+            html += f"""
+            <div style="
+                background: white; 
+                border: 1px solid #e9ecef; 
+                border-radius: 6px; 
+                padding: 0.75rem; 
+                margin-bottom: 0.5rem;
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center;
+            ">
+                <div>
+                    <div style="font-weight: bold;">{session.started_at.strftime('%Y-%m-%d %H:%M') if session.started_at else 'Unknown'}</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">
+                        {session.total_recommendations if session.total_recommendations is not None else 0} recommendations • {f"{session.processing_time_seconds:.1f}" if session.processing_time_seconds is not None else "0.0"}s
+                    </div>
+                </div>
+                <div style="color: {status_color}; font-weight: bold;">{session.status}</div>
+            </div>
+            """
+        html += "</div>"
+    
     return html
 
 
@@ -1422,11 +1435,30 @@ def smart_recommendation_details(request, recommendation_id):
             user=request.user
         )
         
-        # Get related advisor recommendations for context
-        related_recommendations = AIAdvisorRecommendation.objects.filter(
+        # Get related advisor recommendations for context (from current session only)
+        # Look for recommendations within 1 hour before the smart recommendation
+        # Get only the most recent recommendation from each advisor to avoid duplicates
+        from datetime import timedelta
+        session_start = recommendation.created_at - timedelta(hours=1)
+        
+        # Get the most recent recommendation from each advisor (deduplicated)
+        # Get all recommendations in the session window
+        all_recs = AIAdvisorRecommendation.objects.filter(
             stock=recommendation.stock,
-            created_at__date=recommendation.created_at.date()
-        ).select_related('advisor').order_by('-confidence_score')
+            created_at__gte=session_start,
+            created_at__lte=recommendation.created_at
+        ).select_related('advisor').order_by('-created_at')
+        
+        # Deduplicate by advisor, keeping only the most recent from each advisor
+        seen_advisors = set()
+        related_recommendations = []
+        for rec in all_recs:
+            if rec.advisor.id not in seen_advisors:
+                related_recommendations.append(rec)
+                seen_advisors.add(rec.advisor.id)
+        
+        # Sort by confidence score
+        related_recommendations.sort(key=lambda x: x.confidence_score, reverse=True)
         
         context = {
             'recommendation': recommendation,

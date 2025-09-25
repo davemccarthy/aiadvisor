@@ -44,50 +44,26 @@
 </style>
 <div class="card">
     <h1 style="color: #667eea; margin-bottom: 1rem;">📈 AI Recommendations</h1>
-    <p style="color: #6c757d; margin-bottom: 2rem;">Personalized stock recommendations based on your risk profile and market analysis.</p>
+    <p style="color: #6c757d; margin-bottom: 0;">Personalized stock recommendations based on your risk profile and market analysis.</p>
     
-    <!-- Filter Options -->
-    <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;">
-        <div>
-            <label for="type-filter" style="font-weight: 500; margin-right: 0.5rem;">Filter by Type:</label>
-            <select id="type-filter" onchange="filterRecommendations()" style="padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
-                <option value="">All Types</option>
-                {% for value, label in recommendation_types %}
-                    <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label for="confidence-filter" style="font-weight: 500; margin-right: 0.5rem;">Filter by Confidence:</label>
-            <select id="confidence-filter" onchange="filterRecommendations()" style="padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px;">
-                <option value="">All Levels</option>
-                {% for value, label in confidence_levels %}
-                    <option value="{{ value }}" {% if request.GET.confidence == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <a href="{% url 'soulstrader:recommendations' %}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Clear Filters</a>
-        </div>
-    </div>
 </div>
 
 <!-- Tabs -->
 <div class="card">
     <div style="border-bottom: 1px solid #e9ecef; margin-bottom: 0;">
         <div style="display: flex; gap: 0;">
-            <button class="tab-button active" onclick="showTab('all-recommendations')" id="tab-all-recommendations">
-                📈 All Recommendations
-            </button>
-            <button class="tab-button" onclick="showTab('smart-analysis')" id="tab-smart-analysis">
+            <button class="tab-button active" onclick="showTab('smart-analysis')" id="tab-smart-analysis">
                 🧠 Smart Analysis
+            </button>
+            <button class="tab-button" onclick="showTab('all-recommendations')" id="tab-all-recommendations">
+                📈 All Recommendations
             </button>
         </div>
     </div>
 </div>
 
 <!-- Tab Content: All Recommendations -->
-<div id="all-recommendations-content" class="tab-content">
+<div id="all-recommendations-content" class="tab-content" style="display: none;">
 {% if all_recommendations %}
 <div class="card">
     <h2 style="margin-bottom: 1.5rem; color: #333;">
@@ -203,10 +179,10 @@
 </div>
 
 <!-- Tab Content: Smart Analysis -->
-<div id="smart-analysis-content" class="tab-content" style="display: none;">
+<div id="smart-analysis-content" class="tab-content">
     <div class="card">
         <div id="smart-analysis-results">
-            <!-- Smart analysis results will be loaded here -->
+            {{ smart_analysis_html|safe }}
         </div>
     </div>
 </div>
@@ -222,24 +198,6 @@
     </div>
 </div>
 
-<script>
-function filterRecommendations() {
-    const typeFilter = document.getElementById('type-filter').value;
-    const confidenceFilter = document.getElementById('confidence-filter').value;
-    
-    let url = '{% url "soulstrader:recommendations" %}';
-    const params = new URLSearchParams();
-    
-    if (typeFilter) params.append('type', typeFilter);
-    if (confidenceFilter) params.append('confidence', confidenceFilter);
-    
-    if (params.toString()) {
-        url += '?' + params.toString();
-    }
-    
-    window.location.href = url;
-}
-</script>
 
 <!-- Buy Modal -->
 <div id="buyModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
@@ -363,6 +321,8 @@ document.addEventListener('keydown', function(e) {
 function loadSmartAnalysis() {
     const results = document.getElementById('smart-analysis-results');
     
+    console.log('Loading Smart Analysis...');
+    
     // Show loading state
     results.innerHTML = `
         <div style="text-align: center; padding: 3rem;">
@@ -374,16 +334,27 @@ function loadSmartAnalysis() {
         </div>
     `;
     
+    // Get CSRF token from any form in the page
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                     document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+    
+    console.log('CSRF Token found:', csrfToken ? 'Yes' : 'No');
+    
     // Make AJAX request to get stored smart analysis
     fetch('/recommendations/smart-analysis/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({})
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             results.innerHTML = data.html;
@@ -410,10 +381,6 @@ function loadSmartAnalysis() {
     });
 }
 
-function showSmartRecommendationDetails(recommendationId) {
-    // Open details in a new window/tab
-    window.open(`/smart-recommendation/details/${recommendationId}/`, '_blank', 'width=1000,height=800,scrollbars=yes,resizable=yes');
-}
 
 // Load Smart Analysis when tab is shown
 function showTab(tabName) {
@@ -433,10 +400,7 @@ function showTab(tabName) {
     // Add active class to selected tab button
     document.getElementById('tab-' + tabName).classList.add('active');
     
-    // Load Smart Analysis when tab is shown
-    if (tabName === 'smart-analysis') {
-        loadSmartAnalysis();
-    }
+    // Smart Analysis content is already loaded server-side
 }
 
 // Sell Modal Functions
@@ -505,6 +469,8 @@ document.getElementById('sellRecModal').addEventListener('click', function(e) {
         closeSellRecModal();
     }
 });
+
+// Smart Analysis is now loaded server-side, no need for auto-loading
 
 </script>
 

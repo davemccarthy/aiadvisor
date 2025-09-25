@@ -1,226 +1,159 @@
 {% extends 'soulstrader/base.html' %}
 {% load static %}
 
-{% block title %}Smart Recommendation Details{% endblock %}
+{% block title %}Smart Recommendation Details - SOULTRADER{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">
-                        📋 Smart Recommendation Details
-                    </h4>
-                    <button type="button" class="btn-close" onclick="closeDetailsModal()" aria-label="Close"></button>
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h1 style="color: #667eea; margin-bottom: 0;">📋 Smart Recommendation Details</h1>
+        <a href="{% url 'soulstrader:recommendations' %}" class="btn" style="background-color: #6c757d;">
+            ← Return to Results
+        </a>
+    </div>
+    <!-- Main Recommendation Info -->
+    <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
+        <h2 style="color: #333; margin-bottom: 1.5rem;">{{ recommendation.stock.symbol }} - {{ recommendation.stock.name }}</h2>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;">
+            <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+                <h5 style="color: #6c757d; margin-bottom: 0.5rem;">Current Price</h5>
+                <h3 style="color: #667eea; margin: 0;">${{ recommendation.current_price|floatformat:2 }}</h3>
+            </div>
+            <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+                <h5 style="color: #6c757d; margin-bottom: 0.5rem;">Priority Score</h5>
+                <h3 style="color: #17a2b8; margin: 0;">{{ recommendation.priority_score|floatformat:1 }}</h3>
+            </div>
+            <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+                <h5 style="color: #6c757d; margin-bottom: 0.5rem;">Recommendation</h5>
+                <h3 style="color: {% if recommendation.recommendation_type == 'BUY' %}#28a745{% else %}#dc3545{% endif %}; margin: 0;">{{ recommendation.recommendation_type }}</h3>
+            </div>
+            <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+                <h5 style="color: #6c757d; margin-bottom: 0.5rem;">Status</h5>
+                <h3 style="color: {% if recommendation.status == 'EXECUTED' %}#28a745{% elif recommendation.status == 'PENDING' %}#ffc107{% else %}#6c757d{% endif %}; margin: 0;">{{ recommendation.status }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;">
+        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+            <h5 style="color: #6c757d; margin-bottom: 0.5rem;">Confidence Score</h5>
+            <h3 style="color: #28a745; margin: 0;">{{ recommendation.confidence_score|floatformat:2 }}</h3>
+        </div>
+        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+            <h5 style="color: #6c757d; margin-bottom: 0.5rem;">Shares to Buy</h5>
+            <h3 style="color: #667eea; margin: 0;">{{ recommendation.shares_to_buy|default:"N/A" }}</h3>
+        </div>
+        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+            <h5 style="color: #6c757d; margin-bottom: 0.5rem;">Cash Allocated</h5>
+            <h3 style="color: #28a745; margin: 0;">${{ recommendation.cash_allocated|floatformat:2|default:"N/A" }}</h3>
+        </div>
+        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+            <h5 style="color: #6c757d; margin-bottom: 0.5rem;">Existing Shares</h5>
+            <h3 style="color: #17a2b8; margin: 0;">{{ recommendation.existing_shares }}</h3>
+        </div>
+    </div>
+
+    <!-- Buy Algorithm Details -->
+    {% if recommendation.initial_weight or recommendation.adjusted_weight %}
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: #333; margin-bottom: 1rem;">🎯 Buy Algorithm Details</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            {% if recommendation.initial_weight %}
+            <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+                <h6 style="color: #6c757d; margin-bottom: 0.5rem;">Initial Weight</h6>
+                <h3 style="color: #667eea; margin: 0;">{{ recommendation.initial_weight|floatformat:4 }}</h3>
+            </div>
+            {% endif %}
+            {% if recommendation.adjusted_weight %}
+            <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+                <h6 style="color: #6c757d; margin-bottom: 0.5rem;">Adjusted Weight</h6>
+                <h3 style="color: #ffc107; margin: 0;">{{ recommendation.adjusted_weight|floatformat:4 }}</h3>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- AI Reasoning -->
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: #333; margin-bottom: 1rem;">🧠 AI Reasoning</h3>
+        <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 1.5rem;">
+            <p style="margin: 0; line-height: 1.6; color: #555;">{{ recommendation.reasoning }}</p>
+        </div>
+    </div>
+
+    <!-- Individual Advisor Analysis -->
+    {% if related_recommendations %}
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: #333; margin-bottom: 1rem;">🤖 Individual Advisor Analysis</h3>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <thead>
+                    <tr style="background: #f8f9fa;">
+                        <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #e9ecef; font-weight: 600;">Advisor</th>
+                        <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #e9ecef; font-weight: 600;">Recommendation</th>
+                        <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #e9ecef; font-weight: 600;">Confidence</th>
+                        <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #e9ecef; font-weight: 600;">Reasoning</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rec in related_recommendations %}
+                    <tr style="border-bottom: 1px solid #f1f3f4;">
+                        <td style="padding: 1rem;">
+                            <strong>{{ rec.advisor.name }}</strong><br>
+                            <small style="color: #6c757d;">{{ rec.advisor.advisor_type }}</small>
+                        </td>
+                        <td style="padding: 1rem;">
+                            <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: bold; color: white; background-color: {% if rec.recommendation_type == 'BUY' %}#28a745{% else %}#dc3545{% endif %};">
+                                {{ rec.recommendation_type }}
+                            </span>
+                        </td>
+                        <td style="padding: 1rem;">
+                            <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: bold; color: white; background-color: #17a2b8;">
+                                {{ rec.confidence_score|floatformat:2 }}
+                            </span>
+                        </td>
+                        <td style="padding: 1rem;">
+                            <small style="color: #6c757d;">{{ rec.reasoning|truncatechars:100 }}</small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Execution Details -->
+    {% if recommendation.executed_trade %}
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: #333; margin-bottom: 1rem;">✅ Execution Details</h3>
+        <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 1.5rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <strong>Executed At:</strong> {{ recommendation.executed_at|date:"M d, Y H:i" }}<br>
+                    <strong>Trade ID:</strong> {{ recommendation.executed_trade.id }}<br>
+                    <strong>Quantity:</strong> {{ recommendation.executed_trade.quantity }} shares
                 </div>
-                <div class="card-body">
-                    <!-- Main Recommendation Info -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <h5>{{ recommendation.stock.symbol }} - {{ recommendation.stock.name }}</h5>
-                            <div class="row">
-                                <div class="col-6">
-                                    <strong>Recommendation:</strong><br>
-                                    <span class="badge bg-{% if recommendation.recommendation_type == 'BUY' %}success{% else %}danger{% endif %} fs-6">
-                                        {{ recommendation.recommendation_type }}
-                                    </span>
-                                </div>
-                                <div class="col-6">
-                                    <strong>Status:</strong><br>
-                                    <span class="badge bg-{% if recommendation.status == 'EXECUTED' %}success{% elif recommendation.status == 'PENDING' %}warning{% else %}secondary{% endif %} fs-6">
-                                        {{ recommendation.status }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="row">
-                                <div class="col-6">
-                                    <strong>Current Price:</strong><br>
-                                    <span class="fs-5 text-primary">${{ recommendation.current_price|floatformat:2 }}</span>
-                                </div>
-                                <div class="col-6">
-                                    <strong>Priority Score:</strong><br>
-                                    <span class="fs-5 text-info">{{ recommendation.priority_score|floatformat:1 }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Key Metrics -->
-                    <div class="row mb-4">
-                        <div class="col-md-3">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <h6 class="card-title">Confidence Score</h6>
-                                    <h4 class="text-success">{{ recommendation.confidence_score|floatformat:2 }}</h4>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <h6 class="card-title">Shares to Buy</h6>
-                                    <h4 class="text-primary">{{ recommendation.shares_to_buy|default:"N/A" }}</h4>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <h6 class="card-title">Cash Allocated</h6>
-                                    <h4 class="text-success">${{ recommendation.cash_allocated|floatformat:2|default:"N/A" }}</h4>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <h6 class="card-title">Existing Shares</h6>
-                                    <h4 class="text-info">{{ recommendation.existing_shares }}</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Buy Algorithm Details -->
-                    {% if recommendation.initial_weight or recommendation.adjusted_weight %}
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5>🎯 Buy Algorithm Details</h5>
-                            <div class="row">
-                                {% if recommendation.initial_weight %}
-                                <div class="col-md-4">
-                                    <div class="card bg-light">
-                                        <div class="card-body text-center">
-                                            <h6 class="card-title">Initial Weight</h6>
-                                            <h4 class="text-primary">{{ recommendation.initial_weight|floatformat:4 }}</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                                {% if recommendation.adjusted_weight %}
-                                <div class="col-md-4">
-                                    <div class="card bg-light">
-                                        <div class="card-body text-center">
-                                            <h6 class="card-title">Adjusted Weight</h6>
-                                            <h4 class="text-warning">{{ recommendation.adjusted_weight|floatformat:4 }}</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Full Reasoning -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5>🧠 AI Reasoning</h5>
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <p class="mb-0">{{ recommendation.reasoning }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Related Advisor Recommendations -->
-                    {% if related_recommendations %}
-                    <div class="row">
-                        <div class="col-12">
-                            <h5>🤖 Individual Advisor Analysis</h5>
-                            <div class="table-responsive">
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Advisor</th>
-                                            <th>Recommendation</th>
-                                            <th>Confidence</th>
-                                            <th>Reasoning</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for rec in related_recommendations %}
-                                        <tr>
-                                            <td>
-                                                <strong>{{ rec.advisor.name }}</strong><br>
-                                                <small class="text-muted">{{ rec.advisor.advisor_type }}</small>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-{% if rec.recommendation_type == 'BUY' %}success{% else %}danger{% endif %}">
-                                                    {{ rec.recommendation_type }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-info">{{ rec.confidence_score|floatformat:2 }}</span>
-                                            </td>
-                                            <td>
-                                                <small>{{ rec.reasoning|truncatechars:100 }}</small>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Execution Details -->
-                    {% if recommendation.executed_trade %}
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <h5>✅ Execution Details</h5>
-                            <div class="card bg-success bg-opacity-10">
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <strong>Executed At:</strong> {{ recommendation.executed_at|date:"M d, Y H:i" }}<br>
-                                            <strong>Trade ID:</strong> {{ recommendation.executed_trade.id }}<br>
-                                            <strong>Quantity:</strong> {{ recommendation.executed_trade.quantity }} shares
-                                        </div>
-                                        <div class="col-md-6">
-                                            <strong>Fill Price:</strong> ${{ recommendation.executed_trade.average_fill_price|floatformat:2 }}<br>
-                                            <strong>Total Value:</strong> ${{ recommendation.executed_trade.total_value|floatformat:2 }}<br>
-                                            <strong>Status:</strong> {{ recommendation.executed_trade.status }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Timestamps -->
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <small class="text-muted">
-                                <strong>Created:</strong> {{ recommendation.created_at|date:"M d, Y H:i" }}<br>
-                                {% if recommendation.updated_at != recommendation.created_at %}
-                                <strong>Updated:</strong> {{ recommendation.updated_at|date:"M d, Y H:i" }}
-                                {% endif %}
-                            </small>
-                        </div>
-                    </div>
+                <div>
+                    <strong>Fill Price:</strong> ${{ recommendation.executed_trade.average_fill_price|floatformat:2 }}<br>
+                    <strong>Total Value:</strong> ${{ recommendation.executed_trade.total_value|floatformat:2 }}<br>
+                    <strong>Status:</strong> {{ recommendation.executed_trade.status }}
                 </div>
             </div>
         </div>
     </div>
-</div>
+    {% endif %}
 
-<script>
-function closeDetailsModal() {
-    // Close the modal by removing it from the DOM or hiding it
-    const modal = document.querySelector('.modal');
-    if (modal) {
-        modal.remove();
-    } else {
-        // If not in a modal, go back to recommendations
-        window.location.href = '/recommendations/';
-    }
-}
-</script>
+    <!-- Timestamps -->
+    <div style="padding-top: 1rem; border-top: 1px solid #e9ecef;">
+        <small style="color: #6c757d;">
+            <strong>Created:</strong> {{ recommendation.created_at|date:"M d, Y H:i" }}<br>
+            {% if recommendation.updated_at != recommendation.created_at %}
+            <strong>Updated:</strong> {{ recommendation.updated_at|date:"M d, Y H:i" }}
+            {% endif %}
+        </small>
+    </div>
+</div>
 {% endblock %}

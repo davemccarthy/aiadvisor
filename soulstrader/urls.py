@@ -20,7 +20,6 @@ urlpatterns = [
     path('stock/<str:symbol>/', views.stock_detail, name='stock_detail'),
     
     # Trading functionality
-    path('trading/', views.trading_view, name='trading'),
     path('trading/place-order/', views.place_order_view, name='place_order'),
     path('trading/order-history/', views.order_history_view, name='order_history'),
     path('trading/cancel-order/<uuid:trade_id>/', views.cancel_order_view, name='cancel_order'),

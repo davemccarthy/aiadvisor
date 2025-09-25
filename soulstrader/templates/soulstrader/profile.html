@@ -4,16 +4,16 @@
 
 {% block content %}
 <div class="card">
-    <h1 style="color: #667eea; margin-bottom: 1rem;">👤 Your Profile</h1>
-    <p style="color: #6c757d; margin-bottom: 2rem;">Manage your investment preferences, risk profile, and account settings.</p>
+    <h1 style="color: #667eea; margin-bottom: 1rem;">👤 Your Profile & Risk Settings</h1>
+    <p style="color: #6c757d; margin-bottom: 2rem;">Manage your investment preferences, risk profile, and Smart Analysis settings.</p>
 </div>
 
-<!-- Risk Profile -->
+<!-- Basic Risk Profile -->
 <div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">Risk Profile</h2>
+    <h2 style="margin-bottom: 1.5rem; color: #333;">🎯 Basic Risk Profile</h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
         <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Current Risk Level</h4>
+            <h4 style="color: #667eea; margin-bottom: 1rem;">Risk Level</h4>
             <div style="padding: 1rem; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
                 <div style="font-size: 1.2rem; font-weight: bold; color: #333; margin-bottom: 0.5rem;">
                     {{ profile.get_risk_level_display }}
@@ -68,77 +68,133 @@
     </div>
 </div>
 
+<!-- Smart Analysis Risk Settings -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">🧠 Smart Analysis Risk Settings</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        
+        <!-- Portfolio Optimization -->
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 1rem;">Portfolio Optimization</h4>
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
+                <div><strong>Max Purchase %:</strong> {{ risk_profile.max_purchase_percentage }}% per stock</div>
+                <div><strong>Min Confidence Score:</strong> {{ risk_profile.min_confidence_score }}/1.00</div>
+                <div><strong>Cash Spend %:</strong> {{ risk_profile.cash_spend_percentage }}% of available cash</div>
+                <div><strong>Max Sector Allocation:</strong> {{ risk_profile.max_sector_allocation }}% per sector</div>
+                <div><strong>Min Diversification:</strong> {{ risk_profile.min_diversification_stocks }} stocks minimum</div>
+            </div>
+        </div>
+
+        <!-- Anti-Repetition Rules -->
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 1rem;">Anti-Repetition Rules</h4>
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
+                <div><strong>Cooldown Period:</strong> {{ risk_profile.cooldown_period_days }} days between same stock</div>
+                <div><strong>Max Rebuy %:</strong> {{ risk_profile.max_rebuy_percentage }}% of existing position</div>
+            </div>
+        </div>
+
+        <!-- Stock Filtering -->
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 1rem;">Stock Filtering</h4>
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
+                <div><strong>Allow Penny Stocks:</strong> 
+                    {% if risk_profile.allow_penny_stocks %}
+                        <span style="color: #28a745; font-weight: bold;">Yes</span>
+                    {% else %}
+                        <span style="color: #dc3545; font-weight: bold;">No</span>
+                    {% endif %}
+                </div>
+                <div><strong>Min Stock Price:</strong> ${{ risk_profile.min_stock_price }}</div>
+                <div><strong>Min Market Cap:</strong> ${{ risk_profile.min_market_cap|floatformat:0 }}</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 <!-- Portfolio Settings -->
 <div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">Portfolio Settings</h2>
+    <h2 style="margin-bottom: 1.5rem; color: #333;">💼 Portfolio Settings</h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
         <div>
             <h4 style="color: #667eea; margin-bottom: 1rem;">Capital Management</h4>
-            <div style="line-height: 1.8;">
-                <div><strong>Initial Capital:</strong> ${{ profile.initial_capital|floatformat:2 }}</div>
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
+                <div><strong>Initial Capital:</strong> ${{ portfolio.initial_capital|floatformat:2 }}</div>
+                <div><strong>Current Capital:</strong> ${{ portfolio.current_capital|floatformat:2 }}</div>
+                <div><strong>Total Invested:</strong> ${{ portfolio.total_invested|floatformat:2 }}</div>
+                <div><strong>Available Cash:</strong> ${{ portfolio.current_capital|floatformat:2 }}</div>
+            </div>
+        </div>
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 1rem;">Portfolio Limits</h4>
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
                 <div><strong>Max Positions:</strong> {{ profile.max_positions }} stocks</div>
                 <div><strong>Max Position Size:</strong> {{ profile.max_position_size }}% per stock</div>
+                <div><strong>Auto Rebalance:</strong> 
+                    {% if portfolio.auto_rebalance %}
+                        <span style="color: #28a745; font-weight: bold;">Enabled</span>
+                    {% else %}
+                        <span style="color: #6c757d;">Disabled</span>
+                    {% endif %}
+                </div>
+                <div><strong>Rebalance Frequency:</strong> {{ portfolio.get_rebalance_frequency_display }}</div>
             </div>
         </div>
         <div>
             <h4 style="color: #667eea; margin-bottom: 1rem;">Investment Preferences</h4>
-            <div style="line-height: 1.8;">
-                <div><strong>Preferred Sectors:</strong></div>
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
+                <div><strong>Preferred Market Cap:</strong> {{ profile.get_preferred_market_cap_display }}</div>
+                <div><strong>ESG Focused:</strong> 
+                    {% if profile.esg_focused %}
+                        <span style="color: #28a745; font-weight: bold;">Yes</span>
+                    {% else %}
+                        <span style="color: #6c757d;">No</span>
+                    {% endif %}
+                </div>
+                {% if profile.esg_focused %}
+                    <div><strong>Min ESG Score:</strong> {{ profile.esg_score_minimum|floatformat:1 }}/10</div>
+                {% endif %}
                 {% if profile.preferred_sectors %}
+                    <div><strong>Preferred Sectors:</strong></div>
                     <div style="margin-left: 1rem; color: #6c757d;">
                         {% for sector in profile.preferred_sectors %}
                             • {{ sector }}<br>
                         {% endfor %}
                     </div>
-                {% else %}
-                    <div style="margin-left: 1rem; color: #6c757d;">No specific preferences</div>
                 {% endif %}
-                <div><strong>Market Cap:</strong> {{ profile.get_preferred_market_cap_display }}</div>
-            </div>
-        </div>
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">ESG Preferences</h4>
-            <div style="line-height: 1.8;">
-                <div><strong>ESG Focused:</strong> 
-                    {% if profile.esg_focused %}
-                        <span class="positive">Yes</span>
-                    {% else %}
-                        <span style="color: #6c757d;">No</span>
-                    {% endif %}
-                </div>
-                <div><strong>Min ESG Score:</strong> {{ profile.esg_score_minimum|floatformat:1 }}/10</div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Risk Assessment -->
+<!-- Risk Assessment Results -->
 {% if risk_assessment %}
 <div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">Risk Assessment Results</h2>
+    <h2 style="margin-bottom: 1.5rem; color: #333;">📊 Risk Assessment Results</h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-        <div class="stat-card">
-            <div class="stat-number">{{ risk_assessment.risk_score|floatformat:1 }}</div>
-            <div class="stat-label">Risk Score</div>
+        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+            <div style="font-size: 2rem; font-weight: bold; color: #667eea; margin-bottom: 0.5rem;">{{ risk_assessment.risk_score|floatformat:1 }}</div>
+            <div style="color: #6c757d;">Risk Score</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-number">{{ risk_assessment.age }}</div>
-            <div class="stat-label">Age</div>
+        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+            <div style="font-size: 2rem; font-weight: bold; color: #17a2b8; margin-bottom: 0.5rem;">{{ risk_assessment.age }}</div>
+            <div style="color: #6c757d;">Age</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-number">{{ risk_assessment.investment_experience }}</div>
-            <div class="stat-label">Experience (0-10)</div>
+        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+            <div style="font-size: 2rem; font-weight: bold; color: #28a745; margin-bottom: 0.5rem;">{{ risk_assessment.investment_experience }}</div>
+            <div style="color: #6c757d;">Experience (0-10)</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-number">{{ risk_assessment.risk_tolerance }}</div>
-            <div class="stat-label">Risk Tolerance (0-10)</div>
+        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+            <div style="font-size: 2rem; font-weight: bold; color: #ffc107; margin-bottom: 0.5rem;">{{ risk_assessment.risk_tolerance }}</div>
+            <div style="color: #6c757d;">Risk Tolerance (0-10)</div>
         </div>
     </div>
     
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
         <div>
             <h4 style="color: #667eea; margin-bottom: 1rem;">Assessment Details</h4>
-            <div style="line-height: 1.8;">
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
                 <div><strong>Volatility Comfort:</strong> {{ risk_assessment.volatility_comfort }}/10</div>
                 <div><strong>Loss Tolerance:</strong> {{ risk_assessment.loss_tolerance }}/10</div>
                 <div><strong>Recommended Level:</strong> {{ risk_assessment.get_recommended_risk_level_display }}</div>
@@ -165,7 +221,7 @@
 </div>
 {% else %}
 <div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">Risk Assessment</h2>
+    <h2 style="margin-bottom: 1.5rem; color: #333;">📊 Risk Assessment</h2>
     <div style="text-align: center; padding: 2rem; color: #6c757d;">
         <h3 style="margin-bottom: 1rem;">Complete Your Risk Assessment</h3>
         <p style="margin-bottom: 2rem;">Take our risk assessment questionnaire to get personalized recommendations based on your risk tolerance and investment goals.</p>
@@ -176,21 +232,21 @@
 
 <!-- Notification Preferences -->
 <div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">Notification Preferences</h2>
+    <h2 style="margin-bottom: 1.5rem; color: #333;">🔔 Notification Preferences</h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
         <div>
             <h4 style="color: #667eea; margin-bottom: 1rem;">Communication Channels</h4>
-            <div style="line-height: 1.8;">
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
                 <div><strong>Email Notifications:</strong> 
                     {% if profile.email_notifications %}
-                        <span class="positive">Enabled</span>
+                        <span style="color: #28a745; font-weight: bold;">Enabled</span>
                     {% else %}
                         <span style="color: #6c757d;">Disabled</span>
                     {% endif %}
                 </div>
                 <div><strong>SMS Notifications:</strong> 
                     {% if profile.sms_notifications %}
-                        <span class="positive">Enabled</span>
+                        <span style="color: #28a745; font-weight: bold;">Enabled</span>
                     {% else %}
                         <span style="color: #6c757d;">Disabled</span>
                     {% endif %}
@@ -199,17 +255,17 @@
         </div>
         <div>
             <h4 style="color: #667eea; margin-bottom: 1rem;">Notification Types</h4>
-            <div style="line-height: 1.8;">
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
                 <div><strong>Daily Summary:</strong> 
                     {% if profile.daily_summary %}
-                        <span class="positive">Enabled</span>
+                        <span style="color: #28a745; font-weight: bold;">Enabled</span>
                     {% else %}
                         <span style="color: #6c757d;">Disabled</span>
                     {% endif %}
                 </div>
                 <div><strong>Recommendation Alerts:</strong> 
                     {% if profile.recommendation_alerts %}
-                        <span class="positive">Enabled</span>
+                        <span style="color: #28a745; font-weight: bold;">Enabled</span>
                     {% else %}
                         <span style="color: #6c757d;">Disabled</span>
                     {% endif %}
@@ -221,11 +277,11 @@
 
 <!-- Account Information -->
 <div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">Account Information</h2>
+    <h2 style="margin-bottom: 1.5rem; color: #333;">👤 Account Information</h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
         <div>
             <h4 style="color: #667eea; margin-bottom: 1rem;">Profile Details</h4>
-            <div style="line-height: 1.8;">
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
                 <div><strong>Username:</strong> {{ user.username }}</div>
                 <div><strong>Email:</strong> {{ user.email|default:"Not provided" }}</div>
                 <div><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</div>
@@ -234,10 +290,10 @@
         </div>
         <div>
             <h4 style="color: #667eea; margin-bottom: 1rem;">Profile Status</h4>
-            <div style="line-height: 1.8;">
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
                 <div><strong>Profile Created:</strong> {{ profile.created_at|date:"M d, Y" }}</div>
                 <div><strong>Last Updated:</strong> {{ profile.updated_at|date:"M d, Y H:i" }}</div>
-                <div><strong>Status:</strong> <span class="positive">Active</span></div>
+                <div><strong>Status:</strong> <span style="color: #28a745; font-weight: bold;">Active</span></div>
             </div>
         </div>
     </div>
@@ -245,7 +301,7 @@
 
 <!-- Quick Actions -->
 <div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">Profile Actions</h2>
+    <h2 style="margin-bottom: 1.5rem; color: #333;">⚡ Quick Actions</h2>
     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
         <button class="btn">Edit Profile</button>
         <button class="btn btn-secondary">Change Password</button>

@@ -55,6 +55,11 @@ def has_analysis_run_today():
 def run_daily_smart_analysis():
     """Run Smart Analysis for all active users"""
     
+    # SAFETY CHECK: Disable automated Smart Analysis to conserve trial API calls
+    logger.info("Smart Analysis is DISABLED to conserve trial API calls")
+    logger.info("To enable automated analysis, remove this safety check")
+    return
+    
     logger.info("Starting Daily Smart Analysis")
     
     # Check if analysis has already been run today
