@@ -140,9 +140,14 @@ ALPHA_VANTAGE_API_KEY = 'G0C346PZOQVFHNIF'
 ALPHA_VANTAGE_RATE_LIMIT_DELAY = 12  # seconds between API calls
 
 # Financial Modeling Prep API Configuration
-FMP_API_KEY = ''  # Add your FMP API key here
+FMP_API_KEY = 'ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7'  # Add your FMP API key here
 FMP_RATE_LIMIT_PER_DAY = 250  # Free tier limit
 FMP_RATE_LIMIT_PER_MINUTE = 10
+
+# Finnhub API Configuration
+FINNHUB_API_KEY = 'd3ch5a9r01qu125b63s0d3ch5a9r01qu125b63sg'  # Add your Finnhub API key here
+FINNHUB_RATE_LIMIT_PER_DAY = 60  # Free tier limit (1 call per minute)
+FINNHUB_RATE_LIMIT_PER_MINUTE = 1
 
 # Logging configuration
 LOGGING = {

@@ -3,14 +3,56 @@
 {% block title %}Register - SOULTRADER{% endblock %}
 
 {% block content %}
+<style>
+    .form-group select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #e9ecef;
+        border-radius: 4px;
+        font-size: 1rem;
+        background-color: white;
+        color: #333;
+    }
+    
+    .form-group select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+    }
+    
+    .risk-level-description {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+        font-style: italic;
+    }
+</style>
 <div class="card" style="max-width: 400px; margin: 2rem auto;">
     <h2 style="text-align: center; margin-bottom: 2rem; color: #667eea;">Join SOULTRADER</h2>
+    
     
     <form method="post">
         {% csrf_token %}
         <div class="form-group">
             <label for="id_username">Username:</label>
             <input type="text" name="username" id="id_username" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_email">Email:</label>
+            <input type="email" name="email" id="id_email" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_risk_level">Risk Level:</label>
+            <select name="risk_level" id="id_risk_level" required onchange="updateRiskDescription()">
+                <option value="CONSERVATIVE">Low Risk - Conservative</option>
+                <option value="MODERATE" selected>Medium Risk - Balanced</option>
+                <option value="AGGRESSIVE">High Risk - Aggressive</option>
+            </select>
+            <div id="riskDescription" class="risk-level-description">
+                Balanced approach with moderate risk tolerance. Good for most investors.
+            </div>
         </div>
         
         <div class="form-group">
@@ -30,4 +72,19 @@
         <p>Already have an account? <a href="{% url 'soulstrader:login' %}" style="color: #667eea;">Login here</a></p>
     </div>
 </div>
+
+<script>
+function updateRiskDescription() {
+    const select = document.getElementById('id_risk_level');
+    const description = document.getElementById('riskDescription');
+    
+    const descriptions = {
+        'CONSERVATIVE': 'Conservative approach with low risk tolerance. Focuses on stable, established companies.',
+        'MODERATE': 'Balanced approach with moderate risk tolerance. Good for most investors.',
+        'AGGRESSIVE': 'Aggressive approach with high risk tolerance. Includes growth stocks and higher volatility investments.'
+    };
+    
+    description.textContent = descriptions[select.value] || descriptions['MODERATE'];
+}
+</script>
 {% endblock %}

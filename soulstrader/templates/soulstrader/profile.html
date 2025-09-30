@@ -4,281 +4,14 @@
 
 {% block content %}
 <div class="card">
-    <h1 style="color: #667eea; margin-bottom: 1rem;">👤 Your Profile & Risk Settings</h1>
-    <p style="color: #6c757d; margin-bottom: 2rem;">Manage your investment preferences, risk profile, and Smart Analysis settings.</p>
-</div>
-
-<!-- Basic Risk Profile -->
-<div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">🎯 Basic Risk Profile</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Risk Level</h4>
-            <div style="padding: 1rem; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
-                <div style="font-size: 1.2rem; font-weight: bold; color: #333; margin-bottom: 0.5rem;">
-                    {{ profile.get_risk_level_display }}
-                </div>
-                <p style="color: #6c757d; margin: 0; font-size: 0.9rem;">
-                    {% if profile.risk_level == 'CONSERVATIVE' %}
-                        Focus on capital preservation with lower volatility investments.
-                    {% elif profile.risk_level == 'MODERATE' %}
-                        Balanced approach with moderate risk and return expectations.
-                    {% else %}
-                        Higher risk tolerance with focus on growth and higher returns.
-                    {% endif %}
-                </p>
-            </div>
-        </div>
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Investment Goal</h4>
-            <div style="padding: 1rem; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #28a745;">
-                <div style="font-size: 1.2rem; font-weight: bold; color: #333; margin-bottom: 0.5rem;">
-                    {{ profile.get_investment_goal_display }}
-                </div>
-                <p style="color: #6c757d; margin: 0; font-size: 0.9rem;">
-                    {% if profile.investment_goal == 'GROWTH' %}
-                        Focus on capital appreciation and long-term growth.
-                    {% elif profile.investment_goal == 'INCOME' %}
-                        Prioritize dividend income and regular cash flow.
-                    {% elif profile.investment_goal == 'PRESERVATION' %}
-                        Emphasize capital preservation and low risk.
-                    {% else %}
-                        Balanced approach between growth and income.
-                    {% endif %}
-                </p>
-            </div>
-        </div>
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Time Horizon</h4>
-            <div style="padding: 1rem; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #17a2b8;">
-                <div style="font-size: 1.2rem; font-weight: bold; color: #333; margin-bottom: 0.5rem;">
-                    {{ profile.get_time_horizon_display }}
-                </div>
-                <p style="color: #6c757d; margin: 0; font-size: 0.9rem;">
-                    {% if profile.time_horizon == 'SHORT' %}
-                        Investment timeline of 1-3 years.
-                    {% elif profile.time_horizon == 'MEDIUM' %}
-                        Investment timeline of 3-7 years.
-                    {% else %}
-                        Long-term investment timeline of 7+ years.
-                    {% endif %}
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Smart Analysis Risk Settings -->
-<div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">🧠 Smart Analysis Risk Settings</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
-        
-        <!-- Portfolio Optimization -->
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Portfolio Optimization</h4>
-            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
-                <div><strong>Max Purchase %:</strong> {{ risk_profile.max_purchase_percentage }}% per stock</div>
-                <div><strong>Min Confidence Score:</strong> {{ risk_profile.min_confidence_score }}/1.00</div>
-                <div><strong>Cash Spend %:</strong> {{ risk_profile.cash_spend_percentage }}% of available cash</div>
-                <div><strong>Max Sector Allocation:</strong> {{ risk_profile.max_sector_allocation }}% per sector</div>
-                <div><strong>Min Diversification:</strong> {{ risk_profile.min_diversification_stocks }} stocks minimum</div>
-            </div>
-        </div>
-
-        <!-- Anti-Repetition Rules -->
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Anti-Repetition Rules</h4>
-            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
-                <div><strong>Cooldown Period:</strong> {{ risk_profile.cooldown_period_days }} days between same stock</div>
-                <div><strong>Max Rebuy %:</strong> {{ risk_profile.max_rebuy_percentage }}% of existing position</div>
-            </div>
-        </div>
-
-        <!-- Stock Filtering -->
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Stock Filtering</h4>
-            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
-                <div><strong>Allow Penny Stocks:</strong> 
-                    {% if risk_profile.allow_penny_stocks %}
-                        <span style="color: #28a745; font-weight: bold;">Yes</span>
-                    {% else %}
-                        <span style="color: #dc3545; font-weight: bold;">No</span>
-                    {% endif %}
-                </div>
-                <div><strong>Min Stock Price:</strong> ${{ risk_profile.min_stock_price }}</div>
-                <div><strong>Min Market Cap:</strong> ${{ risk_profile.min_market_cap|floatformat:0 }}</div>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<!-- Portfolio Settings -->
-<div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">💼 Portfolio Settings</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Capital Management</h4>
-            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
-                <div><strong>Initial Capital:</strong> ${{ portfolio.initial_capital|floatformat:2 }}</div>
-                <div><strong>Current Capital:</strong> ${{ portfolio.current_capital|floatformat:2 }}</div>
-                <div><strong>Total Invested:</strong> ${{ portfolio.total_invested|floatformat:2 }}</div>
-                <div><strong>Available Cash:</strong> ${{ portfolio.current_capital|floatformat:2 }}</div>
-            </div>
-        </div>
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Portfolio Limits</h4>
-            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
-                <div><strong>Max Positions:</strong> {{ profile.max_positions }} stocks</div>
-                <div><strong>Max Position Size:</strong> {{ profile.max_position_size }}% per stock</div>
-                <div><strong>Auto Rebalance:</strong> 
-                    {% if portfolio.auto_rebalance %}
-                        <span style="color: #28a745; font-weight: bold;">Enabled</span>
-                    {% else %}
-                        <span style="color: #6c757d;">Disabled</span>
-                    {% endif %}
-                </div>
-                <div><strong>Rebalance Frequency:</strong> {{ portfolio.get_rebalance_frequency_display }}</div>
-            </div>
-        </div>
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Investment Preferences</h4>
-            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
-                <div><strong>Preferred Market Cap:</strong> {{ profile.get_preferred_market_cap_display }}</div>
-                <div><strong>ESG Focused:</strong> 
-                    {% if profile.esg_focused %}
-                        <span style="color: #28a745; font-weight: bold;">Yes</span>
-                    {% else %}
-                        <span style="color: #6c757d;">No</span>
-                    {% endif %}
-                </div>
-                {% if profile.esg_focused %}
-                    <div><strong>Min ESG Score:</strong> {{ profile.esg_score_minimum|floatformat:1 }}/10</div>
-                {% endif %}
-                {% if profile.preferred_sectors %}
-                    <div><strong>Preferred Sectors:</strong></div>
-                    <div style="margin-left: 1rem; color: #6c757d;">
-                        {% for sector in profile.preferred_sectors %}
-                            • {{ sector }}<br>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Risk Assessment Results -->
-{% if risk_assessment %}
-<div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">📊 Risk Assessment Results</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
-            <div style="font-size: 2rem; font-weight: bold; color: #667eea; margin-bottom: 0.5rem;">{{ risk_assessment.risk_score|floatformat:1 }}</div>
-            <div style="color: #6c757d;">Risk Score</div>
-        </div>
-        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
-            <div style="font-size: 2rem; font-weight: bold; color: #17a2b8; margin-bottom: 0.5rem;">{{ risk_assessment.age }}</div>
-            <div style="color: #6c757d;">Age</div>
-        </div>
-        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
-            <div style="font-size: 2rem; font-weight: bold; color: #28a745; margin-bottom: 0.5rem;">{{ risk_assessment.investment_experience }}</div>
-            <div style="color: #6c757d;">Experience (0-10)</div>
-        </div>
-        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
-            <div style="font-size: 2rem; font-weight: bold; color: #ffc107; margin-bottom: 0.5rem;">{{ risk_assessment.risk_tolerance }}</div>
-            <div style="color: #6c757d;">Risk Tolerance (0-10)</div>
-        </div>
-    </div>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Assessment Details</h4>
-            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
-                <div><strong>Volatility Comfort:</strong> {{ risk_assessment.volatility_comfort }}/10</div>
-                <div><strong>Loss Tolerance:</strong> {{ risk_assessment.loss_tolerance }}/10</div>
-                <div><strong>Recommended Level:</strong> {{ risk_assessment.get_recommended_risk_level_display }}</div>
-                <div><strong>Completed:</strong> {{ risk_assessment.completed_at|date:"M d, Y" }}</div>
-            </div>
-        </div>
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Risk Profile Match</h4>
-            <div style="padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
-                {% if profile.risk_level == risk_assessment.recommended_risk_level %}
-                    <div style="color: #28a745; font-weight: bold; margin-bottom: 0.5rem;">✅ Perfect Match</div>
-                    <p style="color: #6c757d; margin: 0; font-size: 0.9rem;">
-                        Your current risk level matches the recommended level from your assessment.
-                    </p>
-                {% else %}
-                    <div style="color: #ffc107; font-weight: bold; margin-bottom: 0.5rem;">⚠️ Consider Adjusting</div>
-                    <p style="color: #6c757d; margin: 0; font-size: 0.9rem;">
-                        Your current risk level ({{ profile.get_risk_level_display }}) differs from the recommended level ({{ risk_assessment.get_recommended_risk_level_display }}).
-                    </p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-{% else %}
-<div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">📊 Risk Assessment</h2>
-    <div style="text-align: center; padding: 2rem; color: #6c757d;">
-        <h3 style="margin-bottom: 1rem;">Complete Your Risk Assessment</h3>
-        <p style="margin-bottom: 2rem;">Take our risk assessment questionnaire to get personalized recommendations based on your risk tolerance and investment goals.</p>
-        <button class="btn" style="background-color: #17a2b8;">Take Risk Assessment</button>
-    </div>
-</div>
-{% endif %}
-
-<!-- Notification Preferences -->
-<div class="card">
-    <h2 style="margin-bottom: 1.5rem; color: #333;">🔔 Notification Preferences</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Communication Channels</h4>
-            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
-                <div><strong>Email Notifications:</strong> 
-                    {% if profile.email_notifications %}
-                        <span style="color: #28a745; font-weight: bold;">Enabled</span>
-                    {% else %}
-                        <span style="color: #6c757d;">Disabled</span>
-                    {% endif %}
-                </div>
-                <div><strong>SMS Notifications:</strong> 
-                    {% if profile.sms_notifications %}
-                        <span style="color: #28a745; font-weight: bold;">Enabled</span>
-                    {% else %}
-                        <span style="color: #6c757d;">Disabled</span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Notification Types</h4>
-            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
-                <div><strong>Daily Summary:</strong> 
-                    {% if profile.daily_summary %}
-                        <span style="color: #28a745; font-weight: bold;">Enabled</span>
-                    {% else %}
-                        <span style="color: #6c757d;">Disabled</span>
-                    {% endif %}
-                </div>
-                <div><strong>Recommendation Alerts:</strong> 
-                    {% if profile.recommendation_alerts %}
-                        <span style="color: #28a745; font-weight: bold;">Enabled</span>
-                    {% else %}
-                        <span style="color: #6c757d;">Disabled</span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+    <h1 style="color: #667eea; margin-bottom: 1rem;">👤 Profile Settings</h1>
+    <p style="color: #6c757d; margin-bottom: 2rem;">Manage your account settings and trading preferences.</p>
 </div>
 
 <!-- Account Information -->
 <div class="card">
     <h2 style="margin-bottom: 1.5rem; color: #333;">👤 Account Information</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
         <div>
             <h4 style="color: #667eea; margin-bottom: 1rem;">Profile Details</h4>
             <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
@@ -289,7 +22,7 @@
             </div>
         </div>
         <div>
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Profile Status</h4>
+            <h4 style="color: #667eea; margin-bottom: 1rem;">Account Status</h4>
             <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
                 <div><strong>Profile Created:</strong> {{ profile.created_at|date:"M d, Y" }}</div>
                 <div><strong>Last Updated:</strong> {{ profile.updated_at|date:"M d, Y H:i" }}</div>
@@ -299,19 +32,706 @@
     </div>
 </div>
 
+<!-- Trading Preferences -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">📈 Trading Preferences</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 1rem;">Risk Settings</h4>
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
+                <div><strong>Risk Level:</strong> {{ profile.get_risk_level_display }}</div>
+                <div><strong>Investment Goal:</strong> {{ profile.get_investment_goal_display }}</div>
+                <div><strong>Time Horizon:</strong> {{ profile.get_time_horizon_display }}</div>
+                <div><strong>Max Positions:</strong> {{ profile.max_positions }} stocks</div>
+            </div>
+        </div>
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 1rem;">Smart Analysis Settings</h4>
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
+                <div><strong>Max Purchase %:</strong> {{ risk_profile.max_purchase_percentage }}% per stock</div>
+                <div><strong>Min Confidence:</strong> {{ risk_profile.min_confidence_score }}/1.00</div>
+                <div><strong>Cash Spend %:</strong> {{ risk_profile.cash_spend_percentage }}% of available cash</div>
+                <div><strong>Auto Execute:</strong> 
+                    {% if risk_profile.auto_execute_trades %}
+                        <span style="color: #28a745; font-weight: bold;">Enabled</span>
+                    {% else %}
+                        <span style="color: #6c757d;">Disabled</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div>
+            <h4 style="color: #667eea; margin-bottom: 1rem;">Stock Filters</h4>
+            <div style="line-height: 1.8; padding: 1rem; background-color: #f8f9fa; border-radius: 8px;">
+                <div><strong>Allow Penny Stocks:</strong> 
+                    {% if risk_profile.allow_penny_stocks %}
+                        <span style="color: #28a745; font-weight: bold;">Yes</span>
+                    {% else %}
+                        <span style="color: #dc3545; font-weight: bold;">No</span>
+                    {% endif %}
+                </div>
+                <div><strong>Min Stock Price:</strong> ${{ risk_profile.min_stock_price }}</div>
+                <div><strong>Min Market Cap:</strong> ${{ risk_profile.min_market_cap|floatformat:0 }}</div>
+                <div><strong>ESG Focused:</strong> 
+                    {% if profile.esg_focused %}
+                        <span style="color: #28a745; font-weight: bold;">Yes</span>
+                    {% else %}
+                        <span style="color: #6c757d;">No</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Portfolio Summary -->
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #333;">💼 Portfolio Summary</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #667eea; margin-bottom: 0.5rem;">${{ portfolio.initial_capital|floatformat:0 }}</div>
+            <div style="color: #6c757d;">Initial Capital</div>
+        </div>
+        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #28a745; margin-bottom: 0.5rem;">${{ portfolio.current_capital|floatformat:0 }}</div>
+            <div style="color: #6c757d;">Available Cash</div>
+        </div>
+        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #17a2b8; margin-bottom: 0.5rem;">{{ portfolio.holdings.count }}</div>
+            <div style="color: #6c757d;">Current Holdings</div>
+        </div>
+        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #ffc107; margin-bottom: 0.5rem;">{{ portfolio.total_value|floatformat:0 }}</div>
+            <div style="color: #6c757d;">Total Value</div>
+        </div>
+    </div>
+</div>
+
 <!-- Quick Actions -->
 <div class="card">
     <h2 style="margin-bottom: 1.5rem; color: #333;">⚡ Quick Actions</h2>
     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <button class="btn">Edit Profile</button>
-        <button class="btn btn-secondary">Change Password</button>
-        {% if not risk_assessment %}
-            <button class="btn" style="background-color: #17a2b8;">Take Risk Assessment</button>
-        {% else %}
-            <button class="btn" style="background-color: #17a2b8;">Retake Assessment</button>
-        {% endif %}
-        <button class="btn" style="background-color: #6f42c1;">Export Data</button>
-        <a href="{% url 'soulstrader:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        <button class="btn" onclick="openEditModal()">Edit Profile</button>
+        <button class="btn" onclick="openAccountModal()" style="background-color: #17a2b8;">Edit Account</button>
     </div>
 </div>
+
+<!-- Edit Profile Modal -->
+<div id="editProfileModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
+        <div class="modal-header">
+            <h2 style="margin: 0; color: #333;">⚙️ Edit Profile Settings</h2>
+            <span class="close" onclick="closeEditModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="profileEditForm">
+                {% csrf_token %}
+                
+                <!-- Risk Level Configuration -->
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="color: #667eea; margin-bottom: 1rem;">🎯 Risk Level Configuration</h3>
+                    
+                    <!-- Risk Level Presets -->
+                    <div style="margin-bottom: 1.5rem; padding: 1.5rem; background-color: #f8f9fa; border-radius: 8px;">
+                        <label style="display: block; margin-bottom: 1rem; font-weight: bold; font-size: 1.1rem;">Risk Level:</label>
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <button type="button" class="risk-preset-btn" data-level="CONSERVATIVE" onclick="setRiskPreset('CONSERVATIVE')">Low Risk</button>
+                            <button type="button" class="risk-preset-btn" data-level="MODERATE" onclick="setRiskPreset('MODERATE')">Medium Risk</button>
+                            <button type="button" class="risk-preset-btn" data-level="AGGRESSIVE" onclick="setRiskPreset('AGGRESSIVE')">High Risk</button>
+                        </div>
+                        <div id="riskLevelIndicator" style="padding: 0.75rem; background-color: white; border-radius: 6px; text-align: center; font-weight: bold; border: 1px solid #e9ecef;">
+                            Current: {{ profile.get_risk_level_display }}
+                        </div>
+                    </div>
+
+                    <!-- Risk Configuration Sliders -->
+                    <div style="padding: 1.5rem; background-color: #f8f9fa; border-radius: 8px;">
+                        <h4 style="color: #667eea; margin-bottom: 1.5rem; font-size: 1.1rem;">Risk Parameters</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                            
+                            <!-- Max Purchase Percentage -->
+                            <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <label for="maxPurchasePercentage" style="display: block; margin-bottom: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                    Max Purchase %: <span id="maxPurchaseValue" style="color: #667eea; font-weight: bold;">{{ risk_profile.max_purchase_percentage }}</span>%
+                                </label>
+                                <input type="range" id="maxPurchasePercentage" name="max_purchase_percentage" 
+                                       min="1" max="20" value="{{ risk_profile.max_purchase_percentage }}" 
+                                       oninput="updateSliderValue('maxPurchaseValue', this.value, '%')" 
+                                       style="width: 100%;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
+                                    <span>1%</span>
+                                    <span>20%</span>
+                                </div>
+                                <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Maximum percentage of portfolio to invest in a single stock</p>
+                            </div>
+
+                            <!-- Min Confidence Score -->
+                            <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <label for="minConfidenceScore" style="display: block; margin-bottom: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                    Min Confidence: <span id="minConfidenceValue" style="color: #667eea; font-weight: bold;">{{ risk_profile.min_confidence_score }}</span>
+                                </label>
+                                <input type="range" id="minConfidenceScore" name="min_confidence_score" 
+                                       min="0.1" max="1.0" step="0.1" value="{{ risk_profile.min_confidence_score }}" 
+                                       oninput="updateSliderValue('minConfidenceValue', this.value, '')" 
+                                       style="width: 100%;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
+                                    <span>0.1</span>
+                                    <span>1.0</span>
+                                </div>
+                                <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Minimum confidence score required for recommendations</p>
+                            </div>
+
+                            <!-- Cash Spend Percentage -->
+                            <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <label for="cashSpendPercentage" style="display: block; margin-bottom: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                    Cash Spend %: <span id="cashSpendValue" style="color: #667eea; font-weight: bold;">{{ risk_profile.cash_spend_percentage }}</span>%
+                                </label>
+                                <input type="range" id="cashSpendPercentage" name="cash_spend_percentage" 
+                                       min="5" max="50" value="{{ risk_profile.cash_spend_percentage }}" 
+                                       oninput="updateSliderValue('cashSpendValue', this.value, '%')" 
+                                       style="width: 100%;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
+                                    <span>5%</span>
+                                    <span>50%</span>
+                                </div>
+                                <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Percentage of available cash to spend on new investments</p>
+                            </div>
+
+                            <!-- Min Stock Price -->
+                            <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <label for="minStockPrice" style="display: block; margin-bottom: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                    Min Stock Price: $<span id="minStockPriceValue" style="color: #667eea; font-weight: bold;">{{ risk_profile.min_stock_price }}</span>
+                                </label>
+                                <input type="range" id="minStockPrice" name="min_stock_price" 
+                                       min="1" max="50" value="{{ risk_profile.min_stock_price }}" 
+                                       oninput="updateSliderValue('minStockPriceValue', this.value, '$')" 
+                                       style="width: 100%;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
+                                    <span>$1</span>
+                                    <span>$50</span>
+                                </div>
+                                <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Minimum stock price to consider for investment</p>
+                            </div>
+
+                            <!-- Min Market Cap -->
+                            <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <label for="minMarketCap" style="display: block; margin-bottom: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                    Min Market Cap: $<span id="minMarketCapValue" style="color: #667eea; font-weight: bold;">{{ risk_profile.min_market_cap|floatformat:0 }}</span>M
+                                </label>
+                                <input type="range" id="minMarketCap" name="min_market_cap" 
+                                       min="10" max="1000" value="{{ risk_profile.min_market_cap|floatformat:0 }}" 
+                                       oninput="updateSliderValue('minMarketCapValue', this.value, '$', 'M')" 
+                                       style="width: 100%;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
+                                    <span>$10M</span>
+                                    <span>$1000M</span>
+                                </div>
+                                <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Minimum market capitalization for stock consideration</p>
+                            </div>
+
+                            <!-- Max Positions -->
+                            <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <label for="maxPositions" style="display: block; margin-bottom: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                    Max Positions: <span id="maxPositionsValue" style="color: #667eea; font-weight: bold;">{{ profile.max_positions }}</span>
+                                </label>
+                                <input type="range" id="maxPositions" name="max_positions" 
+                                       min="5" max="50" value="{{ profile.max_positions }}" 
+                                       oninput="updateSliderValue('maxPositionsValue', this.value, '')" 
+                                       style="width: 100%;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
+                                    <span>5</span>
+                                    <span>50</span>
+                                </div>
+                                <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Maximum number of different stocks to hold</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Settings -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background-color: #f8f9fa; border-radius: 8px;">
+                    <h3 style="color: #667eea; margin-bottom: 1.5rem; font-size: 1.1rem;">🔧 Additional Settings</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label style="display: flex; align-items: center; gap: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                <input type="checkbox" name="allow_penny_stocks" {% if risk_profile.allow_penny_stocks %}checked{% endif %} style="transform: scale(1.2);">
+                                Allow Penny Stocks
+                            </label>
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Include stocks under $5 in investment recommendations</p>
+                        </div>
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label style="display: flex; align-items: center; gap: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                <input type="checkbox" name="esg_focused" {% if profile.esg_focused %}checked{% endif %} style="transform: scale(1.2);">
+                                ESG Focused
+                            </label>
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Prioritize environmentally and socially responsible investments</p>
+                        </div>
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label style="display: flex; align-items: center; gap: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                <input type="checkbox" name="auto_execute_trades" {% if risk_profile.auto_execute_trades %}checked{% endif %} style="transform: scale(1.2);">
+                                Auto Execute Trades
+                            </label>
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Automatically execute recommended trades without manual approval</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Actions -->
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn" style="background-color: #28a745;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Account Modal -->
+<div id="editAccountModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px; max-height: 90vh;">
+        <div class="modal-header">
+            <h2 style="margin: 0; color: #333;">👤 Edit Account Settings</h2>
+            <span class="close" onclick="closeAccountModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="accountEditForm">
+                {% csrf_token %}
+                
+                <!-- Account Information -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background-color: #f8f9fa; border-radius: 8px;">
+                    <h3 style="color: #667eea; margin-bottom: 1.5rem; font-size: 1.1rem;">📝 Account Information</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                        
+                        <!-- Username -->
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label for="username" style="display: block; margin-bottom: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                Username
+                            </label>
+                            <input type="text" id="username" name="username" value="{{ user.username }}" 
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #e9ecef; border-radius: 4px; font-size: 0.95rem;">
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Your unique username for login</p>
+                        </div>
+
+                        <!-- Email -->
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label for="email" style="display: block; margin-bottom: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                Email Address
+                            </label>
+                            <input type="email" id="email" name="email" value="{{ user.email|default:'' }}" 
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #e9ecef; border-radius: 4px; font-size: 0.95rem;">
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Your email address for notifications</p>
+                        </div>
+
+                        <!-- First Name -->
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label for="first_name" style="display: block; margin-bottom: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                First Name
+                            </label>
+                            <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" 
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #e9ecef; border-radius: 4px; font-size: 0.95rem;">
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Your first name</p>
+                        </div>
+
+                        <!-- Last Name -->
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label for="last_name" style="display: block; margin-bottom: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                Last Name
+                            </label>
+                            <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" 
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #e9ecef; border-radius: 4px; font-size: 0.95rem;">
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Your last name</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Change Section -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background-color: #f8f9fa; border-radius: 8px;">
+                    <h3 style="color: #667eea; margin-bottom: 1.5rem; font-size: 1.1rem;">🔒 Password Change (Optional)</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                        
+                        <!-- Current Password -->
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label for="current_password" style="display: block; margin-bottom: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                Current Password
+                            </label>
+                            <input type="password" id="current_password" name="current_password" 
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #e9ecef; border-radius: 4px; font-size: 0.95rem;">
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Enter your current password to change it</p>
+                        </div>
+
+                        <!-- New Password -->
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label for="new_password" style="display: block; margin-bottom: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                New Password
+                            </label>
+                            <input type="password" id="new_password" name="new_password" 
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #e9ecef; border-radius: 4px; font-size: 0.95rem;">
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Choose a strong new password</p>
+                        </div>
+
+                        <!-- Confirm New Password -->
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label for="confirm_password" style="display: block; margin-bottom: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                Confirm New Password
+                            </label>
+                            <input type="password" id="confirm_password" name="confirm_password" 
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #e9ecef; border-radius: 4px; font-size: 0.95rem;">
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Re-enter your new password</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Actions -->
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAccountModal()">Cancel</button>
+                    <button type="submit" class="btn" style="background-color: #28a745;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modal Styles */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close:hover {
+    color: #000;
+}
+
+/* Risk Preset Buttons */
+.risk-preset-btn {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid #e9ecef;
+    background-color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.risk-preset-btn:hover {
+    border-color: #667eea;
+    background-color: #f8f9fa;
+}
+
+.risk-preset-btn.active {
+    background-color: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+/* Slider Styles */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #667eea;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #667eea;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Animations */
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Custom Risk Indicator */
+.custom-risk {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+</style>
+
+<script>
+// Risk Level Presets
+const riskPresets = {
+    'CONSERVATIVE': {
+        max_purchase_percentage: 3,
+        min_confidence_score: 0.8,
+        cash_spend_percentage: 10,
+        min_stock_price: 10,
+        min_market_cap: 500,
+        max_positions: 10
+    },
+    'MODERATE': {
+        max_purchase_percentage: 5,
+        min_confidence_score: 0.7,
+        cash_spend_percentage: 20,
+        min_stock_price: 5,
+        min_market_cap: 100,
+        max_positions: 20
+    },
+    'AGGRESSIVE': {
+        max_purchase_percentage: 10,
+        min_confidence_score: 0.6,
+        cash_spend_percentage: 40,
+        min_stock_price: 1,
+        min_market_cap: 10,
+        max_positions: 30,
+        allow_penny_stocks: true
+    }
+};
+
+let currentRiskLevel = '{{ profile.risk_level }}';
+let isCustomRisk = false;
+
+function openEditModal() {
+    document.getElementById('editProfileModal').style.display = 'block';
+    updateRiskPresetButtons();
+}
+
+function closeEditModal() {
+    document.getElementById('editProfileModal').style.display = 'none';
+}
+
+function openAccountModal() {
+    document.getElementById('editAccountModal').style.display = 'block';
+}
+
+function closeAccountModal() {
+    document.getElementById('editAccountModal').style.display = 'none';
+}
+
+function setRiskPreset(level) {
+    const preset = riskPresets[level];
+    if (!preset) return;
+    
+    // Update all sliders
+    document.getElementById('maxPurchasePercentage').value = preset.max_purchase_percentage;
+    document.getElementById('minConfidenceScore').value = preset.min_confidence_score;
+    document.getElementById('cashSpendPercentage').value = preset.cash_spend_percentage;
+    document.getElementById('minStockPrice').value = preset.min_stock_price;
+    document.getElementById('minMarketCap').value = preset.min_market_cap;
+    document.getElementById('maxPositions').value = preset.max_positions;
+    
+    // Update display values
+    updateSliderValue('maxPurchaseValue', preset.max_purchase_percentage, '%');
+    updateSliderValue('minConfidenceValue', preset.min_confidence_score, '');
+    updateSliderValue('cashSpendValue', preset.cash_spend_percentage, '%');
+    updateSliderValue('minStockPriceValue', preset.min_stock_price, '$');
+    updateSliderValue('minMarketCapValue', preset.min_market_cap, '$', 'M');
+    updateSliderValue('maxPositionsValue', preset.max_positions, '');
+    
+    // Update checkboxes based on preset
+    if (preset.allow_penny_stocks) {
+        document.querySelector('input[name="allow_penny_stocks"]').checked = true;
+    } else {
+        document.querySelector('input[name="allow_penny_stocks"]').checked = false;
+    }
+    
+    // Update risk level
+    currentRiskLevel = level;
+    isCustomRisk = false;
+    updateRiskPresetButtons();
+    updateRiskLevelIndicator();
+}
+
+function updateRiskPresetButtons() {
+    document.querySelectorAll('.risk-preset-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.level === currentRiskLevel && !isCustomRisk) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+function updateSliderValue(elementId, value, prefix = '', suffix = '') {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = prefix + value + suffix;
+    }
+    
+    // Check if current settings match any preset
+    checkForCustomRisk();
+}
+
+function checkForCustomRisk() {
+    const currentValues = {
+        max_purchase_percentage: parseInt(document.getElementById('maxPurchasePercentage').value),
+        min_confidence_score: parseFloat(document.getElementById('minConfidenceScore').value),
+        cash_spend_percentage: parseInt(document.getElementById('cashSpendPercentage').value),
+        min_stock_price: parseInt(document.getElementById('minStockPrice').value),
+        min_market_cap: parseInt(document.getElementById('minMarketCap').value),
+        max_positions: parseInt(document.getElementById('maxPositions').value)
+    };
+    
+    // Check if values match any preset
+    let matchesPreset = false;
+    for (const [level, preset] of Object.entries(riskPresets)) {
+        if (JSON.stringify(currentValues) === JSON.stringify(preset)) {
+            currentRiskLevel = level;
+            isCustomRisk = false;
+            matchesPreset = true;
+            break;
+        }
+    }
+    
+    if (!matchesPreset) {
+        isCustomRisk = true;
+        currentRiskLevel = 'CUSTOM';
+    }
+    
+    updateRiskPresetButtons();
+    updateRiskLevelIndicator();
+}
+
+function updateRiskLevelIndicator() {
+    const indicator = document.getElementById('riskLevelIndicator');
+    if (isCustomRisk) {
+        indicator.textContent = 'Current: Custom Risk';
+        indicator.className = 'custom-risk';
+    } else {
+        const levelNames = {
+            'CONSERVATIVE': 'Low Risk',
+            'MODERATE': 'Medium Risk', 
+            'AGGRESSIVE': 'High Risk'
+        };
+        indicator.textContent = 'Current: ' + levelNames[currentRiskLevel];
+        indicator.className = '';
+    }
+}
+
+// Form submission
+document.getElementById('profileEditForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    formData.append('risk_level', currentRiskLevel);
+    
+    fetch('{% url "soulstrader:update_profile" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            alert('Profile updated successfully!');
+            // Close modal and reload page to show changes
+            closeEditModal();
+            location.reload();
+        } else {
+            alert('Error updating profile: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating profile. Please try again.');
+    });
+});
+
+// Account form submission
+document.getElementById('accountEditForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{% url "soulstrader:update_account" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Account updated successfully!');
+            closeAccountModal();
+            location.reload();
+        } else {
+            alert('Error updating account: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating account. Please try again.');
+    });
+});
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const profileModal = document.getElementById('editProfileModal');
+    const accountModal = document.getElementById('editAccountModal');
+    
+    if (event.target === profileModal) {
+        closeEditModal();
+    } else if (event.target === accountModal) {
+        closeAccountModal();
+    }
+}
+</script>
 {% endblock %}

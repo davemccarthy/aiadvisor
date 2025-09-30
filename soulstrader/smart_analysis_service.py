@@ -31,13 +31,233 @@ class SmartAnalysisService:
     def __init__(self):
         pass  # AIAdvisorManager uses class methods
     
-    def smart_analyse(self, user: User, auto_execute: bool = False) -> SmartAnalysisSession:
+    def batch_analyze_users(self, users: List[User], auto_execute: bool = False, bestbuyonly: bool = False) -> List[SmartAnalysisSession]:
+        """
+        Optimized batch analysis for multiple users that minimizes API calls
+        by analyzing each unique stock only once and reusing recommendations.
+        
+        Args:
+            users: List of users to analyze
+            auto_execute: Whether to automatically execute recommended trades
+            bestbuyonly: If True, only analyze best buy opportunities, skip existing holdings
+            
+        Returns:
+            List of SmartAnalysisSession objects for each user
+        """
+        logger.info(f"Starting batch Smart Analysis for {len(users)} users")
+        
+        # Step 1: Collect all unique stocks from all users
+        all_unique_stocks = self._collect_all_unique_stocks(users, bestbuyonly)
+        logger.info(f"Found {len(all_unique_stocks)} unique stocks to analyze across all users")
+        
+        # Step 2: Analyze all unique stocks once and store recommendations
+        self._batch_analyze_stocks(all_unique_stocks)
+        
+        # Step 3: Process each user using the pre-analyzed recommendations
+        sessions = []
+        for user in users:
+            try:
+                session = self._analyze_user_with_existing_recommendations(
+                    user, auto_execute, bestbuyonly
+                )
+                sessions.append(session)
+            except Exception as e:
+                logger.error(f"Failed to analyze user {user.username}: {str(e)}")
+                continue
+        
+        logger.info(f"Batch analysis completed for {len(sessions)} users")
+        return sessions
+    
+    def _collect_all_unique_stocks(self, users: List[User], bestbuyonly: bool = False) -> List[str]:
+        """
+        Collect all unique stock symbols needed across all users
+        """
+        all_stocks = set()
+        
+        for user in users:
+            # Get user's portfolio and holdings
+            try:
+                portfolio = self._get_or_create_portfolio(user)
+                holdings = self._get_current_holdings(portfolio)
+                
+                # Build ticker list for this user (same logic as individual analysis)
+                ticker_list, _ = self._build_ticker_list(user, holdings, bestbuyonly)
+                all_stocks.update(ticker_list)
+                
+            except Exception as e:
+                logger.warning(f"Failed to collect stocks for user {user.username}: {e}")
+                continue
+        
+        return list(all_stocks)
+    
+    def _batch_analyze_stocks(self, stock_symbols: List[str]) -> None:
+        """
+        Analyze all stocks once and store recommendations in database
+        """
+        logger.info(f"Batch analyzing {len(stock_symbols)} unique stocks")
+        
+        for symbol in stock_symbols:
+            try:
+                # Check if we already have recent recommendations for this stock
+                if self._has_recent_recommendations(symbol):
+                    logger.info(f"Skipping {symbol} - recent recommendations exist")
+                    continue
+                
+                # Validate symbol with Yahoo Finance
+                if not self._validate_yahoo_symbol(symbol):
+                    logger.warning(f"Skipping {symbol} - not recognized by Yahoo Finance")
+                    continue
+                
+                # Get or create stock
+                try:
+                    stock = Stock.objects.get(symbol=symbol)
+                except Stock.DoesNotExist:
+                    stock = self._create_stock_from_market_screening(symbol)
+                    if not stock:
+                        logger.warning(f"Failed to create stock {symbol}, skipping")
+                        continue
+                
+                # Get recommendations from all advisors for this stock
+                logger.info(f"Getting recommendations for {symbol}")
+                advisor_recommendations = AIAdvisorManager.get_recommendations_for_stock(
+                    stock, check_existing=False  # Force new analysis in batch mode
+                )
+                
+                if advisor_recommendations:
+                    logger.info(f"Generated {len(advisor_recommendations)} recommendations for {symbol}")
+                else:
+                    logger.warning(f"No recommendations generated for {symbol}")
+                
+            except Exception as e:
+                logger.error(f"Error analyzing stock {symbol}: {str(e)}")
+                continue
+    
+    def _has_recent_recommendations(self, symbol: str) -> bool:
+        """
+        Check if we have recent recommendations for a stock (within last 6 hours)
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        recent_date = timezone.now() - timedelta(hours=6)
+        
+        return AIAdvisorRecommendation.objects.filter(
+            stock__symbol=symbol,
+            created_at__gte=recent_date,
+            status='ACTIVE'
+        ).exists()
+    
+    def _analyze_user_with_existing_recommendations(
+        self, 
+        user: User, 
+        auto_execute: bool = False, 
+        bestbuyonly: bool = False
+    ) -> SmartAnalysisSession:
+        """
+        Analyze a single user using existing recommendations from the batch analysis
+        """
+        logger.info(f"Analyzing user {user.username} with existing recommendations")
+        
+        # Create analysis session
+        session = self._create_analysis_session(user)
+        
+        try:
+            # Get or create risk profile
+            risk_profile = self._get_or_create_risk_profile(user)
+            
+            # Get portfolio and current holdings
+            portfolio = self._get_or_create_portfolio(user)
+            holdings = self._get_current_holdings(portfolio)
+            
+            # Build ticker list for this user
+            ticker_list, candidate_info = self._build_ticker_list(user, holdings, bestbuyonly)
+            
+            if not ticker_list:
+                logger.warning(f"No tickers to analyze for user: {user.username}")
+                session.status = 'COMPLETED'
+                session.completed_at = timezone.now()
+                session.save()
+                return session
+            
+            # Get existing recommendations for this user's stocks
+            advisor_recommendations = self._get_existing_recommendations(ticker_list)
+            
+            # Consolidate and rank recommendations
+            smart_recommendations = self._consolidate_recommendations(
+                user, advisor_recommendations, holdings, risk_profile
+            )
+            
+            # Apply buy algorithm
+            buy_recommendations = self._apply_buy_algorithm(
+                smart_recommendations, portfolio, holdings, risk_profile
+            )
+            
+            # Store recommendations in database
+            stored_recommendations = self._store_recommendations(
+                user, buy_recommendations, session
+            )
+            
+            # Execute trades if auto_execute is enabled
+            if auto_execute and risk_profile.auto_execute_trades:
+                executed_trades = self._execute_recommendations(
+                    stored_recommendations, portfolio
+                )
+                session.executed_recommendations = len(executed_trades)
+            
+            # Update session with results
+            session.total_recommendations = len(stored_recommendations)
+            session.status = 'COMPLETED'
+            session.completed_at = timezone.now()
+            session.processing_time_seconds = (timezone.now() - session.started_at).total_seconds()
+            
+            # Create summary
+            session.recommendations_summary = self._create_recommendations_summary(stored_recommendations)
+            session.save()
+            
+            # Store candidate info for display
+            session.candidate_info = candidate_info
+            
+            logger.info(f"Smart Analysis completed for user: {user.username}. "
+                       f"Generated {len(stored_recommendations)} recommendations")
+            
+            return session
+            
+        except Exception as e:
+            import traceback
+            logger.error(f"Smart Analysis failed for user: {user.username}. Error: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            session.status = 'FAILED'
+            session.error_message = str(e)
+            session.completed_at = timezone.now()
+            session.save()
+            raise
+    
+    def _get_existing_recommendations(self, ticker_list: List[str]) -> List[AIAdvisorRecommendation]:
+        """
+        Get existing recommendations from the database for the given tickers
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        # Get recommendations from the last 6 hours
+        recent_date = timezone.now() - timedelta(hours=6)
+        
+        recommendations = AIAdvisorRecommendation.objects.filter(
+            stock__symbol__in=ticker_list,
+            created_at__gte=recent_date,
+            status='ACTIVE'
+        ).select_related('stock', 'advisor')
+        
+        return list(recommendations)
+    
+    def smart_analyse(self, user: User, auto_execute: bool = False, bestbuyonly: bool = False) -> SmartAnalysisSession:
         """
         Main Smart Analysis function that performs automated portfolio optimization
         
         Args:
             user: User to analyze portfolio for
             auto_execute: Whether to automatically execute recommended trades
+            bestbuyonly: If True, only analyze best buy opportunities, skip existing holdings
             
         Returns:
             SmartAnalysisSession: Session tracking the analysis results
@@ -56,7 +276,7 @@ class SmartAnalysisService:
             holdings = self._get_current_holdings(portfolio)
             
             # Build ticker list for analysis
-            ticker_list = self._build_ticker_list(user, holdings)
+            ticker_list, candidate_info = self._build_ticker_list(user, holdings, bestbuyonly)
             
             if not ticker_list:
                 logger.warning(f"No tickers to analyze for user: {user.username}")
@@ -99,6 +319,9 @@ class SmartAnalysisService:
             # Create summary
             session.recommendations_summary = self._create_recommendations_summary(stored_recommendations)
             session.save()
+            
+            # Store candidate info for display
+            session.candidate_info = candidate_info
             
             logger.info(f"Smart Analysis completed for user: {user.username}. "
                        f"Generated {len(stored_recommendations)} recommendations")
@@ -166,32 +389,54 @@ class SmartAnalysisService:
             holdings[holding.stock.symbol] = holding
         return holdings
     
-    def _build_ticker_list(self, user: User, holdings: Dict[str, Holding]) -> List[str]:
+    def _build_ticker_list(self, user: User, holdings: Dict[str, Holding], bestbuyonly: bool = False) -> Tuple[List[str], Dict[str, List[str]]]:
         """
         Build ticker list for analysis:
         - Best buys from market screening
-        - Best sells for owned stocks
-        - Current holdings for rebalancing
+        - Best sells for owned stocks (unless bestbuyonly=True)
+        - Current holdings for rebalancing (unless bestbuyonly=True)
         - High-confidence BUY recommendations (alternative stock discovery)
+        
+        Returns:
+            Tuple of (ticker_list, candidate_info) where candidate_info contains
+            the different types of candidates for display purposes
         """
         ticker_list = set()
+        candidate_info = {
+            'current_holdings': [],
+            'best_buy_candidates': [],
+            'sell_candidates': [],
+            'high_confidence_buys': []
+        }
         
-        # Add current holdings
-        ticker_list.update(holdings.keys())
+        # Add current holdings (skip if bestbuyonly=True)
+        if not bestbuyonly:
+            current_holdings = list(holdings.keys())
+            ticker_list.update(current_holdings)
+            candidate_info['current_holdings'] = current_holdings
+        else:
+            logger.info("Best-buy-only mode: Skipping existing holdings analysis")
         
         # Add best buys from market screening (top 20 stocks)
         best_buys = self._get_best_buy_candidates()
         ticker_list.update(best_buys[:20])
+        candidate_info['best_buy_candidates'] = best_buys[:20]
         
         # Add stocks for potential selling (owned stocks with sell signals)
-        sell_candidates = self._get_sell_candidates(holdings)
-        ticker_list.update(sell_candidates)
+        # Skip sell candidates if in bestbuyonly mode
+        if not bestbuyonly:
+            sell_candidates = self._get_sell_candidates(holdings)
+            ticker_list.update(sell_candidates)
+            candidate_info['sell_candidates'] = sell_candidates
+        else:
+            logger.info("Best-buy-only mode: Skipping sell candidates analysis")
         
         # Add high-confidence BUY recommendations for alternative stock discovery
         high_confidence_buys = self._get_high_confidence_buy_candidates()
         ticker_list.update(high_confidence_buys)
+        candidate_info['high_confidence_buys'] = high_confidence_buys
         
-        return list(ticker_list)
+        return list(ticker_list), candidate_info
     
     def _get_best_buy_candidates(self) -> List[str]:
         """Get best buy candidates from market screening"""
@@ -281,18 +526,87 @@ class SmartAnalysisService:
         # Get recommendations for each ticker from all active advisors
         for symbol in ticker_list:
             try:
-                stock = Stock.objects.get(symbol=symbol)
+                # First, validate that Yahoo Finance recognizes this symbol
+                if not self._validate_yahoo_symbol(symbol):
+                    logger.warning(f"Skipping {symbol} - not recognized by Yahoo Finance")
+                    continue
+                
+                # Try to get existing stock, create if not found
+                try:
+                    stock = Stock.objects.get(symbol=symbol)
+                except Stock.DoesNotExist:
+                    # Auto-create missing stock from market screening
+                    logger.info(f"Auto-creating missing stock: {symbol}")
+                    stock = self._create_stock_from_market_screening(symbol)
+                    if not stock:
+                        logger.warning(f"Failed to create stock {symbol}, skipping")
+                        continue
+                
                 advisor_recs = AIAdvisorManager.get_recommendations_for_stock(stock)
                 if advisor_recs:
                     recommendations.extend(advisor_recs)
-            except Stock.DoesNotExist:
-                logger.warning(f"Stock {symbol} not found in database")
-                continue
             except Exception as e:
                 logger.error(f"Error getting recommendations for {symbol}: {str(e)}")
                 continue
         
         return recommendations
+    
+    def _create_stock_from_market_screening(self, symbol: str) -> Optional[Stock]:
+        """Create a new stock from market screening data"""
+        try:
+            # First, validate that Yahoo Finance recognizes this symbol
+            if not self._validate_yahoo_symbol(symbol):
+                logger.warning(f"Yahoo Finance does not recognize symbol {symbol}, skipping")
+                return None
+            
+            # Create basic stock entry
+            stock = Stock.objects.create(
+                symbol=symbol,
+                name=f"{symbol} Corporation",
+                sector="Unknown",
+                market_cap_category="Unknown"
+            )
+            
+            # Try to get additional info from Yahoo Finance
+            try:
+                from .yahoo_finance_service import YahooMarketDataManager
+                YahooMarketDataManager.update_stock_quote(symbol)
+                # Refresh the stock object to get updated data
+                stock.refresh_from_db()
+                logger.info(f"Successfully created and updated stock: {symbol}")
+            except Exception as e:
+                logger.warning(f"Could not update stock info for {symbol}: {e}")
+            
+            return stock
+            
+        except Exception as e:
+            logger.error(f"Failed to create stock {symbol}: {e}")
+            return None
+    
+    def _validate_yahoo_symbol(self, symbol: str) -> bool:
+        """
+        Validate that Yahoo Finance recognizes the symbol before creating recommendations.
+        This prevents wasting API calls on delisted or invalid symbols.
+        """
+        try:
+            from .yahoo_finance_service import YahooFinanceService
+            
+            # Try to get a quote for the symbol
+            quote = YahooFinanceService.get_quote(symbol)
+            
+            # If we get here without an exception, the symbol is valid
+            if quote and quote.get('price') and quote['price'] > 0:
+                logger.info(f"Yahoo Finance validation passed for {symbol}")
+                return True
+            else:
+                logger.warning(f"Yahoo Finance returned invalid data for {symbol}")
+                return False
+                
+        except Exception as e:
+            # If Yahoo Finance throws an exception (like 404 for delisted stocks),
+            # the symbol is not valid
+            logger.warning(f"Yahoo Finance validation failed for {symbol}: {e}")
+            return False
     
     def _consolidate_recommendations(
         self, 
@@ -412,7 +726,7 @@ class SmartAnalysisService:
             return Decimal('0.00')
         
         total_confidence = sum(rec.confidence_score for rec in recommendations)
-        return (Decimal(str(total_confidence)) / Decimal(str(len(recommendations)))).quantize(Decimal('0.01'))
+        return (Decimal(total_confidence) / Decimal(len(recommendations))).quantize(Decimal('0.01'))
     
     def _determine_recommendation_type(
         self, 
@@ -444,14 +758,14 @@ class SmartAnalysisService:
         """Calculate average target price from recommendations"""
         target_prices = [rec.target_price for rec in recommendations if rec.target_price]
         if target_prices:
-            return sum(target_prices) / Decimal(str(len(target_prices)))
+            return sum(target_prices) / Decimal(len(target_prices))
         return None
     
     def _calculate_average_stop_loss(self, recommendations: List[AIAdvisorRecommendation]) -> Optional[Decimal]:
         """Calculate average stop loss from recommendations"""
         stop_losses = [rec.stop_loss for rec in recommendations if rec.stop_loss]
         if stop_losses:
-            return sum(stop_losses) / Decimal(str(len(stop_losses)))
+            return sum(stop_losses) / Decimal(len(stop_losses))
         return None
     
     def _consolidate_reasoning(self, recommendations: List[AIAdvisorRecommendation]) -> str:

@@ -213,3 +213,5 @@ TypeError: Object of type Decimal is not JSON serializable
 2025-09-22 11:20:12,447 - __main__ - INFO -   Successful: 0
 2025-09-22 11:20:12,448 - __main__ - INFO -   Failed: 2
 2025-09-22 11:20:12,448 - __main__ - INFO -   Total: 2
+2025-09-25 12:59:01,069 - __main__ - INFO - Smart Analysis is DISABLED to conserve trial API calls
+2025-09-25 12:59:01,070 - __main__ - INFO - To enable automated analysis, remove this safety check

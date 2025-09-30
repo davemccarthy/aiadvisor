@@ -444,6 +444,33 @@ http://127.0.0.1:8000/admin/
 - **Smart Analysis Filtering**: Fixed to exclude HOLD recommendations for non-owned stocks
 - **Fresh Price Data**: All portfolio prices updated with current market values
 
+### **🚀 Smart Analysis Enhancements** ⭐ *NEW!*
+- **`--bestbuyonly` Flag**: New command option for focused analysis
+  - Skips existing holdings analysis for faster execution
+  - Focuses only on new buy opportunities from market screening
+  - Saves API calls by avoiding re-analysis of owned stocks
+  - Usage: `python manage.py smartanalyse testuser --bestbuyonly`
+- **Yahoo Finance Symbol Validation**: Prevents API waste on delisted stocks
+  - Validates symbols before creating recommendations
+  - Skips stocks that Yahoo Finance doesn't recognize (like TL0.DEX)
+  - Graceful handling of 404 errors from delisted stocks
+  - Applied to both Smart Analysis and Market Screening services
+
+### **🔧 FMP API Integration Fixes** ⭐ *NEW!*
+- **Deprecated v3 Endpoints**: Fixed 403 errors from legacy API endpoints
+  - Updated from `api/v3` to `stable` endpoints
+  - Fixed URL format: `/profile/{symbol}` → `/profile?symbol={symbol}`
+  - Updated all FMP service calls in `ai_advisor_service.py` and `fmp_service.py`
+- **Rate Limiting**: Added 6-second delays to respect 10 calls/minute limit
+- **Endpoint Verification**: All FMP endpoints now working correctly
+  - Profile data: ✅ Working
+  - Analyst grades: ✅ Working  
+  - Company search: ✅ Working
+- **Logo Management Utilities**: Enhanced stock logo handling
+  - `download_missing_logos.py` - Find and download missing logos
+  - `download_company_logos.py` - Batch download with progress tracking
+  - Multiple sources: FMP, Clearbit, with local storage fallback
+
 ---
 
 ## 💡 **For Future Development Sessions**
@@ -475,10 +502,17 @@ http://127.0.0.1:8000/admin/
 ---
 
 **Project Created**: September 2025  
-**Last Updated**: September 22, 2025  
+**Last Updated**: September 25, 2025  
 **Status**: Automated Portfolio Optimization Platform with Smart Analysis Engine  
-**Active Features**: 6 AI advisors, international markets, proactive market screening, Smart Analysis system with automated optimization, one-click trading, multi-currency support, stored recommendations with buy algorithm  
+**Active Features**: 6 AI advisors, international markets, proactive market screening, Smart Analysis system with automated optimization, one-click trading, multi-currency support, stored recommendations with buy algorithm, bestbuyonly analysis mode, FMP API integration fixes  
 **Next Steps**: Advanced analytics, performance tracking, risk management, expanded international coverage, automated execution
+
+### **📝 Recent Updates (September 25, 2025)**
+- ✅ **Smart Analysis Optimization**: Added `--bestbuyonly` flag for focused analysis
+- ✅ **FMP API Fixes**: Resolved 403 errors by updating to stable endpoints
+- ✅ **Symbol Validation**: Added Yahoo Finance validation to prevent API waste on delisted stocks
+- ✅ **Logo Management**: Enhanced utilities for missing stock logo handling
+- ✅ **Rate Limiting**: Added proper API rate limiting for FMP integration
 
 ---
 

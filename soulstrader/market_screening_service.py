@@ -117,6 +117,11 @@ class MarketScreeningService:
                     if not symbol:
                         continue
                     
+                    # Validate symbol with Yahoo Finance first
+                    if not self._validate_yahoo_symbol(symbol):
+                        logger.warning(f"Skipping {symbol} - not recognized by Yahoo Finance")
+                        continue
+                    
                     # Get or create stock in database
                     stock, created = Stock.objects.get_or_create(
                         symbol=symbol,
@@ -169,6 +174,31 @@ class MarketScreeningService:
         except Exception as e:
             logger.error(f"Failed to create proactive recommendations: {e}")
             return []
+    
+    def _validate_yahoo_symbol(self, symbol: str) -> bool:
+        """
+        Validate that Yahoo Finance recognizes the symbol before creating recommendations.
+        This prevents wasting API calls on delisted or invalid symbols.
+        """
+        try:
+            from .yahoo_finance_service import YahooFinanceService
+            
+            # Try to get a quote for the symbol
+            quote = YahooFinanceService.get_quote(symbol)
+            
+            # If we get here without an exception, the symbol is valid
+            if quote and quote.get('price') and quote['price'] > 0:
+                logger.info(f"Yahoo Finance validation passed for {symbol}")
+                return True
+            else:
+                logger.warning(f"Yahoo Finance returned invalid data for {symbol}")
+                return False
+                
+        except Exception as e:
+            # If Yahoo Finance throws an exception (like 404 for delisted stocks),
+            # the symbol is not valid
+            logger.warning(f"Yahoo Finance validation failed for {symbol}: {e}")
+            return False
     
     def save_proactive_recommendations(self, category: str = 'gainers', limit: int = 5) -> int:
         """

@@ -447,7 +447,7 @@ Focus on fundamental analysis, technical indicators, market conditions, and comp
 class FMPAdvisor(BaseAIAdvisor):
     """Financial Modeling Prep advisor implementation"""
     
-    BASE_URL = "https://financialmodelingprep.com/api/v3"
+    BASE_URL = "https://financialmodelingprep.com/stable"  # Use stable endpoints (v3 deprecated)
     
     def get_recommendation(self, stock):
         """Get stock recommendation from FMP analysis"""
@@ -503,8 +503,8 @@ class FMPAdvisor(BaseAIAdvisor):
     
     def get_company_data(self, symbol):
         """Get company profile and key metrics from FMP"""
-        url = f"{self.BASE_URL}/profile/{symbol}"
-        params = {'apikey': self.api_key}
+        url = f"{self.BASE_URL}/profile"
+        params = {'symbol': symbol, 'apikey': self.api_key}
         
         response = requests.get(url, params=params)
         response.raise_for_status()
@@ -512,8 +512,8 @@ class FMPAdvisor(BaseAIAdvisor):
     
     def get_analyst_estimates(self, symbol):
         """Get analyst price targets and recommendations"""
-        url = f"{self.BASE_URL}/analyst-estimates/{symbol}"
-        params = {'apikey': self.api_key}
+        url = f"{self.BASE_URL}/analyst-estimates"
+        params = {'symbol': symbol, 'apikey': self.api_key}
         
         response = requests.get(url, params=params)
         response.raise_for_status()
@@ -521,8 +521,8 @@ class FMPAdvisor(BaseAIAdvisor):
     
     def get_financial_ratios(self, symbol):
         """Get financial ratios for analysis"""
-        url = f"{self.BASE_URL}/ratios/{symbol}"
-        params = {'apikey': self.api_key, 'limit': 1}
+        url = f"{self.BASE_URL}/ratios"
+        params = {'symbol': symbol, 'apikey': self.api_key, 'limit': 1}
         
         response = requests.get(url, params=params)
         response.raise_for_status()
@@ -732,13 +732,22 @@ class FinnhubAdvisor(BaseAIAdvisor):
         return response.json()
     
     def get_price_target(self, symbol):
-        """Get analyst price targets"""
-        url = f"{self.BASE_URL}/stock/price-target"
-        params = {'symbol': symbol, 'token': self.api_key}
-        
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
+        """Get analyst price targets - using recommendation endpoint as fallback"""
+        try:
+            # Try price-target endpoint first (requires paid plan)
+            url = f"{self.BASE_URL}/stock/price-target"
+            params = {'symbol': symbol, 'token': self.api_key}
+            
+            response = requests.get(url, params=params)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                # Fallback to recommendation data for free tier
+                logger.warning(f"Price target endpoint failed ({response.status_code}), using recommendation data")
+                return None
+        except Exception as e:
+            logger.warning(f"Price target endpoint error: {e}, using recommendation data")
+            return None
     
     def get_company_news(self, symbol):
         """Get recent company news for sentiment analysis"""
@@ -802,7 +811,7 @@ class FinnhubAdvisor(BaseAIAdvisor):
                         score -= 2
                         risks.append(f"Analyst concern: {sell_percentage:.1%} sell ratings")
             
-            # Price Target Analysis
+            # Price Target Analysis (if available)
             if price_target:
                 target_mean = price_target.get('targetMean')
                 if target_mean and current_price:
@@ -817,6 +826,9 @@ class FinnhubAdvisor(BaseAIAdvisor):
                     elif upside < -0.10:  # >10% downside
                         score -= 1
                         risks.append(f"Price above target: {upside:.1%} to ${target_mean:.2f}")
+            else:
+                # No price target data available (free tier limitation)
+                factors.append("Price target data not available (free tier limitation)")
             
             # News Sentiment Analysis (basic)
             if news and len(news) > 0:
@@ -829,6 +841,8 @@ class FinnhubAdvisor(BaseAIAdvisor):
                 elif negative_news > positive_news * 2:
                     score -= 1
                     risks.append(f"Negative news sentiment ({negative_news} negative vs {positive_news} positive)")
+            else:
+                factors.append("News sentiment data not available")
             
             # Financial Metrics
             if financials and 'metric' in financials:
@@ -849,6 +863,8 @@ class FinnhubAdvisor(BaseAIAdvisor):
                 if roe and roe > 0.15:
                     score += 1
                     factors.append(f"Strong ROE: {roe:.1%}")
+            else:
+                factors.append("Financial metrics not available")
             
             # Determine recommendation
             if score >= 4:
@@ -876,12 +892,15 @@ class FinnhubAdvisor(BaseAIAdvisor):
             target_price = None
             if price_target and price_target.get('targetMean'):
                 target_price = Decimal(str(price_target['targetMean']))
+            else:
+                # No price target available (free tier limitation)
+                target_price = None
             
             reasoning = f"""
 Finnhub Market Intelligence Analysis for {stock.symbol}:
 
-Analyst Consensus: {len(rec_trends)} recommendation periods analyzed
-Price Target: ${price_target.get('targetMean', 'N/A')} (mean)
+Analyst Consensus: {len(rec_trends) if rec_trends else 0} recommendation periods analyzed
+Price Target: ${price_target.get('targetMean', 'N/A') if price_target else 'N/A'} (mean)
 Recent News: {len(news) if news else 0} articles analyzed
 Analysis Score: {score}/6
 
@@ -1104,9 +1123,23 @@ class AIAdvisorManager:
     """Manager for coordinating multiple AI advisors"""
     
     @classmethod
-    def get_recommendations_for_stock(cls, stock, user_portfolio=None):
-        """Get recommendations from all active advisors for a stock"""
+    def get_recommendations_for_stock(cls, stock, user_portfolio=None, check_existing=True):
+        """
+        Get recommendations from all active advisors for a stock
+        
+        Args:
+            stock: Stock object to analyze
+            user_portfolio: Optional user portfolio for context
+            check_existing: If True, check for existing recent recommendations first
+        """
         recommendations = []
+        
+        # Check for existing recommendations first (API optimization)
+        if check_existing:
+            existing_recommendations = cls._get_existing_recommendations(stock)
+            if existing_recommendations:
+                logger.info(f"Using existing recommendations for {stock.symbol} (API optimization)")
+                return existing_recommendations
         
         # Get all active advisors
         advisors = AIAdvisor.objects.filter(is_enabled=True, status='ACTIVE')
@@ -1144,6 +1177,25 @@ class AIAdvisorManager:
                 continue
         
         return recommendations
+    
+    @classmethod
+    def _get_existing_recommendations(cls, stock):
+        """
+        Check for existing recent recommendations for a stock to avoid duplicate API calls
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        # Check for recommendations from the last 6 hours
+        recent_date = timezone.now() - timedelta(hours=6)
+        
+        existing = AIAdvisorRecommendation.objects.filter(
+            stock=stock,
+            created_at__gte=recent_date,
+            status='ACTIVE'
+        ).select_related('advisor')
+        
+        return list(existing)
     
     @classmethod
     def create_consensus_recommendation(cls, stock, recommendations=None):

@@ -38,6 +38,7 @@ urlpatterns = [
     path('smart-recommendation/execute/', views.execute_smart_recommendation, name='execute_smart_recommendation'),
     path('smart-recommendation/mark-executed/', views.mark_smart_recommendation_executed, name='mark_smart_recommendation_executed'),
     path('smart-recommendation/details/<uuid:recommendation_id>/', views.smart_recommendation_details, name='smart_recommendation_details'),
+    path('smart-recommendation/buy-all/', views.buy_all_smart_recommendations, name='buy_all_smart_recommendations'),
     
     # API endpoints
     path('api/stock-info/<str:symbol>/', views.get_stock_info, name='get_stock_info'),
@@ -55,5 +56,7 @@ urlpatterns = [
     
     # User management
     path('profile/', views.profile_view, name='profile'),
+    path('profile/update/', views.update_profile, name='update_profile'),
+    path('account/update/', views.update_account, name='update_account'),
     path('notifications/', views.notifications_view, name='notifications'),
 ]

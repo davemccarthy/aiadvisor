@@ -62,6 +62,16 @@ class Command(BaseCommand):
             default=10,
             help='Maximum number of users to analyze (default: 10)'
         )
+        parser.add_argument(
+            '--bestbuyonly',
+            action='store_true',
+            help='Only analyze best buy opportunities, skip existing holdings analysis'
+        )
+        parser.add_argument(
+            '--batch-optimize',
+            action='store_true',
+            help='Force batch optimization to minimize API calls (automatically enabled for --all)'
+        )
     
     def handle(self, *args, **options):
         """Handle the smartanalyse command"""
@@ -82,26 +92,54 @@ class Command(BaseCommand):
             self.style.SUCCESS(f'Starting Smart Analysis for {len(users_to_analyze)} user(s)')
         )
         
-        # Process each user
+        # Process users - use batch optimization for --all flag
         successful_analyses = 0
         failed_analyses = 0
         
-        for user in users_to_analyze:
+        if (options['all'] or options['batch_optimize']) and len(users_to_analyze) > 1:
+            # Use batch optimization for multiple users
+            self.stdout.write(
+                self.style.SUCCESS('Using batch optimization to minimize API calls...')
+            )
+            
             try:
-                self._analyze_user(
-                    user, 
-                    smart_service, 
-                    options
+                sessions = smart_service.batch_analyze_users(
+                    users_to_analyze,
+                    auto_execute=options['auto_execute'],
+                    bestbuyonly=options['bestbuyonly']
                 )
-                successful_analyses += 1
                 
+                successful_analyses = len(sessions)
+                failed_analyses = len(users_to_analyze) - successful_analyses
+                
+                # Display results for each session
+                for session in sessions:
+                    self._display_analysis_results(session)
+                    
             except Exception as e:
-                logger.error(f"Smart Analysis failed for user {user.username}: {str(e)}")
+                logger.error(f"Batch analysis failed: {str(e)}")
                 self.stdout.write(
-                    self.style.ERROR(f'Failed to analyze {user.username}: {str(e)}')
+                    self.style.ERROR(f'Batch analysis failed: {str(e)}')
                 )
-                failed_analyses += 1
-                continue
+                failed_analyses = len(users_to_analyze)
+        else:
+            # Process each user individually (original behavior)
+            for user in users_to_analyze:
+                try:
+                    self._analyze_user(
+                        user, 
+                        smart_service, 
+                        options
+                    )
+                    successful_analyses += 1
+                    
+                except Exception as e:
+                    logger.error(f"Smart Analysis failed for user {user.username}: {str(e)}")
+                    self.stdout.write(
+                        self.style.ERROR(f'Failed to analyze {user.username}: {str(e)}')
+                    )
+                    failed_analyses += 1
+                    continue
         
         # Summary
         self.stdout.write(
@@ -220,6 +258,11 @@ class Command(BaseCommand):
             )
             return
         
+        if options['bestbuyonly']:
+            self.stdout.write(
+                self.style.SUCCESS('  BEST-BUY-ONLY MODE - Only analyzing new buy opportunities')
+            )
+        
         # Run smart analysis
         auto_execute = options['auto_execute'] and risk_profile.auto_execute_trades
         
@@ -232,7 +275,8 @@ class Command(BaseCommand):
             with transaction.atomic():
                 session = smart_service.smart_analyse(
                     user=user,
-                    auto_execute=auto_execute
+                    auto_execute=auto_execute,
+                    bestbuyonly=options['bestbuyonly']
                 )
                 
                 # Display results
@@ -262,6 +306,10 @@ class Command(BaseCommand):
                 self.style.ERROR(f'    Error: {session.error_message}')
             )
         
+        # Display candidate information
+        if hasattr(session, 'candidate_info') and session.candidate_info:
+            self._display_candidate_info(session.candidate_info)
+        
         # Show individual recommendations
         recommendations = session.user.smart_recommendations.filter(
             created_at__gte=session.started_at
@@ -283,3 +331,39 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(f'  ✓ Analysis completed for {session.user.username}')
         )
+    
+    def _display_candidate_info(self, candidate_info):
+        """Display candidate information for analysis"""
+        self.stdout.write(f'\n  📊 Analysis Candidates:')
+        
+        # Current holdings
+        if candidate_info.get('current_holdings'):
+            holdings_str = ', '.join(candidate_info['current_holdings'])
+            self.stdout.write(f'    Current Holdings ({len(candidate_info["current_holdings"])}): {holdings_str}')
+        else:
+            self.stdout.write(f'    Current Holdings: Skipped (best-buy-only mode)')
+        
+        # Best buy candidates from market screening
+        if candidate_info.get('best_buy_candidates'):
+            best_buys_str = ', '.join(candidate_info['best_buy_candidates'])
+            self.stdout.write(f'    Market Screening Candidates ({len(candidate_info["best_buy_candidates"])}): {best_buys_str}')
+        else:
+            self.stdout.write(f'    Market Screening Candidates: None (using fallback list)')
+        
+        # High confidence buy candidates
+        if candidate_info.get('high_confidence_buys'):
+            high_conf_str = ', '.join(candidate_info['high_confidence_buys'])
+            self.stdout.write(f'    High Confidence BUYs ({len(candidate_info["high_confidence_buys"])}): {high_conf_str}')
+        
+        # Sell candidates
+        if candidate_info.get('sell_candidates'):
+            sell_str = ', '.join(candidate_info['sell_candidates'])
+            self.stdout.write(f'    Sell Candidates ({len(candidate_info["sell_candidates"])}): {sell_str}')
+        else:
+            self.stdout.write(f'    Sell Candidates: Skipped (best-buy-only mode)')
+        
+        # Total unique tickers analyzed
+        all_tickers = set()
+        for ticker_list in candidate_info.values():
+            all_tickers.update(ticker_list)
+        self.stdout.write(f'    Total Unique Tickers Analyzed: {len(all_tickers)}')

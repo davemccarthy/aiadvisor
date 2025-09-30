@@ -235,7 +235,7 @@ class TradingService:
                 # Update existing holding with weighted average price
                 total_shares = holding.quantity + trade.filled_quantity
                 total_cost_basis = (holding.quantity * holding.average_price) + trade.total_amount
-                holding.average_price = total_cost_basis / Decimal(str(total_shares))
+                holding.average_price = total_cost_basis / Decimal(total_shares)
                 holding.quantity = total_shares
                 holding.save()
         

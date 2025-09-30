@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class FMPAPIService:
     """Service class for Financial Modeling Prep API integration"""
     
-    BASE_URL = "https://financialmodelingprep.com/api/v3"
+    BASE_URL = "https://financialmodelingprep.com/stable"  # Use stable endpoints (v3 deprecated)
     STABLE_URL = "https://financialmodelingprep.com/stable"
     IMAGE_URL = "https://financialmodelingprep.com/image-stock"
     
@@ -69,6 +69,8 @@ class FMPAPIService:
         if base_url is None:
             base_url = self.BASE_URL
         
+        # FMP stable API uses query parameters, not URL paths
+        # Format: https://financialmodelingprep.com/stable/profile?symbol=AAPL&apikey=KEY
         url = f"{base_url}/{endpoint.lstrip('/')}"
         
         # Add API key to parameters
@@ -77,6 +79,10 @@ class FMPAPIService:
         params['apikey'] = self.api_key
         
         try:
+            # Add rate limiting to respect 10 calls/minute limit
+            import time
+            time.sleep(6)  # 6 second delay = 10 calls per minute
+            
             response = self.session.get(url, params=params, timeout=30)
             response.raise_for_status()
             
@@ -124,7 +130,8 @@ class FMPAPIService:
                 'limit': limit
             }
             
-            data = self._make_request('search', params)
+            # Use stable endpoint for search
+            data = self._make_request('search-symbol', params, self.STABLE_URL)
             
             # Cache results for 1 hour
             cache.set(cache_key, data, 3600)
@@ -239,6 +246,7 @@ class FMPAPIService:
             return cached_result
         
         try:
+            # Use v3 endpoint for analyst estimates (stable doesn't have this endpoint)
             data = self._make_request(f'analyst-estimates/{symbol}')
             
             # Cache results for 6 hours
@@ -266,6 +274,7 @@ class FMPAPIService:
             return cached_result
         
         try:
+            # Use v3 endpoint for price target consensus (stable doesn't have this endpoint)
             data = self._make_request(f'price-target-consensus')
             
             # Filter for specific symbol if data is a list

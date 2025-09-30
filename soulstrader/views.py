@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Count, Sum
@@ -11,6 +12,9 @@ from django.utils import timezone
 from django.urls import reverse
 from decimal import Decimal
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 from .models import (
     UserProfile, RiskAssessment, Stock, Portfolio, Trade, OrderBook,
     AIRecommendation, PerformanceMetrics, UserNotification,
@@ -18,6 +22,7 @@ from .models import (
     SmartRecommendation, SmartAnalysisSession, RiskProfile
 )
 from .trading_service import TradingService
+from .smart_analysis_service import SmartAnalysisService
 from .market_data_service import MarketDataManager, AlphaVantageService
 from .yahoo_finance_service import YahooMarketDataManager, YahooFinanceService
 
@@ -51,28 +56,118 @@ def home(request):
 def register(request):
     """User registration page"""
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            # Create user profile with default settings
-            UserProfile.objects.create(
-                user=user,
-                risk_level='MODERATE',
-                investment_goal='BALANCED',
-                time_horizon='MEDIUM'
-            )
-            # Create portfolio for the user
-            Portfolio.objects.create(
-                user=user,
-                name=f"{user.username}'s Portfolio"
-            )
-            
-            messages.success(request, 'Account created successfully! Please log in.')
-            return redirect('soulstrader:login')
-    else:
-        form = UserCreationForm()
+        # Get form data
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        risk_level = request.POST.get('risk_level', 'MODERATE')
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        
+        # Basic validation
+        errors = []
+        
+        # Validate username
+        if not username:
+            errors.append('Username is required.')
+        elif len(username) < 3:
+            errors.append('Username must be at least 3 characters long.')
+        elif User.objects.filter(username=username).exists():
+            errors.append('Username already exists.')
+        
+        # Validate email
+        if not email:
+            errors.append('Email is required.')
+        elif '@' not in email:
+            errors.append('Please enter a valid email address.')
+        elif User.objects.filter(email=email).exists():
+            errors.append('Email already exists.')
+        
+        # Validate passwords
+        if not password1:
+            errors.append('Password is required.')
+        elif len(password1) < 8:
+            errors.append('Password must be at least 8 characters long.')
+        elif password1 != password2:
+            errors.append('Passwords do not match.')
+        
+        # Validate risk level
+        valid_risk_levels = ['CONSERVATIVE', 'MODERATE', 'AGGRESSIVE']
+        if risk_level not in valid_risk_levels:
+            errors.append('Please select a valid risk level.')
+        
+        if not errors:
+            try:
+                # Create user
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password1
+                )
+                
+                # Create user profile with selected risk level
+                UserProfile.objects.create(
+                    user=user,
+                    risk_level=risk_level,
+                    investment_goal='BALANCED',
+                    time_horizon='MEDIUM'
+                )
+                
+                # Create risk profile with settings based on risk level
+                risk_profile_settings = {
+                    'CONSERVATIVE': {
+                        'max_purchase_percentage': Decimal('3.00'),
+                        'min_confidence_score': Decimal('0.80'),
+                        'cash_spend_percentage': Decimal('10.00'),
+                        'min_stock_price': Decimal('10.00'),
+                        'min_market_cap': 500_000_000,
+                        'allow_penny_stocks': False,
+                        'auto_execute_trades': False,
+                    },
+                    'MODERATE': {
+                        'max_purchase_percentage': Decimal('5.00'),
+                        'min_confidence_score': Decimal('0.70'),
+                        'cash_spend_percentage': Decimal('20.00'),
+                        'min_stock_price': Decimal('5.00'),
+                        'min_market_cap': 100_000_000,
+                        'allow_penny_stocks': False,
+                        'auto_execute_trades': False,
+                    },
+                    'AGGRESSIVE': {
+                        'max_purchase_percentage': Decimal('10.00'),
+                        'min_confidence_score': Decimal('0.60'),
+                        'cash_spend_percentage': Decimal('40.00'),
+                        'min_stock_price': Decimal('1.00'),
+                        'min_market_cap': 10_000_000,
+                        'allow_penny_stocks': True,
+                        'auto_execute_trades': False,
+                    }
+                }
+                
+                # Create risk profile with appropriate settings
+                risk_settings = risk_profile_settings.get(risk_level, risk_profile_settings['MODERATE'])
+                RiskProfile.objects.create(
+                    user=user,
+                    **risk_settings
+                )
+                
+                # Create portfolio for the user
+                Portfolio.objects.create(
+                    user=user,
+                    name=f"{user.username}'s Portfolio"
+                )
+                
+                messages.success(request, 'Account created successfully! Please log in.')
+                return redirect('soulstrader:login')
+                
+            except Exception as e:
+                logger.error(f"Error creating user account: {str(e)}")
+                messages.error(request, f'Error creating account: {str(e)}')
+        else:
+            # Display validation errors
+            for error in errors:
+                messages.error(request, error)
     
-    return render(request, 'soulstrader/register.html', {'form': form, 'current_page': 'register'})
+    return render(request, 'soulstrader/register.html', {'current_page': 'register'})
 
 
 def logout_view(request):
@@ -359,6 +454,168 @@ def profile_view(request):
     }
     
     return render(request, 'soulstrader/profile.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_profile(request):
+    """Update user profile and risk settings via AJAX"""
+    try:
+        # Get or create UserProfile
+        profile, created = UserProfile.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'risk_level': 'MODERATE',
+                'investment_goal': 'BALANCED',
+                'time_horizon': 'MEDIUM',
+            }
+        )
+        
+        # Get or create RiskProfile
+        risk_profile, risk_created = RiskProfile.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'max_purchase_percentage': Decimal('5.00'),
+                'min_confidence_score': Decimal('0.70'),
+                'cash_spend_percentage': Decimal('20.00'),
+                'cooldown_period_days': 7,
+                'max_rebuy_percentage': Decimal('50.00'),
+                'max_sector_allocation': Decimal('30.00'),
+                'min_diversification_stocks': 5,
+                'allow_penny_stocks': False,
+                'min_stock_price': Decimal('5.00'),
+                'min_market_cap': 100_000_000,
+                'auto_execute_trades': False,
+            }
+        )
+        
+        # Update UserProfile fields
+        if 'risk_level' in request.POST:
+            profile.risk_level = request.POST['risk_level']
+        
+        if 'max_positions' in request.POST:
+            profile.max_positions = int(request.POST['max_positions'])
+        
+        if 'esg_focused' in request.POST:
+            profile.esg_focused = True
+        else:
+            profile.esg_focused = False
+        
+        profile.save()
+        
+        # Update RiskProfile fields
+        if 'max_purchase_percentage' in request.POST:
+            risk_profile.max_purchase_percentage = Decimal(request.POST['max_purchase_percentage'])
+        
+        if 'min_confidence_score' in request.POST:
+            risk_profile.min_confidence_score = Decimal(request.POST['min_confidence_score'])
+        
+        if 'cash_spend_percentage' in request.POST:
+            risk_profile.cash_spend_percentage = Decimal(request.POST['cash_spend_percentage'])
+        
+        if 'min_stock_price' in request.POST:
+            risk_profile.min_stock_price = Decimal(request.POST['min_stock_price'])
+        
+        if 'min_market_cap' in request.POST:
+            risk_profile.min_market_cap = int(request.POST['min_market_cap']) * 1_000_000  # Convert to actual value
+        
+        if 'allow_penny_stocks' in request.POST:
+            risk_profile.allow_penny_stocks = True
+        else:
+            risk_profile.allow_penny_stocks = False
+        
+        if 'auto_execute_trades' in request.POST:
+            risk_profile.auto_execute_trades = True
+        else:
+            risk_profile.auto_execute_trades = False
+        
+        risk_profile.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Profile updated successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error updating profile for user {request.user.username}: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_account(request):
+    """Update user account information via AJAX"""
+    try:
+        user = request.user
+        
+        # Update basic user fields
+        if 'username' in request.POST:
+            new_username = request.POST['username'].strip()
+            if new_username and new_username != user.username:
+                # Check if username is already taken
+                from django.contrib.auth.models import User
+                if User.objects.filter(username=new_username).exclude(id=user.id).exists():
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Username already taken'
+                    })
+                user.username = new_username
+        
+        if 'email' in request.POST:
+            user.email = request.POST['email'].strip()
+        
+        if 'first_name' in request.POST:
+            user.first_name = request.POST['first_name'].strip()
+        
+        if 'last_name' in request.POST:
+            user.last_name = request.POST['last_name'].strip()
+        
+        # Handle password change if provided
+        current_password = request.POST.get('current_password', '').strip()
+        new_password = request.POST.get('new_password', '').strip()
+        confirm_password = request.POST.get('confirm_password', '').strip()
+        
+        if current_password and new_password and confirm_password:
+            # Verify current password
+            if not user.check_password(current_password):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Current password is incorrect'
+                })
+            
+            # Validate new password
+            if new_password != confirm_password:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'New passwords do not match'
+                })
+            
+            if len(new_password) < 8:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'New password must be at least 8 characters long'
+                })
+            
+            # Set new password
+            user.set_password(new_password)
+        
+        # Save user
+        user.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Account updated successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error updating account for user {request.user.username}: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
 
 
 @login_required
@@ -1225,12 +1482,31 @@ def render_smart_analysis_stored_html(sessions, recommendations, risk_profile):
     pending_count = sum(1 for rec in recommendations if rec.status == 'PENDING')
     executed_count = sum(1 for rec in recommendations if rec.status == 'EXECUTED')
     
+    # Calculate total cost for pending BUY recommendations (exclude zero-share recommendations)
+    pending_buy_recommendations = [rec for rec in recommendations if rec.status == 'PENDING' and rec.recommendation_type == 'BUY' and rec.shares_to_buy and rec.shares_to_buy > 0]
+    total_cost = sum(rec.cash_allocated or 0 for rec in pending_buy_recommendations)
+    
     html = f"""
-        <h2 style="margin-bottom: 1.5rem; color: #333;">
-            🧠 Smart Analysis Results ({len(recommendations)} found)
-            {f'<span style="color: #28a745;">• {pending_count} Pending</span>' if pending_count > 0 else ''}
-            {f'<span style="color: #17a2b8;">• {executed_count} Executed</span>' if executed_count > 0 else ''}
-        </h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="margin: 0; color: #333;">
+                🧠 Smart Analysis Results ({len(recommendations)} found)
+                {f'<span style="color: #28a745;">• {pending_count} Pending</span>' if pending_count > 0 else ''}
+                {f'<span style="color: #17a2b8;">• {executed_count} Executed</span>' if executed_count > 0 else ''}
+            </h2>
+            {f'''
+            <div style="text-align: right;">
+                <button onclick="buyAllPendingRecommendations()" 
+                        style="background-color: #28a745; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                        onmouseover="this.style.backgroundColor='#218838'" 
+                        onmouseout="this.style.backgroundColor='#28a745'">
+                    🛒 BUY ALL ({len(pending_buy_recommendations)})
+                </button>
+                <div style="font-size: 0.9rem; color: #6c757d; margin-top: 0.25rem;">
+                    Total: ${total_cost:,.2f}
+                </div>
+            </div>
+            ''' if pending_buy_recommendations else ''}
+        </div>
     """
     
     
@@ -1472,4 +1748,105 @@ def smart_recommendation_details(request, recommendation_id):
     except Exception as e:
         logger.error(f"Error getting recommendation details: {e}")
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+def buy_all_smart_recommendations(request):
+    """Buy all pending Smart Analysis recommendations"""
+    try:
+        logger.info(f"Buy all smart recommendations requested by user: {request.user.username}")
+        
+        # Get all pending BUY recommendations for the user (exclude zero-share recommendations)
+        pending_recommendations = SmartRecommendation.objects.filter(
+            user=request.user,
+            status='PENDING',
+            recommendation_type='BUY',
+            shares_to_buy__gt=0  # Exclude zero-share recommendations
+        ).select_related('stock')
+        
+        logger.info(f"Found {pending_recommendations.count()} pending BUY recommendations")
+        
+        if not pending_recommendations:
+            logger.info("No pending BUY recommendations found")
+            return JsonResponse({
+                'success': False, 
+                'error': 'No pending BUY recommendations found'
+            })
+        
+        # Get user's portfolio
+        portfolio = request.user.portfolio
+        logger.info(f"Portfolio cash: ${portfolio.current_capital}")
+        
+        # Calculate total cost
+        total_cost = sum(rec.cash_allocated or 0 for rec in pending_recommendations)
+        logger.info(f"Total cost: ${total_cost}")
+        
+        # Check if user has enough cash
+        if portfolio.current_capital < total_cost:
+            error_msg = f'Insufficient funds: Required ${total_cost:,.2f}, Available ${portfolio.current_capital:,.2f}'
+            logger.warning(error_msg)
+            return JsonResponse({
+                'success': False,
+                'error': error_msg
+            })
+        
+        # Execute all recommendations
+        executed_trades = []
+        failed_trades = []
+        
+        for rec in pending_recommendations:
+            try:
+                logger.info(f"Executing recommendation for {rec.stock.symbol}: {rec.shares_to_buy} shares")
+                logger.info(f"  Cash allocated: {rec.cash_allocated} (type: {type(rec.cash_allocated)})")
+                logger.info(f"  Current price: {rec.current_price} (type: {type(rec.current_price)})")
+                logger.info(f"  Portfolio cash: {portfolio.current_capital} (type: {type(portfolio.current_capital)})")
+                
+                # Execute the recommendation
+                result = SmartAnalysisService()._execute_single_recommendation(rec, portfolio)
+                
+                if result['success']:
+                    executed_trades.append({
+                        'symbol': rec.stock.symbol,
+                        'shares': rec.shares_to_buy,
+                        'cost': rec.cash_allocated,
+                        'trade_id': result['trade_id']
+                    })
+                    logger.info(f"Successfully executed {rec.stock.symbol}")
+                else:
+                    failed_trades.append({
+                        'symbol': rec.stock.symbol,
+                        'error': result['error']
+                    })
+                    logger.warning(f"Failed to execute {rec.stock.symbol}: {result['error']}")
+                    
+            except Exception as e:
+                import traceback
+                error_traceback = traceback.format_exc()
+                logger.error(f"Exception executing {rec.stock.symbol}: {str(e)}")
+                logger.error(f"Traceback: {error_traceback}")
+                failed_trades.append({
+                    'symbol': rec.stock.symbol,
+                    'error': str(e)
+                })
+        
+        logger.info(f"Buy all completed: {len(executed_trades)} executed, {len(failed_trades)} failed")
+        
+        # Return results
+        response_data = {
+            'success': True,
+            'executed_trades': executed_trades,
+            'failed_trades': failed_trades,
+            'total_executed': len(executed_trades),
+            'total_failed': len(failed_trades),
+            'total_cost': float(total_cost)  # Convert Decimal to float for JSON serialization
+        }
+        
+        logger.info(f"Returning response: {response_data}")
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        logger.error(f"Error buying all smart recommendations: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 

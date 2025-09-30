@@ -3,6 +3,9 @@
 {% block title %}AI Recommendations - SOULTRADER{% endblock %}
 
 {% block content %}
+<!-- CSRF Token for AJAX requests -->
+{% csrf_token %}
+
 <style>
 .tab-button {
     background-color: #f8f9fa;
@@ -464,13 +467,88 @@ function updateSellRecEstimate() {
 }
 
 // Close sell modal when clicking outside
-document.getElementById('sellRecModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeSellRecModal();
+document.addEventListener('DOMContentLoaded', function() {
+    const sellModal = document.getElementById('sellRecModal');
+    if (sellModal) {
+        sellModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSellRecModal();
+            }
+        });
     }
 });
 
 // Smart Analysis is now loaded server-side, no need for auto-loading
+
+// Buy All Pending Recommendations
+function buyAllPendingRecommendations() {
+    console.log('buyAllPendingRecommendations function called');
+    
+    if (!confirm('Are you sure you want to buy all pending recommendations? This will execute all pending BUY orders.')) {
+        console.log('User cancelled the operation');
+        return;
+    }
+    
+    console.log('User confirmed, proceeding with buy all');
+    
+    // Show loading state
+    const button = document.querySelector('button[onclick="buyAllPendingRecommendations()"]');
+    if (!button) {
+        console.error('BUY ALL button not found');
+        alert('BUY ALL button not found');
+        return;
+    }
+    
+    const originalText = button.innerHTML;
+    button.innerHTML = '⏳ Processing...';
+    button.disabled = true;
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+        alert('CSRF token not found');
+        button.innerHTML = originalText;
+        button.disabled = false;
+        return;
+    }
+    
+    const url = '{% url "soulstrader:buy_all_smart_recommendations" %}';
+    console.log('Making request to:', url);
+    console.log('CSRF token:', csrfToken.value);
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken.value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            // Show success message
+            alert(`Successfully executed ${data.total_executed} trades for $${data.total_cost.toFixed(2)}`);
+            
+            // Reload the page to show updated recommendations
+            location.reload();
+        } else {
+            alert(`Error: ${data.error}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert(`An error occurred while executing trades: ${error.message}`);
+    })
+    .finally(() => {
+        // Restore button state
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
 
 </script>
 
