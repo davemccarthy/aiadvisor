@@ -1566,3 +1566,534 @@ Polygon recommendation for GOOGL: BUY
 FMP API error for GOOGL: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=GOOGL&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
 Enhanced Yahoo recommendation for GOOGL: BUY
 Using existing recommendations for GOOGL (API optimization)
+Starting Smart Analysis for user: user1
+Successfully retrieved market movers from Alpha Vantage
+Found 15 market screening candidates: ['CAPTW', 'EPOW', 'SNAP', 'NRXPW', 'OPEN', 'NVDA', 'RVSNW', 'RVPHW', 'WGSWW', 'SOXS', 'EONR+', 'BURU', 'TLRY', 'INTC', 'BENF']
+Found 15 high-confidence BUY candidates: ['GOOGL', 'GOOGL', 'GOOGL', 'NUAI', 'GDEVW', 'APLT', 'APLT', 'QLGN', 'QLGN', 'NVDA', 'YCBD', 'YCBD', 'DFLI', 'DFLI', 'AQMS']
+Yahoo Finance validation passed for ONMDW
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for ONMDW: HOLD
+Polygon recommendation for ONMDW: BUY
+FMP API error for ONMDW: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=ONMDW&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for ONMDW: SELL
+Yahoo Finance validation passed for CAPTW
+Auto-creating missing stock: CAPTW
+Yahoo Finance validation passed for CAPTW
+Updated quote for CAPTW: $0.04
+Successfully created and updated stock: CAPTW
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for CAPTW: HOLD
+Polygon recommendation for CAPTW: SELL
+FMP API error for CAPTW: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=CAPTW&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for CAPTW: HOLD
+Yahoo Finance validation passed for EPOW
+Auto-creating missing stock: EPOW
+Yahoo Finance validation passed for EPOW
+Updated quote for EPOW: $1.4
+Successfully created and updated stock: EPOW
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for EPOW: HOLD
+Polygon recommendation for EPOW: BUY
+FMP API error for EPOW: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=EPOW&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for EPOW: HOLD
+Yahoo Finance validation passed for DVLT
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for DVLT: BUY
+Polygon recommendation for DVLT: HOLD
+FMP API error for DVLT: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=DVLT&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for DVLT: STRONG_BUY
+Yahoo Finance validation passed for SNAP
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for SNAP: HOLD
+Error fetching Polygon data for SNAP: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/SNAP/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for SNAP: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=SNAP&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for SNAP: HOLD
+Yahoo Finance validation passed for DIS
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for DIS: BUY
+Error fetching Polygon data for DIS: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/DIS/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for DIS: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=DIS&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for DIS: BUY
+Yahoo Finance validation passed for NRXPW
+Auto-creating missing stock: NRXPW
+Yahoo Finance validation passed for NRXPW
+Updated quote for NRXPW: $0.0712
+Successfully created and updated stock: NRXPW
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for NRXPW: HOLD
+Error fetching Polygon data for NRXPW: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NRXPW/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for NRXPW: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=NRXPW&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NRXPW: HOLD
+Yahoo Finance validation passed for OPEN
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for OPEN: SELL
+Error fetching Polygon data for OPEN: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/OPEN/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for OPEN: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=OPEN&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for OPEN: SELL
+Yahoo Finance validation passed for NVDA
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for NVDA: BUY
+Error fetching Polygon data for NVDA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NVDA/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for NVDA: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=NVDA&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVDA: STRONG_BUY
+Yahoo Finance validation passed for GDEVW
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for GDEVW: HOLD
+Error fetching Polygon data for GDEVW: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/GDEVW/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for GDEVW: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=GDEVW&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GDEVW: BUY
+Yahoo Finance validation passed for NVO
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for NVO: BUY
+Error fetching Polygon data for NVO: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NVO/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for NVO: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=NVO&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NVO: STRONG_BUY
+Yahoo Finance validation passed for RVSNW
+Auto-creating missing stock: RVSNW
+Yahoo Finance validation passed for RVSNW
+Updated quote for RVSNW: $0.0943
+Successfully created and updated stock: RVSNW
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for RVSNW: HOLD
+Polygon recommendation for RVSNW: SELL
+FMP API error for RVSNW: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=RVSNW&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for RVSNW: SELL
+Yahoo Finance validation passed for MBX
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for MBX: BUY
+Polygon recommendation for MBX: HOLD
+FMP API error for MBX: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=MBX&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MBX: BUY
+Yahoo Finance validation passed for GPUS
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for GPUS: BUY
+Error fetching Polygon data for GPUS: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/GPUS/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for GPUS: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=GPUS&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GPUS: HOLD
+Yahoo Finance validation passed for MRM
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for MRM: HOLD
+Error fetching Polygon data for MRM: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/MRM/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for MRM: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=MRM&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MRM: STRONG_BUY
+Yahoo Finance validation passed for DFLI
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for DFLI: BUY
+Error fetching Polygon data for DFLI: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/DFLI/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for DFLI: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=DFLI&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for DFLI: BUY
+Yahoo Finance validation passed for ATCH
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for ATCH: HOLD
+Error fetching Polygon data for ATCH: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/ATCH/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for ATCH: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=ATCH&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for ATCH: HOLD
+Yahoo Finance validation passed for AAPL
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for AAPL: BUY
+Error fetching Polygon data for AAPL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AAPL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AAPL: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=AAPL&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AAPL: HOLD
+Yahoo Finance validation passed for AGRI
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for AGRI: BUY
+Error fetching Polygon data for AGRI: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AGRI/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AGRI: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=AGRI&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AGRI: BUY
+Yahoo Finance validation passed for RVPHW
+Auto-creating missing stock: RVPHW
+Yahoo Finance validation passed for RVPHW
+Updated quote for RVPHW: $0.08
+Successfully created and updated stock: RVPHW
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for RVPHW: HOLD
+Polygon recommendation for RVPHW: SELL
+FMP API error for RVPHW: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=RVPHW&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for RVPHW: HOLD
+Yahoo Finance validation passed for WGSWW
+Auto-creating missing stock: WGSWW
+Yahoo Finance validation passed for WGSWW
+Updated quote for WGSWW: $0.1096
+Successfully created and updated stock: WGSWW
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for WGSWW: HOLD
+Polygon recommendation for WGSWW: BUY
+FMP API error for WGSWW: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=WGSWW&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for WGSWW: HOLD
+Yahoo Finance validation passed for BQ
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for BQ: BUY
+Error fetching Polygon data for BQ: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/BQ/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for BQ: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=BQ&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BQ: SELL
+Yahoo Finance validation passed for AGMH
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for AGMH: BUY
+Error fetching Polygon data for AGMH: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AGMH/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AGMH: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=AGMH&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AGMH: BUY
+Yahoo Finance validation passed for SOXS
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for SOXS: HOLD
+Error fetching Polygon data for SOXS: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/SOXS/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for SOXS: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=SOXS&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for SOXS: HOLD
+Yahoo Finance validation passed for QLGN
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for QLGN: BUY
+Error fetching Polygon data for QLGN: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/QLGN/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for QLGN: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=QLGN&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for QLGN: BUY
+Failed to get quote for EONR+: No price data available for EONR+
+Yahoo Finance validation failed for EONR+: Failed to fetch quote for EONR+: No price data available for EONR+
+Skipping EONR+ - not recognized by Yahoo Finance
+Yahoo Finance validation passed for BURU
+Auto-creating missing stock: BURU
+Yahoo Finance validation passed for BURU
+Updated quote for BURU: $0.1488
+Successfully created and updated stock: BURU
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for BURU: HOLD
+Error fetching Polygon data for BURU: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/BURU/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for BURU: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=BURU&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BURU: HOLD
+Yahoo Finance validation passed for PSTV
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for PSTV: BUY
+Error fetching Polygon data for PSTV: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/PSTV/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for PSTV: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=PSTV&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for PSTV: BUY
+Yahoo Finance validation passed for NFLX
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for NFLX: BUY
+Polygon recommendation for NFLX: BUY
+FMP API error for NFLX: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=NFLX&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NFLX: BUY
+Yahoo Finance validation passed for TLRY
+Auto-creating missing stock: TLRY
+Yahoo Finance validation passed for TLRY
+Updated quote for TLRY: $1.73
+Successfully created and updated stock: TLRY
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for TLRY: HOLD
+Polygon recommendation for TLRY: BUY
+FMP API error for TLRY: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=TLRY&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for TLRY: HOLD
+Yahoo Finance validation passed for BA
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for BA: BUY
+Error fetching Polygon data for BA: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/BA/range/1/day/2024-01-01/2024-12-31?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY&limit=50
+FMP API error for BA: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=BA&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BA: BUY
+Yahoo Finance validation passed for NUAI
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for NUAI: HOLD
+Error fetching Polygon data for NUAI: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/NUAI/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for NUAI: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=NUAI&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for NUAI: BUY
+Yahoo Finance validation passed for MSFT
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for MSFT: BUY
+Error fetching Polygon data for MSFT: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/MSFT/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for MSFT: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=MSFT&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for MSFT: STRONG_BUY
+Yahoo Finance validation passed for INTC
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for INTC: HOLD
+Error fetching Polygon data for INTC: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/INTC/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for INTC: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=INTC&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for INTC: SELL
+Yahoo Finance validation passed for GOOGL
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for GOOGL: BUY
+Error fetching Polygon data for GOOGL: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/GOOGL/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for GOOGL: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=GOOGL&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for GOOGL: BUY
+Yahoo Finance validation passed for AQMS
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for AQMS: BUY
+Error fetching Polygon data for AQMS: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/AQMS/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for AQMS: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=AQMS&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for AQMS: HOLD
+Yahoo Finance validation passed for YCBD
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for YCBD: BUY
+Error fetching Polygon data for YCBD: 429 Client Error: Too Many Requests for url: https://api.polygon.io/v2/aggs/ticker/YCBD/prev?apikey=MSVhtqDKV9HyMOdla5UunU2EFs53MweY
+FMP API error for YCBD: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=YCBD&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for YCBD: BUY
+Yahoo Finance validation passed for BENF
+Auto-creating missing stock: BENF
+Yahoo Finance validation passed for BENF
+Updated quote for BENF: $0.9512
+Successfully created and updated stock: BENF
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for BENF: HOLD
+Polygon recommendation for BENF: SELL
+FMP API error for BENF: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=BENF&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for BENF: HOLD
+Yahoo Finance validation passed for APLT
+Price target endpoint failed (403), using recommendation data
+Finnhub recommendation for APLT: BUY
+Polygon recommendation for APLT: SELL
+FMP API error for APLT: 402 Client Error: Payment Required for url: https://financialmodelingprep.com/stable/analyst-estimates?symbol=APLT&apikey=ynOKFYxumAVxrcJAGhzuN4ZBjCtQcbR7
+Enhanced Yahoo recommendation for APLT: BUY
+Smart Analysis completed for user: user1. Generated 0 recommendations
+Starting Smart Analysis for user: user2
+Found 15 market screening candidates: ['CAPTW', 'EPOW', 'SNAP', 'NRXPW', 'OPEN', 'NVDA', 'RVSNW', 'RVPHW', 'WGSWW', 'SOXS', 'EONR+', 'BURU', 'TLRY', 'INTC', 'BENF']
+Found 15 high-confidence BUY candidates: ['APLT', 'APLT', 'YCBD', 'YCBD', 'AQMS', 'GOOGL', 'GOOGL', 'MSFT', 'NUAI', 'BA', 'BA', 'NFLX', 'NFLX', 'NFLX', 'PSTV']
+Yahoo Finance validation passed for CAPTW
+Using existing recommendations for CAPTW (API optimization)
+Yahoo Finance validation passed for EPOW
+Using existing recommendations for EPOW (API optimization)
+Yahoo Finance validation passed for SNAP
+Using existing recommendations for SNAP (API optimization)
+Yahoo Finance validation passed for DIS
+Using existing recommendations for DIS (API optimization)
+Yahoo Finance validation passed for NRXPW
+Using existing recommendations for NRXPW (API optimization)
+Yahoo Finance validation passed for OPEN
+Using existing recommendations for OPEN (API optimization)
+Yahoo Finance validation passed for NVDA
+Using existing recommendations for NVDA (API optimization)
+Yahoo Finance validation passed for RVSNW
+Using existing recommendations for RVSNW (API optimization)
+Yahoo Finance validation passed for MBX
+Using existing recommendations for MBX (API optimization)
+Yahoo Finance validation passed for RVPHW
+Using existing recommendations for RVPHW (API optimization)
+Yahoo Finance validation passed for AAPL
+Using existing recommendations for AAPL (API optimization)
+Yahoo Finance validation passed for WGSWW
+Using existing recommendations for WGSWW (API optimization)
+Yahoo Finance validation passed for SOXS
+Using existing recommendations for SOXS (API optimization)
+Failed to get quote for EONR+: No price data available for EONR+
+Yahoo Finance validation failed for EONR+: Failed to fetch quote for EONR+: No price data available for EONR+
+Skipping EONR+ - not recognized by Yahoo Finance
+Yahoo Finance validation passed for BURU
+Using existing recommendations for BURU (API optimization)
+Yahoo Finance validation passed for PSTV
+Using existing recommendations for PSTV (API optimization)
+Yahoo Finance validation passed for NFLX
+Using existing recommendations for NFLX (API optimization)
+Yahoo Finance validation passed for TLRY
+Using existing recommendations for TLRY (API optimization)
+Yahoo Finance validation passed for BA
+Using existing recommendations for BA (API optimization)
+Yahoo Finance validation passed for NUAI
+Using existing recommendations for NUAI (API optimization)
+Yahoo Finance validation passed for MSFT
+Using existing recommendations for MSFT (API optimization)
+Yahoo Finance validation passed for INTC
+Using existing recommendations for INTC (API optimization)
+Yahoo Finance validation passed for GOOGL
+Using existing recommendations for GOOGL (API optimization)
+Yahoo Finance validation passed for AQMS
+Using existing recommendations for AQMS (API optimization)
+Yahoo Finance validation passed for BENF
+Using existing recommendations for BENF (API optimization)
+Yahoo Finance validation passed for YCBD
+Using existing recommendations for YCBD (API optimization)
+Yahoo Finance validation passed for APLT
+Using existing recommendations for APLT (API optimization)
+Filtering out penny stock: PSTV (price: $0.83, min: $5.00)
+Filtering out penny stock: YCBD (price: $1.38, min: $5.00)
+Filtering out penny stock: APLT (price: $0.61, min: $5.00)
+Smart Analysis completed for user: user2. Generated 2 recommendations
+Starting Smart Analysis for user: user3
+Found 15 market screening candidates: ['CAPTW', 'EPOW', 'SNAP', 'NRXPW', 'OPEN', 'NVDA', 'RVSNW', 'RVPHW', 'WGSWW', 'SOXS', 'EONR+', 'BURU', 'TLRY', 'INTC', 'BENF']
+Found 15 high-confidence BUY candidates: ['APLT', 'APLT', 'YCBD', 'YCBD', 'AQMS', 'GOOGL', 'GOOGL', 'MSFT', 'NUAI', 'BA', 'BA', 'NFLX', 'NFLX', 'NFLX', 'PSTV']
+Yahoo Finance validation passed for CAPTW
+Using existing recommendations for CAPTW (API optimization)
+Yahoo Finance validation passed for EPOW
+Using existing recommendations for EPOW (API optimization)
+Yahoo Finance validation passed for SNAP
+Using existing recommendations for SNAP (API optimization)
+Yahoo Finance validation passed for NRXPW
+Using existing recommendations for NRXPW (API optimization)
+Yahoo Finance validation passed for OPEN
+Using existing recommendations for OPEN (API optimization)
+Yahoo Finance validation passed for NVDA
+Using existing recommendations for NVDA (API optimization)
+Yahoo Finance validation passed for RVSNW
+Using existing recommendations for RVSNW (API optimization)
+Yahoo Finance validation passed for DFLI
+Using existing recommendations for DFLI (API optimization)
+Yahoo Finance validation passed for RVPHW
+Using existing recommendations for RVPHW (API optimization)
+Yahoo Finance validation passed for WGSWW
+Using existing recommendations for WGSWW (API optimization)
+Yahoo Finance validation passed for BQ
+Using existing recommendations for BQ (API optimization)
+Yahoo Finance validation passed for SOXS
+Using existing recommendations for SOXS (API optimization)
+Failed to get quote for EONR+: No price data available for EONR+
+Yahoo Finance validation failed for EONR+: Failed to fetch quote for EONR+: No price data available for EONR+
+Skipping EONR+ - not recognized by Yahoo Finance
+Yahoo Finance validation passed for QLGN
+Using existing recommendations for QLGN (API optimization)
+Yahoo Finance validation passed for BURU
+Using existing recommendations for BURU (API optimization)
+Yahoo Finance validation passed for PSTV
+Using existing recommendations for PSTV (API optimization)
+Yahoo Finance validation passed for NFLX
+Using existing recommendations for NFLX (API optimization)
+Yahoo Finance validation passed for TLRY
+Using existing recommendations for TLRY (API optimization)
+Yahoo Finance validation passed for BA
+Using existing recommendations for BA (API optimization)
+Yahoo Finance validation passed for NUAI
+Using existing recommendations for NUAI (API optimization)
+Yahoo Finance validation passed for MSFT
+Using existing recommendations for MSFT (API optimization)
+Yahoo Finance validation passed for INTC
+Using existing recommendations for INTC (API optimization)
+Yahoo Finance validation passed for GOOGL
+Using existing recommendations for GOOGL (API optimization)
+Yahoo Finance validation passed for AQMS
+Using existing recommendations for AQMS (API optimization)
+Yahoo Finance validation passed for YCBD
+Using existing recommendations for YCBD (API optimization)
+Yahoo Finance validation passed for BENF
+Using existing recommendations for BENF (API optimization)
+Yahoo Finance validation passed for APLT
+Using existing recommendations for APLT (API optimization)
+Penny stocks allowed for user3 - including OPEN (price: $8.20, market cap: $6218962432)
+Penny stocks allowed for user3 - including NVDA (price: $181.85, market cap: $4329385492000)
+Penny stocks allowed for user3 - including DFLI (price: $0.66, market cap: $32321926)
+Penny stocks allowed for user3 - including BQ (price: $9.75, market cap: $27281748)
+Penny stocks allowed for user3 - including QLGN (price: $5.38, market cap: $9375839)
+Penny stocks allowed for user3 - including PSTV (price: $0.83, market cap: $82498744)
+Penny stocks allowed for user3 - including NFLX (price: $1206.41, market cap: $510128324608)
+Penny stocks allowed for user3 - including BA (price: $217.08, market cap: $162589032448)
+Penny stocks allowed for user3 - including NUAI (price: $2.50, market cap: $47802348)
+Penny stocks allowed for user3 - including MSFT (price: $514.60, market cap: $3830758244000)
+Penny stocks allowed for user3 - including GOOGL (price: $244.05, market cap: $2915379970000)
+Penny stocks allowed for user3 - including AQMS (price: $7.06, market cap: $10263837)
+Penny stocks allowed for user3 - including YCBD (price: $1.38, market cap: $12299883)
+Penny stocks allowed for user3 - including APLT (price: $0.61, market cap: $178575040)
+Smart Analysis completed for user: user3. Generated 4 recommendations
+Buy all smart recommendations requested by user: user2
+Found 2 pending BUY recommendations
+Portfolio cash: $59609.75
+Total cost: $6764.46
+Executing recommendation for BA: 19 shares
+  Cash allocated: 4124.52 (type: <class 'decimal.Decimal'>)
+  Current price: 217.08 (type: <class 'decimal.Decimal'>)
+  Portfolio cash: 59609.75 (type: <class 'decimal.Decimal'>)
+Successfully executed BA
+Executing recommendation for DIS: 23 shares
+  Cash allocated: 2639.94 (type: <class 'decimal.Decimal'>)
+  Current price: 114.78 (type: <class 'decimal.Decimal'>)
+  Portfolio cash: 55481.10548 (type: <class 'decimal.Decimal'>)
+Successfully executed DIS
+Buy all completed: 2 executed, 0 failed
+Returning response: {'success': True, 'executed_trades': [{'symbol': 'BA', 'shares': 19, 'cost': Decimal('4124.52'), 'trade_id': UUID('39fa029d-d3d7-4a0e-a74a-41f3979236f5')}, {'symbol': 'DIS', 'shares': 23, 'cost': Decimal('2639.94'), 'trade_id': UUID('73c08325-0cfd-48f0-8a95-ed9c68ce4dbe')}], 'failed_trades': [], 'total_executed': 2, 'total_failed': 0, 'total_cost': 6764.46}
+Buy all smart recommendations requested by user: user3
+Found 4 pending BUY recommendations
+Portfolio cash: $60043.68
+Total cost: $22555.59
+Executing recommendation for MSFT: 13 shares
+  Cash allocated: 6689.80 (type: <class 'decimal.Decimal'>)
+  Current price: 514.60 (type: <class 'decimal.Decimal'>)
+  Portfolio cash: 60043.68 (type: <class 'decimal.Decimal'>)
+Successfully executed MSFT
+Executing recommendation for GOOGL: 23 shares
+  Cash allocated: 5613.15 (type: <class 'decimal.Decimal'>)
+  Current price: 244.05 (type: <class 'decimal.Decimal'>)
+  Portfolio cash: 53347.19020 (type: <class 'decimal.Decimal'>)
+Successfully executed GOOGL
+Executing recommendation for BA: 25 shares
+  Cash allocated: 5427.00 (type: <class 'decimal.Decimal'>)
+  Current price: 217.08 (type: <class 'decimal.Decimal'>)
+  Portfolio cash: 47728.42705 (type: <class 'decimal.Decimal'>)
+Successfully executed BA
+Executing recommendation for NFLX: 4 shares
+  Cash allocated: 4825.64 (type: <class 'decimal.Decimal'>)
+  Current price: 1206.41 (type: <class 'decimal.Decimal'>)
+  Portfolio cash: 42296.00005 (type: <class 'decimal.Decimal'>)
+Successfully executed NFLX
+Buy all completed: 4 executed, 0 failed
+Returning response: {'success': True, 'executed_trades': [{'symbol': 'MSFT', 'shares': 13, 'cost': Decimal('6689.80'), 'trade_id': UUID('ebdbdaf0-1a8f-4225-a255-0584cb1810ad')}, {'symbol': 'GOOGL', 'shares': 23, 'cost': Decimal('5613.15'), 'trade_id': UUID('489ab59f-73a9-4583-8568-ae8a7f5b3baa')}, {'symbol': 'BA', 'shares': 25, 'cost': Decimal('5427.00'), 'trade_id': UUID('a09a9ddb-f505-4d7c-aa68-8a3f7f707f04')}, {'symbol': 'NFLX', 'shares': 4, 'cost': Decimal('4825.64'), 'trade_id': UUID('7a2f9553-b99f-4401-8ab8-3845975f912f')}], 'failed_trades': [], 'total_executed': 4, 'total_failed': 0, 'total_cost': 22555.59}
+Updated quote for AAPL: $254.63
+Updated quote for ADAP: $0.13
+Updated quote for AGMH: $8.32
+Updated quote for AGRI: $3.25
+Updated quote for APLT: $0.6049
+Updated quote for AQMS: $6.4
+Updated quote for ARKOW: $0.0093
+Updated quote for ARQQW: $0.94
+Updated quote for ATCH: $0.51
+Updated quote for AUUDW: $0.0225
+Updated quote for BA: $215.83
+Updated quote for BENF: $0.9512
+Updated quote for BETRW: $0.595
+Updated quote for BIAF: $2.96
+Updated quote for BIAFW: $0.33
+Updated quote for BOXL: $2.41
+Updated quote for BQ: $9.66
+Updated quote for BURU: $0.1488
+Updated quote for CAPTW: $0.04
+Updated quote for CJET: $0.1621
+Updated quote for CREVW: $0.0236
+Updated quote for DFLI: $0.5948
+Updated quote for DIS: $114.5
+Updated quote for DVLT: $1.09
+Updated quote for EPOW: $1.4
+Updated quote for FOFO: $33.59
+Updated quote for GDEVW: $0.0232
+Updated quote for GIGGW: $0.45
+Updated quote for GLB.L: $13.91
+Updated quote for GOOGL: $243.1
+Updated quote for GPUS: $0.4549
+Updated quote for HOLN.SW: $67.26
+Updated quote for IINNW: $0.3822
+Updated quote for ILLRW: $0.0528
+Updated quote for INTC: $33.55
+Updated quote for IVDAW: $0.12
+Updated quote for JFB: $12.92
+Updated quote for KYGA.L: $75.45
+Updated quote for LSBPW: $0.0102
+Updated quote for LVROW: $0.0378
+Updated quote for MBX: $17.5
+Updated quote for MRM: $2.12
+Updated quote for MSFT: $517.95
+Updated quote for NFLX: $1198.92
+Updated quote for NRSNW: $0.38
+Updated quote for NRXPW: $0.0712
+Updated quote for NUAI: $1.84
+Updated quote for NVDA: $186.58
+Updated quote for NVO: $55.49
+Updated quote for ONMDW: $0.0523
+Updated quote for OPEN: $7.97
+Updated quote for ORIS: $0.1872
+Updated quote for PLUG: $2.33
+Updated quote for PSTV: $0.6837
+Updated quote for PXSAW: $0.0076
+Updated quote for QLGN: $5.72
+Updated quote for RVPHW: $0.08
+Updated quote for RVSNW: $0.0943
+Updated quote for SDSTW: $0.0758
+Updated quote for SHOTW: $0.0338
+Updated quote for SLNH: $2.35
+Updated quote for SNAP: $7.71
+Updated quote for SOXS: $5.17
+Updated quote for SVREW: $0.0276
+Failed to get quote for TL0.DEX: No price data available for TL0.DEX
+Failed to update quote for TL0.DEX: Failed to fetch quote for TL0.DEX: No price data available for TL0.DEX
+Failed to update TL0.DEX: Failed to fetch quote for TL0.DEX: No price data available for TL0.DEX
+Failed to get quote for TL0.FRK: No price data available for TL0.FRK
+Failed to update quote for TL0.FRK: Failed to fetch quote for TL0.FRK: No price data available for TL0.FRK
+Failed to update TL0.FRK: Failed to fetch quote for TL0.FRK: No price data available for TL0.FRK
+Updated quote for TLRY: $1.73
+Updated quote for TSLA: $444.72
+Failed to get quote for TSLA.TRT: No price data available for TSLA.TRT
+Failed to update quote for TSLA.TRT: Failed to fetch quote for TSLA.TRT: No price data available for TSLA.TRT
+Failed to update TSLA.TRT: Failed to fetch quote for TSLA.TRT: No price data available for TSLA.TRT
+Failed to get quote for TSLA34.SAO: No price data available for TSLA34.SAO
+Failed to update quote for TSLA34.SAO: Failed to fetch quote for TSLA34.SAO: No price data available for TSLA34.SAO
+Failed to update TSLA34.SAO: Failed to fetch quote for TSLA34.SAO: No price data available for TSLA34.SAO
+Updated quote for TSLL: $21.11
+Updated quote for WGSWW: $0.1096
+Updated quote for YAAS: $3.15
+Updated quote for YCBD: $1.21
