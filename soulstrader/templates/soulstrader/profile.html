@@ -58,6 +58,16 @@
                         <span style="color: #6c757d;">Disabled</span>
                     {% endif %}
                 </div>
+                <div><strong>Portfolio SellWeight:</strong> 
+                    <strong>{{ portfolio.sell_weight }}</strong>
+                    {% if portfolio.sell_weight <= 3 %}
+                        <span style="color: #28a745;">(Conservative)</span>
+                    {% elif portfolio.sell_weight <= 6 %}
+                        <span style="color: #ffc107;">(Moderate)</span>
+                    {% else %}
+                        <span style="color: #dc3545;">(Aggressive)</span>
+                    {% endif %}
+                </div>
             </div>
         </div>
         <div>
@@ -273,6 +283,41 @@
                             </label>
                             <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Automatically execute recommended trades without manual approval</p>
                         </div>
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label style="display: block; font-weight: bold; font-size: 0.95rem; margin-bottom: 0.5rem;">
+                                Portfolio SellWeight (1-10)
+                            </label>
+                            <input type="number" name="portfolio_sell_weight" value="{{ portfolio.sell_weight }}" min="1" max="10" 
+                                   style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">
+                                <strong>1-3:</strong> Conservative (minimal selling) • 
+                                <strong>4-6:</strong> Moderate (balanced selling) • 
+                                <strong>7-10:</strong> Aggressive (maximum selling)
+                            </p>
+                        </div>
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label style="display: flex; align-items: center; gap: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                <input type="checkbox" name="profit_taking_enabled" {% if risk_profile.profit_taking_enabled %}checked{% endif %} style="transform: scale(1.2);">
+                                Enable Profit-Taking
+                            </label>
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Automatically sell volatile stocks with significant gains (quit while you're ahead)</p>
+                        </div>
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label style="display: block; font-weight: bold; font-size: 0.95rem; margin-bottom: 0.5rem;">
+                                Profit-Taking Threshold (%)
+                            </label>
+                            <input type="number" name="profit_taking_threshold" value="{{ risk_profile.profit_taking_threshold }}" min="5" max="50" step="0.1"
+                                   style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Minimum gain percentage to trigger profit-taking (default: 10%)</p>
+                        </div>
+                        <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label style="display: block; font-weight: bold; font-size: 0.95rem; margin-bottom: 0.5rem;">
+                                Volatility Threshold (%)
+                            </label>
+                            <input type="number" name="volatility_threshold" value="{{ risk_profile.volatility_threshold }}" min="10" max="50" step="0.1"
+                                   style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                            <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Minimum volatility to consider for profit-taking (default: 20%)</p>
+                        </div>
                     </div>
                 </div>
 
@@ -390,6 +435,7 @@
         </div>
     </div>
 </div>
+
 
 <style>
 /* Modal Styles */
@@ -561,6 +607,7 @@ function openAccountModal() {
 function closeAccountModal() {
     document.getElementById('editAccountModal').style.display = 'none';
 }
+
 
 function setRiskPreset(level) {
     const preset = riskPresets[level];

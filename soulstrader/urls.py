@@ -26,6 +26,7 @@ urlpatterns = [
     path('trading/quick-trade/<str:symbol>/', views.quick_trade_view, name='quick_trade'),
     path('trading/simulate-market/', views.simulate_market, name='simulate_market'),
     path('portfolio/sell-shares/', views.sell_shares_view, name='sell_shares'),
+    path('portfolio/update-sell-weight/', views.update_portfolio_sell_weight, name='update_portfolio_sell_weight'),
     
     # Recommendation actions
     path('recommendations/buy-now/', views.buy_from_recommendations_view, name='buy_from_recommendations'),

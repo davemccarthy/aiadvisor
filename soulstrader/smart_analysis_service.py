@@ -192,9 +192,22 @@ class SmartAnalysisService:
                 smart_recommendations, portfolio, holdings, risk_profile
             )
             
+            # Apply sell algorithm (NEW!)
+            sell_recommendations = self._apply_sell_algorithm(
+                smart_recommendations, portfolio, holdings, risk_profile
+            )
+            
+            # Check for profit-taking opportunities (NEW!)
+            profit_taking_recommendations = self._check_profit_taking_opportunities(
+                holdings, risk_profile, portfolio
+            )
+            
+            # Combine buy, sell, and profit-taking recommendations
+            all_recommendations = buy_recommendations + sell_recommendations + profit_taking_recommendations
+            
             # Store recommendations in database
             stored_recommendations = self._store_recommendations(
-                user, buy_recommendations, session
+                user, all_recommendations, session
             )
             
             # Execute trades if auto_execute is enabled
@@ -298,9 +311,22 @@ class SmartAnalysisService:
                 smart_recommendations, portfolio, holdings, risk_profile
             )
             
+            # Apply sell algorithm (NEW!)
+            sell_recommendations = self._apply_sell_algorithm(
+                smart_recommendations, portfolio, holdings, risk_profile
+            )
+            
+            # Check for profit-taking opportunities (NEW!)
+            profit_taking_recommendations = self._check_profit_taking_opportunities(
+                holdings, risk_profile, portfolio
+            )
+            
+            # Combine buy, sell, and profit-taking recommendations
+            all_recommendations = buy_recommendations + sell_recommendations + profit_taking_recommendations
+            
             # Store recommendations in database
             stored_recommendations = self._store_recommendations(
-                user, buy_recommendations, session
+                user, all_recommendations, session
             )
             
             # Execute trades if auto_execute is enabled
@@ -352,6 +378,11 @@ class SmartAnalysisService:
     
     def _get_or_create_risk_profile(self, user: User) -> RiskProfile:
         """Get or create risk profile for user"""
+        # Determine risk-based defaults for SellWeight
+        # For now, use moderate defaults - can be enhanced later with user risk tolerance
+        sell_weight_default = 5  # Moderate selling
+        sell_hold_threshold_default = Decimal('0.30')  # 30% threshold
+        
         risk_profile, created = RiskProfile.objects.get_or_create(
             user=user,
             defaults={
@@ -365,6 +396,11 @@ class SmartAnalysisService:
                 'allow_penny_stocks': False,  # Default: conservative (no penny stocks)
                 'min_stock_price': Decimal('5.00'),  # Default: $5 minimum
                 'min_market_cap': 100_000_000,  # Default: $100M minimum
+                'sell_weight': sell_weight_default,
+                'sell_hold_threshold': sell_hold_threshold_default,
+                'profit_taking_enabled': True,
+                'profit_taking_threshold': Decimal('10.00'),
+                'volatility_threshold': Decimal('20.00'),
                 'auto_execute_trades': False,
                 'auto_rebalance_enabled': True,
             }
@@ -608,6 +644,29 @@ class SmartAnalysisService:
             logger.warning(f"Yahoo Finance validation failed for {symbol}: {e}")
             return False
     
+    def _get_realtime_prices(self, stock_symbols: List[str]) -> Dict[str, Decimal]:
+        """
+        Fetch real-time prices from Yahoo Finance during analysis.
+        Returns a dictionary mapping stock symbols to their current prices.
+        """
+        realtime_prices = {}
+        
+        logger.info(f"Fetching real-time prices for {len(stock_symbols)} stocks")
+        
+        for symbol in stock_symbols:
+            try:
+                from .yahoo_finance_service import YahooFinanceService
+                quote = YahooFinanceService.get_quote(symbol)
+                realtime_prices[symbol] = quote['price']
+                logger.info(f"Real-time price for {symbol}: ${quote['price']}")
+            except Exception as e:
+                logger.warning(f"Failed to get real-time price for {symbol}: {e}")
+                # Continue without this price - will use cached price later
+                continue
+        
+        logger.info(f"Successfully fetched {len(realtime_prices)} real-time prices")
+        return realtime_prices
+
     def _consolidate_recommendations(
         self, 
         user: User, 
@@ -618,6 +677,10 @@ class SmartAnalysisService:
         """
         Consolidate recommendations from multiple advisors and rank them
         """
+        # Get real-time prices for all stocks in recommendations
+        stock_symbols = list(set(rec.stock.symbol for rec in advisor_recommendations))
+        realtime_prices = self._get_realtime_prices(stock_symbols)
+        
         # Group recommendations by stock
         stock_recommendations = {}
         for rec in advisor_recommendations:
@@ -663,8 +726,11 @@ class SmartAnalysisService:
             if rec_type == 'SELL' and existing_shares == 0:
                 continue
             
-            # Calculate position context
-            position_value = existing_shares * recs[0].stock.current_price if existing_shares > 0 else Decimal('0.00')
+            # Use real-time price if available, otherwise fall back to cached price
+            current_price = realtime_prices.get(symbol, recs[0].stock.current_price)
+            
+            # Calculate position context using real-time price
+            position_value = existing_shares * current_price if existing_shares > 0 else Decimal('0.00')
             position_percentage = (position_value / user.portfolio.total_value * Decimal('100')) if user.portfolio.total_value > 0 else Decimal('0.00')
             
             consolidated.append({
@@ -675,7 +741,7 @@ class SmartAnalysisService:
                 'existing_shares': existing_shares,
                 'position_value': position_value,
                 'position_percentage': position_percentage,
-                'current_price': recs[0].stock.current_price,
+                'current_price': current_price,  # Use real-time price
                 'target_price': self._calculate_average_target_price(recs),
                 'stop_loss': self._calculate_average_stop_loss(recs),
                 'reasoning': self._consolidate_reasoning(recs),
@@ -876,6 +942,213 @@ class SmartAnalysisService:
         
         return active_recommendations
     
+    def _apply_sell_algorithm(
+        self,
+        recommendations: List[Dict],
+        portfolio: Portfolio,
+        holdings: Dict[str, Holding],
+        risk_profile: RiskProfile
+    ) -> List[Dict]:
+        """
+        Apply the SellWeight-based selling algorithm.
+        This implements the new selling logic with SellWeight multiplier.
+        """
+        sell_recommendations = []
+        
+        # Filter to only SELL and HOLD recommendations for owned stocks
+        sell_candidates = [
+            rec for rec in recommendations 
+            if rec['recommendation_type'] in ['SELL', 'HOLD'] and rec['existing_shares'] > 0
+        ]
+        
+        if not sell_candidates:
+            logger.info("No sell candidates found")
+            return sell_recommendations
+        
+        # Use portfolio-level SellWeight if set, otherwise use risk profile setting
+        effective_sell_weight = portfolio.sell_weight if hasattr(portfolio, 'sell_weight') and portfolio.sell_weight else risk_profile.sell_weight
+        
+        logger.info(f"Evaluating {len(sell_candidates)} sell candidates with SellWeight={effective_sell_weight} "
+                   f"(portfolio={portfolio.sell_weight if hasattr(portfolio, 'sell_weight') else 'N/A'}, "
+                   f"risk_profile={risk_profile.sell_weight})")
+        
+        for rec in sell_candidates:
+            symbol = rec['stock'].symbol
+            existing_shares = rec['existing_shares']
+            confidence_score = rec['confidence_score']
+            
+            # Calculate adjusted confidence based on effective SellWeight
+            if rec['recommendation_type'] == 'SELL':
+                # For SELL recommendations: confidence * SellWeight
+                adjusted_confidence = confidence_score * effective_sell_weight
+            else:  # HOLD
+                # For HOLD recommendations: (confidence * 0.5) * SellWeight
+                adjusted_confidence = (confidence_score * Decimal('0.5')) * effective_sell_weight
+            
+            # Convert to 0-1 scale (SellWeight is 1-10, so divide by 10)
+            adjusted_confidence = min(adjusted_confidence / Decimal('10'), Decimal('1.0'))
+            
+            logger.info(f"{symbol}: {rec['recommendation_type']} confidence={confidence_score:.2f}, "
+                       f"adjusted={adjusted_confidence:.2f} (SellWeight={risk_profile.sell_weight})")
+            
+            # Check if adjusted confidence meets threshold
+            if adjusted_confidence >= risk_profile.sell_hold_threshold:
+                # Calculate sell percentage based on adjusted confidence
+                # Higher confidence = sell more shares
+                sell_percentage = min(adjusted_confidence, Decimal('1.0'))
+                shares_to_sell = int(existing_shares * sell_percentage)
+                
+                # Ensure we don't sell more than we own
+                shares_to_sell = min(shares_to_sell, existing_shares)
+                
+                if shares_to_sell > 0:
+                    # Calculate cash value of sale
+                    cash_from_sale = shares_to_sell * rec['current_price']
+                    
+                    # Create sell recommendation
+                    sell_rec = rec.copy()
+                    sell_rec.update({
+                        'recommendation_type': 'SELL',
+                        'shares_to_sell': shares_to_sell,
+                        'cash_from_sale': cash_from_sale,
+                        'sell_percentage': sell_percentage,
+                        'adjusted_confidence': adjusted_confidence,
+                        'original_confidence': confidence_score,
+                        'sell_weight_applied': effective_sell_weight,
+                        'reasoning': f"{rec['reasoning']}\n\n[SellWeight Analysis] Original {rec['recommendation_type']} confidence: {confidence_score:.2f}, Adjusted with SellWeight {effective_sell_weight}: {adjusted_confidence:.2f}, Selling {shares_to_sell} shares ({sell_percentage:.1%})"
+                    })
+                    
+                    sell_recommendations.append(sell_rec)
+                    
+                    logger.info(f"✓ SELL recommendation for {symbol}: {shares_to_sell} shares "
+                               f"({sell_percentage:.1%}) - ${cash_from_sale:.2f}")
+                else:
+                    logger.info(f"✗ {symbol}: Calculated 0 shares to sell")
+            else:
+                logger.info(f"✗ {symbol}: Adjusted confidence {adjusted_confidence:.2f} below threshold {risk_profile.sell_hold_threshold}")
+        
+        logger.info(f"Sell algorithm completed: {len(sell_recommendations)} sell recommendations generated")
+        return sell_recommendations
+    
+    def _check_profit_taking_opportunities(
+        self,
+        holdings: Dict[str, Holding],
+        risk_profile: RiskProfile,
+        portfolio: Portfolio
+    ) -> List[Dict]:
+        """
+        Check for profit-taking opportunities on volatile stocks with significant gains.
+        Implements the 'quit while you're ahead' strategy.
+        """
+        if not risk_profile.profit_taking_enabled:
+            logger.info("Profit-taking is disabled")
+            return []
+        
+        profit_taking_candidates = []
+        
+        logger.info(f"Checking profit-taking opportunities (threshold: {risk_profile.profit_taking_threshold}%, "
+                   f"volatility: {risk_profile.volatility_threshold}%)")
+        
+        for symbol, holding in holdings.items():
+            try:
+                # Calculate recent gain percentage
+                recent_gain = self._calculate_recent_gain(holding)
+                
+                # Get stock volatility (simplified calculation)
+                volatility = self._get_stock_volatility(holding.stock)
+                
+                logger.info(f"{symbol}: Recent gain: {recent_gain:.1f}%, Volatility: {volatility:.1f}%")
+                
+                # Check if meets profit-taking criteria
+                if (recent_gain >= risk_profile.profit_taking_threshold and 
+                    volatility >= risk_profile.volatility_threshold):
+                    
+                    # Calculate profit-taking confidence based on gain size
+                    # Higher gains = higher confidence to take profits
+                    gain_confidence = min(recent_gain / Decimal('20.0'), Decimal('1.0'))  # Max confidence at 20% gain
+                    
+                    # Apply SellWeight to profit-taking confidence
+                    effective_sell_weight = portfolio.sell_weight if hasattr(portfolio, 'sell_weight') and portfolio.sell_weight else risk_profile.sell_weight
+                    adjusted_confidence = gain_confidence * effective_sell_weight
+                    adjusted_confidence = min(adjusted_confidence / Decimal('10'), Decimal('1.0'))
+                    
+                    # Calculate sell percentage based on confidence
+                    sell_percentage = min(adjusted_confidence, Decimal('1.0'))
+                    shares_to_sell = int(holding.quantity * sell_percentage)
+                    
+                    if shares_to_sell > 0:
+                        cash_from_sale = shares_to_sell * holding.stock.current_price
+                        
+                        profit_taking_candidates.append({
+                            'stock': holding.stock,
+                            'recommendation_type': 'SELL',
+                            'priority_score': Decimal('90.0'),  # High priority for profit-taking
+                            'confidence_score': gain_confidence,
+                            'existing_shares': holding.quantity,
+                            'position_value': holding.current_value,
+                            'position_percentage': (holding.current_value / portfolio.total_value * Decimal('100')) if portfolio.total_value > 0 else Decimal('0.00'),
+                            'current_price': holding.stock.current_price,
+                            'shares_to_sell': shares_to_sell,
+                            'cash_from_sale': cash_from_sale,
+                            'sell_percentage': sell_percentage,
+                            'adjusted_confidence': adjusted_confidence,
+                            'original_confidence': gain_confidence,
+                            'sell_weight_applied': effective_sell_weight,
+                            'recent_gain': recent_gain,
+                            'volatility': volatility,
+                            'reasoning': f"Profit-taking opportunity: {recent_gain:.1f}% gain on volatile stock ({volatility:.1f}% volatility). "
+                                        f"Quit while you're ahead! Selling {shares_to_sell} shares ({sell_percentage:.1%}) = ${cash_from_sale:.2f}",
+                            'key_factors': [f"Recent gain: {recent_gain:.1f}%", f"Volatility: {volatility:.1f}%", "Profit-taking strategy"],
+                            'risk_factors': ["High volatility", "Potential for further gains"],
+                            'advisor_recommendations': [],  # No advisor recommendations for profit-taking
+                        })
+                        
+                        logger.info(f"✓ Profit-taking opportunity for {symbol}: {shares_to_sell} shares "
+                                   f"({sell_percentage:.1%}) - ${cash_from_sale:.2f}")
+                    else:
+                        logger.info(f"✗ {symbol}: Calculated 0 shares for profit-taking")
+                else:
+                    logger.info(f"✗ {symbol}: Gain {recent_gain:.1f}% or volatility {volatility:.1f}% below thresholds")
+                    
+            except Exception as e:
+                logger.warning(f"Error checking profit-taking for {symbol}: {e}")
+                continue
+        
+        logger.info(f"Profit-taking analysis completed: {len(profit_taking_candidates)} opportunities found")
+        return profit_taking_candidates
+    
+    def _calculate_recent_gain(self, holding: Holding) -> Decimal:
+        """Calculate recent gain percentage for a holding"""
+        try:
+            if holding.average_price and holding.average_price > 0:
+                current_price = holding.stock.current_price or holding.average_price
+                gain_percentage = ((current_price - holding.average_price) / holding.average_price) * Decimal('100')
+                return max(gain_percentage, Decimal('0.0'))  # Don't return negative gains
+            return Decimal('0.0')
+        except Exception:
+            return Decimal('0.0')
+    
+    def _get_stock_volatility(self, stock: Stock) -> Decimal:
+        """Get stock volatility (simplified calculation)"""
+        try:
+            # For now, use a simplified volatility calculation
+            # In a real implementation, you'd calculate historical volatility
+            # For demo purposes, we'll use market cap as a proxy for volatility
+            
+            if stock.market_cap:
+                if stock.market_cap < 1_000_000_000:  # < $1B = high volatility
+                    return Decimal('30.0')
+                elif stock.market_cap < 10_000_000_000:  # $1B-$10B = medium volatility
+                    return Decimal('25.0')
+                else:  # > $10B = lower volatility
+                    return Decimal('20.0')
+            else:
+                # Default to medium volatility if market cap unknown
+                return Decimal('25.0')
+                
+        except Exception:
+            return Decimal('25.0')  # Default volatility
+    
     def _store_recommendations(
         self, 
         user: User, 
@@ -908,6 +1181,18 @@ class SmartAnalysisService:
                 risk_factors=rec_data['risk_factors'],
                 expires_at=timezone.now() + timedelta(days=7),  # Expire in 7 days
             )
+            
+            # Store sell-specific data if this is a sell recommendation
+            if rec_data['recommendation_type'] == 'SELL' and 'shares_to_sell' in rec_data:
+                # We'll need to add these fields to the SmartRecommendation model
+                # For now, we'll store the sell data in the reasoning field
+                sell_info = f"\n\n[SELL DETAILS] Shares to sell: {rec_data.get('shares_to_sell', 0)}, " \
+                           f"Cash from sale: ${rec_data.get('cash_from_sale', 0):.2f}, " \
+                           f"Sell percentage: {rec_data.get('sell_percentage', 0):.1%}, " \
+                           f"Adjusted confidence: {rec_data.get('adjusted_confidence', 0):.2f}, " \
+                           f"SellWeight applied: {rec_data.get('sell_weight_applied', 0)}"
+                smart_rec.reasoning += sell_info
+                smart_rec.save()
             
             # Link advisor recommendations
             smart_rec.advisor_recommendations.set(rec_data['advisor_recommendations'])
@@ -984,16 +1269,35 @@ class SmartAnalysisService:
     
     def _create_recommendations_summary(self, recommendations: List[SmartRecommendation]) -> Dict:
         """Create summary of recommendations"""
+        buy_recs = [r for r in recommendations if r.recommendation_type == 'BUY']
+        sell_recs = [r for r in recommendations if r.recommendation_type == 'SELL']
+        hold_recs = [r for r in recommendations if r.recommendation_type == 'HOLD']
+        
         summary = {
             'total_recommendations': len(recommendations),
-            'buy_recommendations': len([r for r in recommendations if r.recommendation_type == 'BUY']),
-            'sell_recommendations': len([r for r in recommendations if r.recommendation_type == 'SELL']),
-            'hold_recommendations': len([r for r in recommendations if r.recommendation_type == 'HOLD']),
-            'total_cash_allocated': float(sum(r.cash_allocated or Decimal('0') for r in recommendations)),
+            'buy_recommendations': len(buy_recs),
+            'sell_recommendations': len(sell_recs),
+            'hold_recommendations': len(hold_recs),
+            'total_cash_allocated': float(sum(r.cash_allocated or Decimal('0') for r in buy_recs)),
+            'total_cash_from_sales': float(sum(self._extract_cash_from_sale(r) for r in sell_recs)),
             'average_priority_score': float(sum(r.priority_score for r in recommendations) / len(recommendations)) if recommendations else 0.0,
             'average_confidence_score': float(sum(r.confidence_score for r in recommendations) / len(recommendations)) if recommendations else 0.0,
         }
         return summary
+    
+    def _extract_cash_from_sale(self, recommendation: SmartRecommendation) -> Decimal:
+        """Extract cash from sale amount from recommendation reasoning"""
+        try:
+            # Look for "Cash from sale: $X.XX" in the reasoning
+            reasoning = recommendation.reasoning or ""
+            if "[SELL DETAILS]" in reasoning:
+                import re
+                match = re.search(r'Cash from sale: \$([0-9,]+\.?[0-9]*)', reasoning)
+                if match:
+                    return Decimal(match.group(1).replace(',', ''))
+        except Exception:
+            pass
+        return Decimal('0.00')
 
     def _execute_single_recommendation(self, recommendation, portfolio):
         """Execute a single Smart Recommendation"""

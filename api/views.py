@@ -78,11 +78,13 @@ def get_portfolio_holdings(request):
     # Get all holdings
     holdings = portfolio.holdings.select_related('stock').order_by('-last_updated', '-purchase_date')
     
-    # Calculate portfolio metrics
+    # Calculate portfolio metrics (matching web version)
     total_invested = sum(holding.quantity * holding.average_price for holding in holdings)
     total_current_value = sum(holding.current_value for holding in holdings)
-    total_unrealized_pnl = total_current_value - total_invested
-    total_unrealized_pnl_percent = (total_unrealized_pnl / total_invested * 100) if total_invested > 0 else Decimal('0.00')
+    
+    # Total portfolio return (matching web version)
+    total_unrealized_pnl = portfolio.total_value - portfolio.initial_capital
+    total_unrealized_pnl_percent = portfolio.total_return
     
     # Portfolio summary
     portfolio_summary = {

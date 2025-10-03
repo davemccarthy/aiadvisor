@@ -213,6 +213,12 @@ class Portfolio(models.Model):
         ('MANUAL', 'Manual'),
     ])
     
+    # Sell aggressiveness setting
+    sell_weight = models.IntegerField(
+        default=5,
+        help_text="Portfolio-level sell aggressiveness (1=conservative, 10=aggressive). Overrides risk profile setting."
+    )
+    
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
@@ -826,6 +832,30 @@ class RiskProfile(models.Model):
     min_market_cap = models.BigIntegerField(
         default=100_000_000,
         help_text="Minimum market cap threshold in USD (micro-cap filter)"
+    )
+    
+    # Sell aggressiveness settings
+    sell_weight = models.IntegerField(
+        default=5,
+        help_text="Sell aggressiveness multiplier (1=conservative, 10=aggressive). Multiplies sell confidence scores."
+    )
+    sell_hold_threshold = models.DecimalField(
+        max_digits=3, decimal_places=2, default=Decimal('0.30'),
+        help_text="Minimum adjusted confidence to consider HOLD as partial SELL"
+    )
+    
+    # Profit-taking settings
+    profit_taking_enabled = models.BooleanField(
+        default=True,
+        help_text="Enable automated profit-taking on volatile stocks with significant gains"
+    )
+    profit_taking_threshold = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal('10.00'),
+        help_text="Minimum gain percentage to trigger profit-taking recommendation"
+    )
+    volatility_threshold = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal('20.00'),
+        help_text="Minimum annual volatility percentage to consider stock for profit-taking"
     )
     
     # Automation settings

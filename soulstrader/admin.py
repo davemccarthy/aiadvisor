@@ -63,10 +63,30 @@ class StockPriceAdmin(admin.ModelAdmin):
 
 @admin.register(Portfolio)
 class PortfolioAdmin(admin.ModelAdmin):
-    list_display = ['user', 'name', 'initial_capital', 'current_capital', 'total_value', 'is_active', 'created_at']
-    list_filter = ['is_active', 'auto_rebalance', 'rebalance_frequency', 'created_at']
+    list_display = ['user', 'name', 'initial_capital', 'current_capital', 'total_value', 'sell_weight', 'is_active', 'created_at']
+    list_filter = ['is_active', 'auto_rebalance', 'rebalance_frequency', 'sell_weight', 'created_at']
     search_fields = ['user__username', 'name']
     readonly_fields = ['created_at', 'last_updated', 'total_value', 'total_return']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('user', 'name', 'is_active')
+        }),
+        ('Capital Management', {
+            'fields': ('initial_capital', 'current_capital', 'total_invested')
+        }),
+        ('Portfolio Settings', {
+            'fields': ('auto_rebalance', 'rebalance_frequency', 'sell_weight')
+        }),
+        ('Calculated Values', {
+            'fields': ('total_value', 'total_return'),
+            'classes': ('collapse',)
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'last_updated'),
+            'classes': ('collapse',)
+        })
+    )
 
 
 @admin.register(Holding)

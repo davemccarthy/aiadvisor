@@ -256,6 +256,31 @@ def portfolio_view(request):
 
 
 @login_required
+def update_portfolio_sell_weight(request):
+    """Update portfolio SellWeight setting"""
+    if request.method == 'POST':
+        try:
+            portfolio = get_object_or_404(Portfolio, user=request.user)
+            sell_weight = int(request.POST.get('sell_weight', 5))
+            
+            # Validate SellWeight range
+            if 1 <= sell_weight <= 10:
+                portfolio.sell_weight = sell_weight
+                portfolio.save()
+                
+                messages.success(request, f'SellWeight updated to {sell_weight}. This will affect how aggressively the system sells positions in your portfolio.')
+            else:
+                messages.error(request, 'SellWeight must be between 1 and 10.')
+                
+        except (ValueError, TypeError):
+            messages.error(request, 'Invalid SellWeight value.')
+        except Exception as e:
+            messages.error(request, f'Error updating SellWeight: {str(e)}')
+    
+    return redirect('soulstrader:portfolio')
+
+
+@login_required
 def recommendations_view(request):
     """AI recommendations view - shows both legacy and new advisor recommendations"""
     
@@ -529,7 +554,40 @@ def update_profile(request):
         else:
             risk_profile.auto_execute_trades = False
         
+        # Update profit-taking settings
+        if 'profit_taking_enabled' in request.POST:
+            risk_profile.profit_taking_enabled = True
+        else:
+            risk_profile.profit_taking_enabled = False
+        
+        if 'profit_taking_threshold' in request.POST:
+            risk_profile.profit_taking_threshold = Decimal(request.POST['profit_taking_threshold'])
+        
+        if 'volatility_threshold' in request.POST:
+            risk_profile.volatility_threshold = Decimal(request.POST['volatility_threshold'])
+        
         risk_profile.save()
+        
+        # Update Portfolio SellWeight
+        if 'portfolio_sell_weight' in request.POST:
+            try:
+                portfolio = get_object_or_404(Portfolio, user=request.user)
+                sell_weight = int(request.POST['portfolio_sell_weight'])
+                
+                # Validate SellWeight range
+                if 1 <= sell_weight <= 10:
+                    portfolio.sell_weight = sell_weight
+                    portfolio.save()
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'SellWeight must be between 1 and 10.'
+                    })
+            except (ValueError, TypeError):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid SellWeight value.'
+                })
         
         return JsonResponse({
             'success': True,
