@@ -27,12 +27,14 @@ urlpatterns = [
     # =============================================================================
     path('trades/', views.get_all_trades, name='all_trades'),
     path('trades/recent/', views.get_recent_trades, name='recent_trades'),
+    path('trades/summary/', views.get_trade_summary, name='trade_summary'),
     
     # =============================================================================
     # SMART ANALYSIS ENDPOINTS (iOS Tab 3: Analysis)
     # =============================================================================
     path('analysis/smart/', views.get_smart_analysis, name='smart_analysis'),
     path('analysis/sessions/', views.get_analysis_sessions, name='analysis_sessions'),
+    path('analysis/trade/<uuid:trade_id>/', views.get_trade_analysis, name='trade_analysis'),
     
     # =============================================================================
     # UTILITY ENDPOINTS

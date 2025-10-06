@@ -787,12 +787,63 @@ class SmartAnalysisService:
         return Decimal('0.00')
     
     def _calculate_confidence_score(self, recommendations: List[AIAdvisorRecommendation]) -> Decimal:
-        """Calculate average confidence score"""
+        """
+        Calculate confidence score with reduction for conflicting signals (Option 1)
+        
+        Base confidence is the average of all recommendations.
+        Then reduce confidence based on conflicting signals:
+        - HOLD signals reduce confidence by 25%
+        - SELL signals reduce confidence by 35%
+        - STRONG_SELL signals reduce confidence by 50%
+        """
         if not recommendations:
             return Decimal('0.00')
         
+        # Calculate base confidence (average of all recommendations)
         total_confidence = sum(rec.confidence_score for rec in recommendations)
-        return (Decimal(total_confidence) / Decimal(len(recommendations))).quantize(Decimal('0.01'))
+        base_confidence = Decimal(total_confidence) / Decimal(len(recommendations))
+        
+        # Determine the primary recommendation type (most common)
+        vote_counts = {'STRONG_BUY': 0, 'BUY': 0, 'HOLD': 0, 'SELL': 0, 'STRONG_SELL': 0}
+        for rec in recommendations:
+            vote_counts[rec.recommendation_type] += 1
+        
+        primary_type = max(vote_counts, key=vote_counts.get)
+        
+        # Apply confidence reduction for conflicting signals
+        adjusted_confidence = base_confidence
+        
+        for rec in recommendations:
+            if rec.recommendation_type != primary_type:
+                # Calculate reduction based on conflict type
+                if primary_type in ['STRONG_BUY', 'BUY']:
+                    # Primary is BUY, check for conflicts
+                    if rec.recommendation_type == 'HOLD':
+                        reduction = Decimal('0.25') * rec.confidence_score
+                        adjusted_confidence -= reduction
+                        logger.info(f"Confidence reduced by {reduction:.2f} for HOLD conflict (advisor: {rec.advisor.name})")
+                    elif rec.recommendation_type in ['SELL', 'STRONG_SELL']:
+                        reduction = Decimal('0.35') * rec.confidence_score if rec.recommendation_type == 'SELL' else Decimal('0.50') * rec.confidence_score
+                        adjusted_confidence -= reduction
+                        logger.info(f"Confidence reduced by {reduction:.2f} for {rec.recommendation_type} conflict (advisor: {rec.advisor.name})")
+                
+                elif primary_type in ['STRONG_SELL', 'SELL']:
+                    # Primary is SELL, check for conflicts
+                    if rec.recommendation_type == 'HOLD':
+                        reduction = Decimal('0.25') * rec.confidence_score
+                        adjusted_confidence -= reduction
+                        logger.info(f"Confidence reduced by {reduction:.2f} for HOLD conflict (advisor: {rec.advisor.name})")
+                    elif rec.recommendation_type in ['BUY', 'STRONG_BUY']:
+                        reduction = Decimal('0.35') * rec.confidence_score if rec.recommendation_type == 'BUY' else Decimal('0.50') * rec.confidence_score
+                        adjusted_confidence -= reduction
+                        logger.info(f"Confidence reduced by {reduction:.2f} for {rec.recommendation_type} conflict (advisor: {rec.advisor.name})")
+        
+        # Ensure confidence doesn't go below 0
+        final_confidence = max(adjusted_confidence, Decimal('0.00'))
+        
+        logger.info(f"Confidence calculation: Base={base_confidence:.2f}, Adjusted={final_confidence:.2f} (Primary: {primary_type})")
+        
+        return final_confidence.quantize(Decimal('0.01'))
     
     def _determine_recommendation_type(
         self, 

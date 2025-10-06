@@ -2,10 +2,19 @@
 Management command for Smart Analysis - Automated Portfolio Optimization
 
 Usage:
-    python manage.py smartanalyse [username]          # Analyze specific user
-    python manage.py smartanalyse --all               # Analyze all users
-    python manage.py smartanalyse --auto-execute      # Auto-execute trades
-    python manage.py smartanalyse --dry-run           # Show what would be done
+    python manage.py smartanalyse <username>         # Analyze specific user
+    python manage.py smartanalyse --all              # Analyze all users
+    python manage.py smartanalyse --batch-optimize   # Force batch optimization
+
+Options:
+    --auto-execute    Automatically execute recommended trades
+    --dry-run         Show what would be done without making changes
+    --force           Force analysis even if recent analysis exists
+    --bestbuyonly     Only analyze best buy opportunities
+    --min-cash N      Minimum cash required (default: 1000)
+    --max-users N     Maximum number of users (default: 10)
+
+Note: All analysis uses batch optimization to minimize API calls.
 """
 
 from django.core.management.base import BaseCommand, CommandError
@@ -70,11 +79,29 @@ class Command(BaseCommand):
         parser.add_argument(
             '--batch-optimize',
             action='store_true',
-            help='Force batch optimization to minimize API calls (automatically enabled for --all)'
+            help='Force batch optimization to minimize API calls'
         )
     
     def handle(self, *args, **options):
         """Handle the smartanalyse command"""
+        
+        # Check if no options provided - show usage
+        if not any([options['username'], options['all'], options['batch_optimize']]):
+            self.stdout.write(
+                self.style.ERROR('Error: No analysis target specified')
+            )
+            self.stdout.write('\nUsage:')
+            self.stdout.write('  python manage.py smartanalyse <username>     # Analyze specific user')
+            self.stdout.write('  python manage.py smartanalyse --all          # Analyze all users')
+            self.stdout.write('  python manage.py smartanalyse --batch-optimize # Force batch optimization')
+            self.stdout.write('\nOptions:')
+            self.stdout.write('  --auto-execute    Automatically execute recommended trades')
+            self.stdout.write('  --dry-run         Show what would be done without making changes')
+            self.stdout.write('  --force           Force analysis even if recent analysis exists')
+            self.stdout.write('  --bestbuyonly     Only analyze best buy opportunities')
+            self.stdout.write('  --min-cash N      Minimum cash required (default: 1000)')
+            self.stdout.write('  --max-users N     Maximum number of users (default: 10)')
+            return
         
         # Initialize service
         smart_service = SmartAnalysisService()
@@ -92,11 +119,11 @@ class Command(BaseCommand):
             self.style.SUCCESS(f'Starting Smart Analysis for {len(users_to_analyze)} user(s)')
         )
         
-        # Process users - use batch optimization for --all flag
+        # Always use batch optimization (removed individual processing)
         successful_analyses = 0
         failed_analyses = 0
         
-        if (options['all'] or options['batch_optimize']) and len(users_to_analyze) > 1:
+        if len(users_to_analyze) > 1:
             # Use batch optimization for multiple users
             self.stdout.write(
                 self.style.SUCCESS('Using batch optimization to minimize API calls...')
@@ -123,23 +150,27 @@ class Command(BaseCommand):
                 )
                 failed_analyses = len(users_to_analyze)
         else:
-            # Process each user individually (original behavior)
-            for user in users_to_analyze:
-                try:
-                    self._analyze_user(
-                        user, 
-                        smart_service, 
-                        options
-                    )
-                    successful_analyses += 1
+            # Single user - still use batch optimization for consistency
+            try:
+                sessions = smart_service.batch_analyze_users(
+                    users_to_analyze,
+                    auto_execute=options['auto_execute'],
+                    bestbuyonly=options['bestbuyonly']
+                )
+                
+                successful_analyses = len(sessions)
+                failed_analyses = len(users_to_analyze) - successful_analyses
+                
+                # Display results for each session
+                for session in sessions:
+                    self._display_analysis_results(session)
                     
-                except Exception as e:
-                    logger.error(f"Smart Analysis failed for user {user.username}: {str(e)}")
-                    self.stdout.write(
-                        self.style.ERROR(f'Failed to analyze {user.username}: {str(e)}')
-                    )
-                    failed_analyses += 1
-                    continue
+            except Exception as e:
+                logger.error(f"Analysis failed: {str(e)}")
+                self.stdout.write(
+                    self.style.ERROR(f'Analysis failed: {str(e)}')
+                )
+                failed_analyses = len(users_to_analyze)
         
         # Summary
         self.stdout.write(
@@ -167,9 +198,9 @@ class Command(BaseCommand):
             # Analyze all users
             users = User.objects.filter(is_active=True)
             
-        else:
-            # Default: analyze users with recent activity
-            users = self._get_active_users()
+        elif options['batch_optimize']:
+            # Force batch optimization - analyze all users
+            users = User.objects.filter(is_active=True)
         
         # Filter users based on criteria
         filtered_users = []
@@ -195,20 +226,6 @@ class Command(BaseCommand):
         
         return filtered_users
     
-    def _get_active_users(self):
-        """Get users with recent activity"""
-        # Get users who have made trades in the last 30 days
-        from django.utils import timezone
-        from datetime import timedelta
-        
-        recent_date = timezone.now() - timedelta(days=30)
-        
-        users = User.objects.filter(
-            is_active=True,
-            portfolio__trades__created_at__gte=recent_date
-        ).distinct()
-        
-        return users
     
     def _has_recent_analysis(self, user):
         """Check if user has recent smart analysis"""
@@ -223,68 +240,6 @@ class Command(BaseCommand):
             status='COMPLETED'
         ).exists()
     
-    def _analyze_user(self, user, smart_service, options):
-        """Analyze a single user"""
-        self.stdout.write(f'\nAnalyzing user: {user.username}')
-        
-        # Get or create risk profile
-        risk_profile, created = RiskProfile.objects.get_or_create(
-            user=user,
-            defaults={
-                'max_purchase_percentage': Decimal('5.00'),
-                'min_confidence_score': Decimal('0.70'),
-                'cash_spend_percentage': Decimal('20.00'),
-            }
-        )
-        
-        if created:
-            self.stdout.write(
-                self.style.WARNING(f'  Created default risk profile for {user.username}')
-            )
-        
-        # Show current portfolio status
-        portfolio = user.portfolio
-        self.stdout.write(
-            f'  Portfolio Value: ${portfolio.total_value:,.2f}\n'
-            f'  Available Cash: ${portfolio.current_capital:,.2f}\n'
-            f'  Cash Spend %: {risk_profile.cash_spend_percentage}%\n'
-            f'  Max Purchase %: {risk_profile.max_purchase_percentage}%\n'
-            f'  Min Confidence: {risk_profile.min_confidence_score}'
-        )
-        
-        if options['dry_run']:
-            self.stdout.write(
-                self.style.WARNING('  DRY RUN - No changes will be made')
-            )
-            return
-        
-        if options['bestbuyonly']:
-            self.stdout.write(
-                self.style.SUCCESS('  BEST-BUY-ONLY MODE - Only analyzing new buy opportunities')
-            )
-        
-        # Run smart analysis
-        auto_execute = options['auto_execute'] and risk_profile.auto_execute_trades
-        
-        if auto_execute:
-            self.stdout.write(
-                self.style.WARNING('  AUTO-EXECUTE ENABLED - Trades will be executed automatically')
-            )
-        
-        try:
-            with transaction.atomic():
-                session = smart_service.smart_analyse(
-                    user=user,
-                    auto_execute=auto_execute,
-                    bestbuyonly=options['bestbuyonly']
-                )
-                
-                # Display results
-                self._display_analysis_results(session)
-                
-        except Exception as e:
-            logger.error(f"Smart Analysis failed for user {user.username}: {str(e)}")
-            raise
     
     def _display_analysis_results(self, session):
         """Display smart analysis results"""

@@ -150,6 +150,50 @@ def get_recent_trades(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def get_trade_summary(request):
+    """
+    Get trade summary statistics for the user
+    GET /api/trades/summary/
+    """
+    portfolio = get_object_or_404(Portfolio, user=request.user)
+    
+    # Get all trades for calculations
+    trades = portfolio.trades.all()
+    
+    # Get all holdings for current value calculations
+    holdings = portfolio.holdings.all()
+    
+    # Calculate summary statistics
+    total_invested = float(sum(trade.total_amount for trade in trades))
+    total_current_value = float(sum(holding.current_value for holding in holdings))
+    total_unrealized_pnl = total_current_value - total_invested
+    total_unrealized_pnl_percent = (total_unrealized_pnl / total_invested * 100) if total_invested > 0 else 0
+    
+    # Get total shares across all holdings (current positions)
+    total_shares = sum(holding.quantity for holding in holdings)
+    
+    # Get available cash from portfolio
+    available_cash = float(portfolio.current_capital)
+    
+    # Calculate total value (current value + available cash)
+    total_value = total_current_value + available_cash
+    
+    summary_data = {
+        'total_value': float(total_value),
+        'available_cash': float(available_cash),
+        'total_invested': float(total_invested),
+        'total_current_value': float(total_current_value),
+        'total_unrealized_pnl': float(total_unrealized_pnl),
+        'total_unrealized_pnl_percent': float(total_unrealized_pnl_percent),
+        'trades_count': trades.count(),
+        'shares_count': total_shares
+    }
+    
+    return Response(summary_data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_all_trades(request):
     """
     Get all trades with pagination
@@ -232,6 +276,128 @@ def get_analysis_sessions(request):
         'count': sessions.count(),
         'results': serializer.data
     })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_trade_analysis(request, trade_id):
+    """
+    Get detailed analysis for a specific trade
+    GET /api/analysis/trade/{trade_id}/
+    
+    Returns detailed analysis including:
+    - Trade summary
+    - Individual advisor recommendations
+    - Algorithm steps
+    - Technical details
+    """
+    user = request.user
+    
+    # Get the trade
+    try:
+        trade = Trade.objects.get(id=trade_id, portfolio__user=user)
+    except Trade.DoesNotExist:
+        return Response({
+            'error': 'Trade not found'
+        }, status=404)
+    
+    # Get the smart recommendation that led to this trade
+    smart_recommendation = None
+    if trade.trade_source == 'SMART_ANALYSIS':
+        # Try to find the smart recommendation that led to this trade
+        smart_recommendation = SmartRecommendation.objects.filter(
+            user=user,
+            stock=trade.stock,
+            recommendation_type=trade.trade_type,
+            created_at__lte=trade.created_at
+        ).order_by('-created_at').first()
+    
+    # Prepare response data
+    response_data = {
+        'trade': {
+            'id': str(trade.id),
+            'stock': {
+                'symbol': trade.stock.symbol,
+                'name': trade.stock.name,
+                'logo_url': trade.stock.logo_url,
+                'current_price': float(trade.stock.current_price or 0),
+            },
+            'trade_type': trade.trade_type,
+            'quantity': trade.quantity,
+            'total_amount': float(trade.total_amount),
+            'executed_at': trade.executed_at,
+            'trade_source': trade.trade_source,
+        },
+        'advisor_recommendations': [],
+        'algorithm_steps': [],
+        'technical_details': {}
+    }
+    
+    # Get individual advisor recommendations if smart recommendation exists
+    if smart_recommendation:
+        advisor_recs = smart_recommendation.advisor_recommendations.select_related('advisor').all()
+        
+        for rec in advisor_recs:
+            # Clean up reasoning text by replacing newlines with spaces
+            cleaned_reasoning = rec.reasoning.replace('\n', ' ').replace('\r', ' ').strip()
+            # Remove multiple spaces
+            cleaned_reasoning = ' '.join(cleaned_reasoning.split())
+            
+            # Improve readability by creating a more natural summary
+            # Extract key information and create a concise summary
+            summary_parts = []
+            
+            # Look for key phrases and extract them
+            if 'Analyst Consensus' in cleaned_reasoning:
+                summary_parts.append("Strong analyst consensus")
+            if 'Price Target' in cleaned_reasoning:
+                summary_parts.append("positive price targets")
+            if 'News' in cleaned_reasoning:
+                summary_parts.append("favorable news sentiment")
+            if 'Analysis Score' in cleaned_reasoning:
+                summary_parts.append("solid analysis metrics")
+            
+            # Create a natural summary if we found key parts
+            if summary_parts:
+                cleaned_reasoning = f"Analysis shows {', '.join(summary_parts)} with strong market intelligence support."
+            else:
+                # Fallback: ensure proper sentence structure
+                if not cleaned_reasoning.endswith('.'):
+                    cleaned_reasoning += '.'
+                # Capitalize first letter
+                if cleaned_reasoning:
+                    cleaned_reasoning = cleaned_reasoning[0].upper() + cleaned_reasoning[1:]
+            
+            # Include ALL advisor recommendations for this stock (not just matching trade type)
+            response_data['advisor_recommendations'].append({
+                'advisor_name': rec.advisor.name,
+                'recommendation_type': rec.recommendation_type,
+                'confidence_score': float(rec.confidence_score),
+                'reasoning': cleaned_reasoning,
+                'target_price': float(rec.target_price) if rec.target_price else None,
+            })
+        
+        # Add algorithm steps (placeholder for now)
+        response_data['algorithm_steps'] = [
+            f"Stock {trade.stock.symbol} chosen for consideration from market movers",
+            f"{len(advisor_recs)} advisors gave combined confidence score of {float(smart_recommendation.confidence_score):.2f}",
+            f"${float(trade.total_amount):.0f} allocated to {trade.trade_type.lower()} {trade.quantity} shares based on confidence"
+        ]
+        
+        # Add technical details
+        response_data['technical_details'] = {
+            'priority_score': float(smart_recommendation.priority_score),
+            'confidence_score': float(smart_recommendation.confidence_score),
+            'recommendation_type': smart_recommendation.recommendation_type,
+            'current_price': float(smart_recommendation.current_price),
+            'target_price': float(smart_recommendation.target_price) if smart_recommendation.target_price else None,
+            'stop_loss': float(smart_recommendation.stop_loss) if smart_recommendation.stop_loss else None,
+            'key_factors': smart_recommendation.key_factors,
+            'risk_factors': smart_recommendation.risk_factors,
+            'reasoning': smart_recommendation.reasoning,
+        }
+    
+    return Response(response_data)
 
 
 # =============================================================================

@@ -100,3 +100,7 @@ holding = {
 - **Sector-specific thresholds**: Different rules per industry
 - **Advanced volatility calculation**: Historical price volatility
 - **Portfolio-level settings**: Override individual stock settings
+
+
+
+
