@@ -257,20 +257,29 @@ def portfolio_view(request):
 
 @login_required
 def update_portfolio_sell_weight(request):
-    """Update portfolio SellWeight setting"""
+    """Update portfolio Market Sentiment setting"""
     if request.method == 'POST':
         try:
             portfolio = get_object_or_404(Portfolio, user=request.user)
-            sell_weight = int(request.POST.get('sell_weight', 5))
+            sell_weight = Decimal(request.POST.get('sell_weight', '1.00'))
             
-            # Validate SellWeight range
-            if 1 <= sell_weight <= 10:
+            # Validate sell_weight is one of the allowed values
+            allowed_values = [Decimal('0.33'), Decimal('0.66'), Decimal('1.00'), Decimal('1.50'), Decimal('3.00')]
+            if sell_weight in allowed_values:
                 portfolio.sell_weight = sell_weight
                 portfolio.save()
                 
-                messages.success(request, f'SellWeight updated to {sell_weight}. This will affect how aggressively the system sells positions in your portfolio.')
+                # Get friendly label
+                labels = {
+                    Decimal('0.33'): 'Very Bullish',
+                    Decimal('0.66'): 'Bullish',
+                    Decimal('1.00'): 'Balanced',
+                    Decimal('1.50'): 'Bearish',
+                    Decimal('3.00'): 'Very Bearish',
+                }
+                messages.success(request, f'Market sentiment updated to {labels[sell_weight]}. This affects how the system balances BUY and SELL signals.')
             else:
-                messages.error(request, 'SellWeight must be between 1 and 10.')
+                messages.error(request, 'Invalid market sentiment value.')
                 
         except (ValueError, TypeError):
             messages.error(request, 'Invalid SellWeight value.')
@@ -568,20 +577,21 @@ def update_profile(request):
         
         risk_profile.save()
         
-        # Update Portfolio SellWeight
+        # Update Portfolio Market Sentiment
         if 'portfolio_sell_weight' in request.POST:
             try:
                 portfolio = get_object_or_404(Portfolio, user=request.user)
-                sell_weight = int(request.POST['portfolio_sell_weight'])
+                sell_weight = Decimal(request.POST['portfolio_sell_weight'])
                 
-                # Validate SellWeight range
-                if 1 <= sell_weight <= 10:
+                # Validate sell_weight is one of the allowed values
+                allowed_values = [Decimal('0.33'), Decimal('0.66'), Decimal('1.00'), Decimal('1.50'), Decimal('3.00')]
+                if sell_weight in allowed_values:
                     portfolio.sell_weight = sell_weight
                     portfolio.save()
                 else:
                     return JsonResponse({
                         'success': False,
-                        'error': 'SellWeight must be between 1 and 10.'
+                        'error': 'Invalid market sentiment value.'
                     })
             except (ValueError, TypeError):
                 return JsonResponse({

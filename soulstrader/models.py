@@ -213,10 +213,11 @@ class Portfolio(models.Model):
         ('MANUAL', 'Manual'),
     ])
     
-    # Sell aggressiveness setting
-    sell_weight = models.IntegerField(
-        default=5,
-        help_text="Portfolio-level sell aggressiveness (1=conservative, 10=aggressive). Overrides risk profile setting."
+    # Market sentiment preference (SellWeight)
+    sell_weight = models.DecimalField(
+        max_digits=4, decimal_places=2,
+        default=Decimal('1.00'),
+        help_text="Market sentiment preference: 0.33=Very Bullish, 0.66=Bullish, 1.0=Balanced, 1.5=Bearish, 3.0=Very Bearish. Overrides risk profile setting."
     )
     
     # Metadata
@@ -792,8 +793,8 @@ class RiskProfile(models.Model):
         help_text="Maximum percentage of portfolio value that can be invested in a single stock"
     )
     min_confidence_score = models.DecimalField(
-        max_digits=3, decimal_places=2, default=Decimal('0.70'),
-        help_text="Minimum confidence score threshold for recommendations"
+        max_digits=5, decimal_places=2, default=Decimal('2.00'),
+        help_text="Minimum confidence score threshold for recommendations (0-9 scale based on advisor consensus)"
     )
     cash_spend_percentage = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal('20.00'),
@@ -834,14 +835,15 @@ class RiskProfile(models.Model):
         help_text="Minimum market cap threshold in USD (micro-cap filter)"
     )
     
-    # Sell aggressiveness settings
-    sell_weight = models.IntegerField(
-        default=5,
-        help_text="Sell aggressiveness multiplier (1=conservative, 10=aggressive). Multiplies sell confidence scores."
+    # Market sentiment preference (SellWeight)
+    sell_weight = models.DecimalField(
+        max_digits=4, decimal_places=2,
+        default=Decimal('1.00'),
+        help_text="Market sentiment preference: 0.33=Very Bullish, 0.66=Bullish, 1.0=Balanced, 1.5=Bearish, 3.0=Very Bearish"
     )
     sell_hold_threshold = models.DecimalField(
-        max_digits=3, decimal_places=2, default=Decimal('0.30'),
-        help_text="Minimum adjusted confidence to consider HOLD as partial SELL"
+        max_digits=5, decimal_places=2, default=Decimal('1.50'),
+        help_text="Minimum adjusted confidence to generate SELL recommendation (0-9 scale)"
     )
     
     # Profit-taking settings

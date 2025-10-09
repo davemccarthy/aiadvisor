@@ -378,16 +378,15 @@ class SmartAnalysisService:
     
     def _get_or_create_risk_profile(self, user: User) -> RiskProfile:
         """Get or create risk profile for user"""
-        # Determine risk-based defaults for SellWeight
-        # For now, use moderate defaults - can be enhanced later with user risk tolerance
-        sell_weight_default = 5  # Moderate selling
-        sell_hold_threshold_default = Decimal('0.30')  # 30% threshold
+        # Determine risk-based defaults for SellWeight (new scale: 0.33 to 3.0)
+        sell_weight_default = Decimal('1.00')  # Balanced (no market bias)
+        sell_hold_threshold_default = Decimal('1.50')  # Threshold on 0-9 scale
         
         risk_profile, created = RiskProfile.objects.get_or_create(
             user=user,
             defaults={
                 'max_purchase_percentage': Decimal('5.00'),
-                'min_confidence_score': Decimal('0.70'),
+                'min_confidence_score': Decimal('2.00'),  # Updated for 0-9 scale
                 'cash_spend_percentage': Decimal('20.00'),
                 'cooldown_period_days': 7,
                 'max_rebuy_percentage': Decimal('50.00'),
@@ -684,8 +683,17 @@ class SmartAnalysisService:
         risk_profile: RiskProfile
     ) -> List[Dict]:
         """
-        Consolidate recommendations from multiple advisors and rank them
+        Consolidate recommendations from multiple advisors and rank them.
+        
+        Uses new bidirectional offset algorithm with sell_weight to balance
+        BUY and SELL signals before determining final recommendation.
         """
+        # Get portfolio to access sell_weight setting
+        portfolio = user.portfolio
+        
+        # Get effective sell_weight (portfolio-level overrides risk profile)
+        effective_sell_weight = portfolio.sell_weight if hasattr(portfolio, 'sell_weight') and portfolio.sell_weight else risk_profile.sell_weight
+        
         # Get real-time prices for all stocks in recommendations
         stock_symbols = list(set(rec.stock.symbol for rec in advisor_recommendations))
         realtime_prices = self._get_realtime_prices(stock_symbols)
@@ -701,12 +709,17 @@ class SmartAnalysisService:
         consolidated = []
         
         for symbol, recs in stock_recommendations.items():
-            # Calculate consolidated scores
-            priority_score = self._calculate_priority_score(recs)
-            confidence_score = self._calculate_confidence_score(recs)
+            # Calculate buy/sell confidence with bidirectional offset
+            buy_confidence, sell_confidence, rec_type = self._calculate_buy_sell_confidence(
+                recs, effective_sell_weight, portfolio
+            )
+            
+            # Use the winning confidence as the final confidence_score
+            confidence_score = max(buy_confidence, sell_confidence)
             
             # Filter by minimum confidence score
             if confidence_score < risk_profile.min_confidence_score:
+                logger.info(f"Filtering out {symbol}: confidence {confidence_score:.2f} below minimum {risk_profile.min_confidence_score}")
                 continue
             
             # Apply risk-based penny stock and micro-cap filters
@@ -728,11 +741,9 @@ class SmartAnalysisService:
             existing_holding = holdings.get(symbol)
             existing_shares = existing_holding.quantity if existing_holding else 0
             
-            # Determine recommendation type
-            rec_type = self._determine_recommendation_type(recs, existing_shares)
-            
             # Skip SELL recommendations for stocks not owned
             if rec_type == 'SELL' and existing_shares == 0:
+                logger.info(f"Skipping SELL recommendation for {symbol}: not owned")
                 continue
             
             # Use real-time price if available, otherwise fall back to cached price
@@ -742,11 +753,17 @@ class SmartAnalysisService:
             position_value = existing_shares * current_price if existing_shares > 0 else Decimal('0.00')
             position_percentage = (position_value / user.portfolio.total_value * Decimal('100')) if user.portfolio.total_value > 0 else Decimal('0.00')
             
+            # Calculate priority score for sorting
+            priority_score = self._calculate_priority_score(recs)
+            
             consolidated.append({
                 'stock': recs[0].stock,
                 'recommendation_type': rec_type,
                 'priority_score': priority_score,
                 'confidence_score': confidence_score,
+                'buy_confidence': buy_confidence,  # Store both for transparency
+                'sell_confidence': sell_confidence,
+                'effective_sell_weight': effective_sell_weight,
                 'existing_shares': existing_shares,
                 'position_value': position_value,
                 'position_percentage': position_percentage,
@@ -761,6 +778,8 @@ class SmartAnalysisService:
         
         # Sort by priority score (highest first)
         consolidated.sort(key=lambda x: x['priority_score'], reverse=True)
+        
+        logger.info(f"Consolidated {len(consolidated)} recommendations with SellWeight={effective_sell_weight}")
         
         return consolidated
     
@@ -795,64 +814,73 @@ class SmartAnalysisService:
             return (total_score / total_weight).quantize(Decimal('0.01'))
         return Decimal('0.00')
     
-    def _calculate_confidence_score(self, recommendations: List[AIAdvisorRecommendation]) -> Decimal:
+    def _calculate_buy_sell_confidence(
+        self, 
+        recommendations: List[AIAdvisorRecommendation],
+        sell_weight: Decimal,
+        portfolio: Portfolio
+    ) -> tuple[Decimal, Decimal, str]:
         """
-        Calculate confidence score with reduction for conflicting signals (Option 1)
+        Calculate separate buy and sell confidence scores with bidirectional offset.
         
-        Base confidence is the average of all recommendations.
-        Then reduce confidence based on conflicting signals:
-        - HOLD signals reduce confidence by 25%
-        - SELL signals reduce confidence by 35%
-        - STRONG_SELL signals reduce confidence by 50%
+        Returns: (buy_confidence, sell_confidence, primary_type)
+        
+        New algorithm:
+        1. Calculate total buy_confidence (sum of BUY/STRONG_BUY with 1.5x multiplier for STRONG)
+        2. Calculate total sell_confidence (sum of SELL/STRONG_SELL with 1.5x multiplier for STRONG)
+        3. Apply bidirectional offset with sell_weight
+        4. Determine final recommendation based on which confidence wins
+        
+        HOLD recommendations are ignored in the offset calculation.
         """
         if not recommendations:
-            return Decimal('0.00')
+            return Decimal('0.00'), Decimal('0.00'), 'HOLD'
         
-        # Calculate base confidence (average of all recommendations)
-        total_confidence = sum(rec.confidence_score for rec in recommendations)
-        base_confidence = Decimal(total_confidence) / Decimal(len(recommendations))
-        
-        # Determine the primary recommendation type (most common)
-        vote_counts = {'STRONG_BUY': 0, 'BUY': 0, 'HOLD': 0, 'SELL': 0, 'STRONG_SELL': 0}
-        for rec in recommendations:
-            vote_counts[rec.recommendation_type] += 1
-        
-        primary_type = max(vote_counts, key=vote_counts.get)
-        
-        # Apply confidence reduction for conflicting signals
-        adjusted_confidence = base_confidence
+        # Calculate raw buy and sell confidence totals
+        buy_confidence = Decimal('0.00')
+        sell_confidence = Decimal('0.00')
         
         for rec in recommendations:
-            if rec.recommendation_type != primary_type:
-                # Calculate reduction based on conflict type
-                if primary_type in ['STRONG_BUY', 'BUY']:
-                    # Primary is BUY, check for conflicts
-                    if rec.recommendation_type == 'HOLD':
-                        reduction = Decimal('0.25') * rec.confidence_score
-                        adjusted_confidence -= reduction
-                        logger.info(f"Confidence reduced by {reduction:.2f} for HOLD conflict (advisor: {rec.advisor.name})")
-                    elif rec.recommendation_type in ['SELL', 'STRONG_SELL']:
-                        reduction = Decimal('0.35') * rec.confidence_score if rec.recommendation_type == 'SELL' else Decimal('0.50') * rec.confidence_score
-                        adjusted_confidence -= reduction
-                        logger.info(f"Confidence reduced by {reduction:.2f} for {rec.recommendation_type} conflict (advisor: {rec.advisor.name})")
-                
-                elif primary_type in ['STRONG_SELL', 'SELL']:
-                    # Primary is SELL, check for conflicts
-                    if rec.recommendation_type == 'HOLD':
-                        reduction = Decimal('0.25') * rec.confidence_score
-                        adjusted_confidence -= reduction
-                        logger.info(f"Confidence reduced by {reduction:.2f} for HOLD conflict (advisor: {rec.advisor.name})")
-                    elif rec.recommendation_type in ['BUY', 'STRONG_BUY']:
-                        reduction = Decimal('0.35') * rec.confidence_score if rec.recommendation_type == 'BUY' else Decimal('0.50') * rec.confidence_score
-                        adjusted_confidence -= reduction
-                        logger.info(f"Confidence reduced by {reduction:.2f} for {rec.recommendation_type} conflict (advisor: {rec.advisor.name})")
+            confidence = Decimal(str(rec.confidence_score))
+            
+            if rec.recommendation_type == 'STRONG_BUY':
+                buy_confidence += confidence * Decimal('1.5')  # 1.5x multiplier for STRONG
+                logger.debug(f"{rec.advisor.name}: STRONG_BUY {confidence:.2f} → {confidence * Decimal('1.5'):.2f}")
+            elif rec.recommendation_type == 'BUY':
+                buy_confidence += confidence
+                logger.debug(f"{rec.advisor.name}: BUY {confidence:.2f}")
+            elif rec.recommendation_type == 'STRONG_SELL':
+                sell_confidence += confidence * Decimal('1.5')  # 1.5x multiplier for STRONG
+                logger.debug(f"{rec.advisor.name}: STRONG_SELL {confidence:.2f} → {confidence * Decimal('1.5'):.2f}")
+            elif rec.recommendation_type == 'SELL':
+                sell_confidence += confidence
+                logger.debug(f"{rec.advisor.name}: SELL {confidence:.2f}")
+            # HOLD recommendations are ignored
         
-        # Ensure confidence doesn't go below 0
-        final_confidence = max(adjusted_confidence, Decimal('0.00'))
+        logger.info(f"Raw confidence - BUY: {buy_confidence:.2f}, SELL: {sell_confidence:.2f}, SellWeight: {sell_weight}")
         
-        logger.info(f"Confidence calculation: Base={base_confidence:.2f}, Adjusted={final_confidence:.2f} (Primary: {primary_type})")
+        # Apply bidirectional offset with sell_weight
+        adjusted_buy = buy_confidence - (sell_confidence * sell_weight)
+        adjusted_sell = (sell_confidence * sell_weight) - buy_confidence
         
-        return final_confidence.quantize(Decimal('0.01'))
+        # Clamp to 0 (no negative confidence)
+        adjusted_buy = max(Decimal('0.00'), adjusted_buy)
+        adjusted_sell = max(Decimal('0.00'), adjusted_sell)
+        
+        # Determine primary recommendation type
+        if adjusted_buy > adjusted_sell:
+            primary_type = 'BUY'
+            final_confidence = adjusted_buy
+        elif adjusted_sell > adjusted_buy:
+            primary_type = 'SELL'
+            final_confidence = adjusted_sell
+        else:
+            primary_type = 'HOLD'
+            final_confidence = Decimal('0.00')
+        
+        logger.info(f"Adjusted confidence - BUY: {adjusted_buy:.2f}, SELL: {adjusted_sell:.2f} → {primary_type} @ {final_confidence:.2f}")
+        
+        return adjusted_buy.quantize(Decimal('0.01')), adjusted_sell.quantize(Decimal('0.01')), primary_type
     
     def _determine_recommendation_type(
         self, 
@@ -1010,53 +1038,42 @@ class SmartAnalysisService:
         risk_profile: RiskProfile
     ) -> List[Dict]:
         """
-        Apply the SellWeight-based selling algorithm.
-        This implements the new selling logic with SellWeight multiplier.
+        Apply the sell algorithm to calculate shares to sell.
+        
+        Note: Recommendation filtering and sell_weight offsetting is now done
+        in _consolidate_recommendations(). This method just calculates execution details.
         """
         sell_recommendations = []
         
-        # Filter to only SELL and HOLD recommendations for owned stocks
+        # Filter to only SELL recommendations for owned stocks (already filtered in consolidation)
         sell_candidates = [
             rec for rec in recommendations 
-            if rec['recommendation_type'] in ['SELL', 'HOLD'] and rec['existing_shares'] > 0
+            if rec['recommendation_type'] == 'SELL' and rec['existing_shares'] > 0
         ]
         
         if not sell_candidates:
             logger.info("No sell candidates found")
             return sell_recommendations
         
-        # Use portfolio-level SellWeight if set, otherwise use risk profile setting
-        effective_sell_weight = portfolio.sell_weight if hasattr(portfolio, 'sell_weight') and portfolio.sell_weight else risk_profile.sell_weight
-        
-        logger.info(f"Evaluating {len(sell_candidates)} sell candidates with SellWeight={effective_sell_weight} "
-                   f"(portfolio={portfolio.sell_weight if hasattr(portfolio, 'sell_weight') else 'N/A'}, "
-                   f"risk_profile={risk_profile.sell_weight})")
+        logger.info(f"Processing {len(sell_candidates)} SELL recommendations")
         
         for rec in sell_candidates:
             symbol = rec['stock'].symbol
             existing_shares = rec['existing_shares']
-            confidence_score = rec['confidence_score']
+            sell_confidence = rec.get('sell_confidence', rec['confidence_score'])
             
-            # Calculate adjusted confidence based on effective SellWeight
-            if rec['recommendation_type'] == 'SELL':
-                # For SELL recommendations: confidence * SellWeight
-                adjusted_confidence = confidence_score * effective_sell_weight
-            else:  # HOLD
-                # For HOLD recommendations: (confidence * 0.5) * SellWeight
-                adjusted_confidence = (confidence_score * Decimal('0.5')) * effective_sell_weight
-            
-            # Convert to 0-1 scale (SellWeight is 1-10, so divide by 10)
-            adjusted_confidence = min(adjusted_confidence / Decimal('10'), Decimal('1.0'))
-            
-            logger.info(f"{symbol}: {rec['recommendation_type']} confidence={confidence_score:.2f}, "
-                       f"adjusted={adjusted_confidence:.2f} (SellWeight={risk_profile.sell_weight})")
-            
-            # Check if adjusted confidence meets threshold
-            if adjusted_confidence >= risk_profile.sell_hold_threshold:
-                # Calculate sell percentage based on adjusted confidence
-                # Higher confidence = sell more shares
-                sell_percentage = min(adjusted_confidence, Decimal('1.0'))
+            # Check if confidence meets threshold
+            if sell_confidence >= risk_profile.sell_hold_threshold:
+                # Calculate sell percentage based on confidence
+                # Normalize confidence to 0-1 range for percentage calculation
+                # Assuming max possible confidence is ~9 (6 advisors * 1.5 multiplier)
+                normalized_confidence = min(sell_confidence / Decimal('9.0'), Decimal('1.0'))
+                sell_percentage = normalized_confidence
                 shares_to_sell = int(existing_shares * sell_percentage)
+                
+                # Ensure we sell at least some shares if confidence met threshold
+                if shares_to_sell == 0 and sell_confidence >= risk_profile.sell_hold_threshold:
+                    shares_to_sell = 1
                 
                 # Ensure we don't sell more than we own
                 shares_to_sell = min(shares_to_sell, existing_shares)
@@ -1068,26 +1085,22 @@ class SmartAnalysisService:
                     # Create sell recommendation
                     sell_rec = rec.copy()
                     sell_rec.update({
-                        'recommendation_type': 'SELL',
                         'shares_to_sell': shares_to_sell,
                         'cash_from_sale': cash_from_sale,
                         'sell_percentage': sell_percentage,
-                        'adjusted_confidence': adjusted_confidence,
-                        'original_confidence': confidence_score,
-                        'sell_weight_applied': effective_sell_weight,
-                        'reasoning': f"{rec['reasoning']}\n\n[SellWeight Analysis] Original {rec['recommendation_type']} confidence: {confidence_score:.2f}, Adjusted with SellWeight {effective_sell_weight}: {adjusted_confidence:.2f}, Selling {shares_to_sell} shares ({sell_percentage:.1%})"
+                        'reasoning': f"{rec['reasoning']}\n\n[SELL EXECUTION] Sell confidence: {sell_confidence:.2f}, "
+                                   f"Selling {shares_to_sell} shares ({sell_percentage:.1%}) = ${cash_from_sale:.2f}"
                     })
                     
                     sell_recommendations.append(sell_rec)
                     
-                    logger.info(f"✓ SELL recommendation for {symbol}: {shares_to_sell} shares "
-                               f"({sell_percentage:.1%}) - ${cash_from_sale:.2f}")
+                    logger.info(f"✓ SELL: {symbol} - {shares_to_sell} shares ({sell_percentage:.1%}) = ${cash_from_sale:.2f}")
                 else:
                     logger.info(f"✗ {symbol}: Calculated 0 shares to sell")
             else:
-                logger.info(f"✗ {symbol}: Adjusted confidence {adjusted_confidence:.2f} below threshold {risk_profile.sell_hold_threshold}")
+                logger.info(f"✗ {symbol}: Sell confidence {sell_confidence:.2f} below threshold {risk_profile.sell_hold_threshold}")
         
-        logger.info(f"Sell algorithm completed: {len(sell_recommendations)} sell recommendations generated")
+        logger.info(f"Sell algorithm completed: {len(sell_recommendations)} sell recommendations with execution details")
         return sell_recommendations
     
     def _check_profit_taking_opportunities(
@@ -1127,14 +1140,24 @@ class SmartAnalysisService:
                     # Higher gains = higher confidence to take profits
                     gain_confidence = min(recent_gain / Decimal('20.0'), Decimal('1.0'))  # Max confidence at 20% gain
                     
-                    # Apply SellWeight to profit-taking confidence
+                    # Apply sell_weight to profit-taking confidence
+                    # New scale: 0.33 (very bullish) to 3.0 (very bearish)
                     effective_sell_weight = portfolio.sell_weight if hasattr(portfolio, 'sell_weight') and portfolio.sell_weight else risk_profile.sell_weight
+                    
+                    # Amplify or reduce based on market sentiment
+                    # At 1.0 (balanced), confidence is unchanged
+                    # At 3.0 (very bearish), confidence is amplified 3x
+                    # At 0.33 (very bullish), confidence is reduced to 1/3
                     adjusted_confidence = gain_confidence * effective_sell_weight
-                    adjusted_confidence = min(adjusted_confidence / Decimal('10'), Decimal('1.0'))
+                    adjusted_confidence = min(adjusted_confidence, Decimal('1.0'))  # Cap at 100%
                     
                     # Calculate sell percentage based on confidence
                     sell_percentage = min(adjusted_confidence, Decimal('1.0'))
                     shares_to_sell = int(holding.quantity * sell_percentage)
+                    
+                    # Ensure we sell at least 1 share if confidence is meaningful
+                    if shares_to_sell == 0 and adjusted_confidence >= Decimal('0.10'):
+                        shares_to_sell = 1
                     
                     if shares_to_sell > 0:
                         cash_from_sale = shares_to_sell * holding.stock.current_price
