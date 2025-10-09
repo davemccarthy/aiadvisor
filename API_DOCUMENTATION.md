@@ -310,6 +310,7 @@ Get all trades with pagination support.
 **Authentication**: Required (Bearer token)  
 **Query Parameters**:
 - `page` (optional): Page number (default: 1)
+- `symbol` (optional): Filter by stock symbol (e.g., "AAPL")
 
 **Response** (200 OK):
 ```json
@@ -327,6 +328,101 @@ Get all trades with pagination support.
   ]
 }
 ```
+
+**cURL Example**:
+```bash
+# Get all trades with pagination
+curl http://127.0.0.1:8000/api/trades/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# Get all AAPL trades
+curl http://127.0.0.1:8000/api/trades/?symbol=AAPL \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+---
+
+### Get Trades for Specific Stock
+Get all trades for a specific stock symbol.
+
+**Endpoint**: `GET /api/trades/stock/{symbol}/`  
+**Authentication**: Required (Bearer token)  
+
+**Path Parameters**:
+- `symbol`: Stock symbol (e.g., "MSFT", "AAPL")
+
+**Response** (200 OK):
+```json
+{
+  "symbol": "MSFT",
+  "count": 2,
+  "trades": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "stock": {
+        "symbol": "MSFT",
+        "name": "Microsoft Corporation",
+        "logo_url": "/static/soulstrader/images/logos/MSFT.png",
+        "current_price": 523.98,
+        "fmp_grade": "A",
+        "currency": "USD"
+      },
+      "trade_type": "BUY",
+      "order_type": "MARKET",
+      "quantity": 10,
+      "price": 517.95,
+      "average_fill_price": 517.95,
+      "total_amount": "5179.50",
+      "commission": "0.00",
+      "status": "FILLED",
+      "trade_source": "SMART_ANALYSIS",
+      "executed_at": "2025-10-02T13:51:00Z",
+      "created_at": "2025-10-02T13:51:00Z",
+      "notes": ""
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "stock": {
+        "symbol": "MSFT",
+        "name": "Microsoft Corporation",
+        "logo_url": "/static/soulstrader/images/logos/MSFT.png",
+        "current_price": 523.98,
+        "fmp_grade": "A",
+        "currency": "USD"
+      },
+      "trade_type": "BUY",
+      "order_type": "MARKET",
+      "quantity": 11,
+      "price": 517.95,
+      "average_fill_price": 517.95,
+      "total_amount": "5697.45",
+      "commission": "0.00",
+      "status": "FILLED",
+      "trade_source": "SMART_ANALYSIS",
+      "executed_at": "2025-10-02T13:51:00Z",
+      "created_at": "2025-10-02T13:51:00Z",
+      "notes": ""
+    }
+  ]
+}
+```
+
+**cURL Example**:
+```bash
+# Get all MSFT trades
+curl http://127.0.0.1:8000/api/trades/stock/MSFT/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# Get all AAPL trades
+curl http://127.0.0.1:8000/api/trades/stock/AAPL/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**iOS Usage**:
+- Use this endpoint when user taps on a stock in their portfolio
+- Display trade history for that specific stock
+- Show why the stock was bought (trade_source, notes)
+- Calculate average purchase price across multiple buys
 
 ---
 

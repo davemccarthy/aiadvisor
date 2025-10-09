@@ -28,6 +28,7 @@ urlpatterns = [
     path('trades/', views.get_all_trades, name='all_trades'),
     path('trades/recent/', views.get_recent_trades, name='recent_trades'),
     path('trades/summary/', views.get_trade_summary, name='trade_summary'),
+    path('trades/stock/<str:symbol>/', views.get_stock_trades, name='stock_trades'),
     
     # =============================================================================
     # SMART ANALYSIS ENDPOINTS (iOS Tab 3: Analysis)

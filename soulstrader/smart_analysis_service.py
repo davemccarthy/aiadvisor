@@ -504,15 +504,12 @@ class SmartAnalysisService:
                 logger.info(f"Found {len(candidate_symbols)} market screening candidates: {candidate_symbols}")
                 return candidate_symbols
             else:
-                logger.warning("No market screening candidates found, falling back to hardcoded list")
+                logger.warning("No market screening candidates found - will rely on high-confidence BUY recommendations")
+                return []
                 
         except Exception as e:
-            logger.warning(f"Market screening failed: {e}, falling back to hardcoded list")
-        
-        # Fallback to hardcoded list if market screening fails
-        return [
-            'AAPL', 'MSFT', 'GOOGL', 'NVDA', 'TSLA', 'NFLX', 'DIS', 'BA'
-        ]
+            logger.warning(f"Market screening failed: {e} - will rely on high-confidence BUY recommendations")
+            return []
     
     def _get_sell_candidates(self, holdings: Dict[str, Holding]) -> List[str]:
         """Get sell candidates from current holdings"""
@@ -646,7 +643,7 @@ class SmartAnalysisService:
     
     def _get_realtime_prices(self, stock_symbols: List[str]) -> Dict[str, Decimal]:
         """
-        Fetch real-time prices from Yahoo Finance during analysis.
+        Fetch real-time prices from Yahoo Finance during analysis and update database.
         Returns a dictionary mapping stock symbols to their current prices.
         """
         realtime_prices = {}
@@ -658,13 +655,25 @@ class SmartAnalysisService:
                 from .yahoo_finance_service import YahooFinanceService
                 quote = YahooFinanceService.get_quote(symbol)
                 realtime_prices[symbol] = quote['price']
-                logger.info(f"Real-time price for {symbol}: ${quote['price']}")
+                
+                # Update the database with the fresh price
+                try:
+                    stock = Stock.objects.get(symbol=symbol)
+                    stock.current_price = quote['price']
+                    stock.previous_close = quote.get('previous_close')
+                    stock.day_change = quote.get('day_change')
+                    stock.day_change_percent = quote.get('day_change_percent')
+                    stock.save(update_fields=['current_price', 'previous_close', 'day_change', 'day_change_percent', 'last_updated'])
+                    logger.info(f"Updated {symbol} price in database: ${quote['price']}")
+                except Stock.DoesNotExist:
+                    logger.warning(f"Stock {symbol} not found in database for price update")
+                
             except Exception as e:
                 logger.warning(f"Failed to get real-time price for {symbol}: {e}")
                 # Continue without this price - will use cached price later
                 continue
         
-        logger.info(f"Successfully fetched {len(realtime_prices)} real-time prices")
+        logger.info(f"Successfully fetched and updated {len(realtime_prices)} real-time prices")
         return realtime_prices
 
     def _consolidate_recommendations(

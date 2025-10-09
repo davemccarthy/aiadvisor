@@ -150,6 +150,31 @@ def get_recent_trades(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def get_stock_trades(request, symbol):
+    """
+    Get all trades for a specific stock
+    GET /api/trades/stock/{symbol}/
+    
+    Returns all trades for the specified stock symbol
+    """
+    portfolio = get_object_or_404(Portfolio, user=request.user)
+    
+    # Get trades for this stock
+    trades = portfolio.trades.filter(
+        stock__symbol=symbol.upper()
+    ).select_related('stock').order_by('-created_at')
+    
+    serializer = TradeSerializer(trades, many=True)
+    
+    return Response({
+        'symbol': symbol.upper(),
+        'count': trades.count(),
+        'trades': serializer.data
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_trade_summary(request):
     """
     Get trade summary statistics for the user
@@ -198,9 +223,17 @@ def get_all_trades(request):
     """
     Get all trades with pagination
     GET /api/trades/
+    
+    Query Parameters:
+        symbol: Filter by stock symbol (optional)
     """
     portfolio = get_object_or_404(Portfolio, user=request.user)
     trades = portfolio.trades.select_related('stock').order_by('-created_at')
+    
+    # Filter by symbol if provided
+    symbol = request.query_params.get('symbol', None)
+    if symbol:
+        trades = trades.filter(stock__symbol=symbol.upper())
     
     # Use DRF pagination
     from rest_framework.pagination import PageNumberPagination
