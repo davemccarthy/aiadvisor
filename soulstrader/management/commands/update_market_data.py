@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from soulstrader.market_data_service import MarketDataManager
+from soulstrader.yahoo_finance_service import YahooMarketDataManager
 from soulstrader.models import Stock
 import logging
 
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Update market data from Alpha Vantage API'
+    help = 'Update market data from Yahoo Finance (free, unlimited)'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -56,6 +56,8 @@ class Command(BaseCommand):
         self.stdout.write(f'Searching for stocks with keywords: {keywords}')
         
         try:
+            # Note: Search functionality uses Alpha Vantage (has limits)
+            from soulstrader.market_data_service import MarketDataManager
             added_stocks = MarketDataManager.search_and_add_stock(keywords)
             
             if added_stocks:
@@ -86,7 +88,7 @@ class Command(BaseCommand):
         self.stdout.write(f'Updating {len(symbols)} active stocks...')
         
         try:
-            updated_stocks = MarketDataManager.update_multiple_stocks(symbols)
+            updated_stocks = YahooMarketDataManager.update_multiple_stocks(symbols)
             
             self.stdout.write(
                 self.style.SUCCESS(f'Successfully updated {len(updated_stocks)} stocks')
@@ -104,7 +106,7 @@ class Command(BaseCommand):
                 self.stdout.write('Updating historical price data...')
                 for stock in updated_stocks:
                     try:
-                        count = MarketDataManager.update_historical_prices(stock.symbol)
+                        count = YahooMarketDataManager.update_historical_prices(stock.symbol)
                         self.stdout.write(f'  - {stock.symbol}: {count} price records updated')
                     except Exception as e:
                         self.stdout.write(
@@ -120,7 +122,7 @@ class Command(BaseCommand):
         self.stdout.write(f'Updating {len(symbols)} stocks: {", ".join(symbols)}')
         
         try:
-            updated_stocks = MarketDataManager.update_multiple_stocks(symbols)
+            updated_stocks = YahooMarketDataManager.update_multiple_stocks(symbols)
             
             self.stdout.write(
                 self.style.SUCCESS(f'Successfully updated {len(updated_stocks)} stocks')
@@ -138,7 +140,7 @@ class Command(BaseCommand):
                 self.stdout.write('Updating historical price data...')
                 for stock in updated_stocks:
                     try:
-                        count = MarketDataManager.update_historical_prices(stock.symbol)
+                        count = YahooMarketDataManager.update_historical_prices(stock.symbol)
                         self.stdout.write(f'  - {stock.symbol}: {count} price records updated')
                     except Exception as e:
                         self.stdout.write(
