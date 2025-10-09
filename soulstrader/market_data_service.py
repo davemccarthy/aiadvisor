@@ -376,6 +376,11 @@ class MarketDataManager:
                 if delay and i < len(symbols) - 1:
                     time.sleep(AlphaVantageService.get_rate_limit_delay())
                     
+            except decimal.InvalidOperation as e:
+                logger.error(f"Decimal conversion error for {symbol}: {e}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
+                continue
             except Exception as e:
                 logger.error(f"Failed to update {symbol}: {e}")
                 continue
