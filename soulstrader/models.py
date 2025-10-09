@@ -134,7 +134,8 @@ class Stock(models.Model):
     current_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     previous_close = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     day_change = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    day_change_percent = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    day_change_percent = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, 
+        help_text="Day change percentage (increased to handle extreme moves like +10000%)")
     
     # Fundamental data
     pe_ratio = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
