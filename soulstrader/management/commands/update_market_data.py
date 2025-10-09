@@ -92,6 +92,13 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f'Successfully updated {len(updated_stocks)} stocks')
             )
             
+            # Show which stocks failed
+            failed_count = len(symbols) - len(updated_stocks)
+            if failed_count > 0:
+                self.stdout.write(
+                    self.style.WARNING(f'{failed_count} stocks failed to update')
+                )
+            
             # Update historical data if requested
             if include_historical:
                 self.stdout.write('Updating historical price data...')

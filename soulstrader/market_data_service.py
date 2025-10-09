@@ -7,6 +7,7 @@ import requests
 import json
 from datetime import datetime, date, timedelta
 from decimal import Decimal
+import decimal
 from django.conf import settings
 from django.utils import timezone
 from django.db import transaction
@@ -81,16 +82,23 @@ class AlphaVantageService:
         
         quote = data['Global Quote']
         
+        # Helper function to safely convert to Decimal
+        def safe_decimal(value, default='0'):
+            try:
+                return Decimal(str(value)) if value else Decimal(default)
+            except (ValueError, TypeError, decimal.InvalidOperation):
+                return Decimal(default)
+        
         return {
             'symbol': quote.get('01. symbol', symbol),
-            'open': Decimal(quote.get('02. open', '0')),
-            'high': Decimal(quote.get('03. high', '0')),
-            'low': Decimal(quote.get('04. low', '0')),
-            'price': Decimal(quote.get('05. price', '0')),
-            'volume': int(quote.get('06. volume', '0')),
+            'open': safe_decimal(quote.get('02. open')),
+            'high': safe_decimal(quote.get('03. high')),
+            'low': safe_decimal(quote.get('04. low')),
+            'price': safe_decimal(quote.get('05. price')),
+            'volume': int(quote.get('06. volume', '0') or '0'),
             'latest_trading_day': quote.get('07. latest trading day', ''),
-            'previous_close': Decimal(quote.get('08. previous close', '0')),
-            'change': Decimal(quote.get('09. change', '0')),
+            'previous_close': safe_decimal(quote.get('08. previous close')),
+            'change': safe_decimal(quote.get('09. change')),
             'change_percent': quote.get('10. change percent', '0%').replace('%', '')
         }
     
@@ -246,7 +254,17 @@ class MarketDataManager:
             stock.current_price = quote['price']
             stock.previous_close = quote['previous_close']
             stock.day_change = quote['change']
-            stock.day_change_percent = Decimal(quote['change_percent'])
+            
+            # Handle change_percent safely (could be 'N/A', None, or invalid)
+            try:
+                stock.day_change_percent = Decimal(str(quote['change_percent']))
+            except (ValueError, TypeError, decimal.InvalidOperation):
+                # Calculate manually if API value is invalid
+                if stock.previous_close and stock.previous_close > 0:
+                    stock.day_change_percent = (stock.day_change / stock.previous_close) * Decimal('100')
+                else:
+                    stock.day_change_percent = Decimal('0')
+            
             stock.last_updated = timezone.now()
             
             # Update name if we have it
