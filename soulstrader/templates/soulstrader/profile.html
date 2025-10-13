@@ -119,6 +119,11 @@
             <div style="font-size: 1.5rem; font-weight: bold; color: #ffc107; margin-bottom: 0.5rem;">{{ portfolio.total_value|floatformat:0 }}</div>
             <div style="color: #6c757d;">Total Value</div>
         </div>
+        <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #17a2b8; margin-bottom: 0.25rem;">${{ portfolio.safety_bank_balance|floatformat:0 }}</div>
+            <div style="color: #6c757d;">Bank Balance</div>
+            <div style="font-size: 0.85rem; color: #6c757d;">Current Save Rate: {{ current_bank_rate_percent }}%</div>
+        </div>
     </div>
 </div>
 
@@ -133,15 +138,47 @@
 
 <!-- Edit Profile Modal -->
 <div id="editProfileModal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
-        <div class="modal-header">
+    <div class="modal-content" style="max-width: 900px; width: 95vw; height: 95vh; display: flex; flex-direction: column;">
+        <div class="modal-header" style="flex-shrink: 0;">
             <h2 style="margin: 0; color: #333;">⚙️ Edit Profile Settings</h2>
             <span class="close" onclick="closeEditModal()">&times;</span>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 1.5rem;">
             <form id="profileEditForm">
                 {% csrf_token %}
                 
+                <!-- Safety Bank Settings -->
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="color: #667eea; margin-bottom: 1rem;">🏦 Safety Bank Settings</h3>
+                    <div style="padding: 1.5rem; background-color: #f8f9fa; border-radius: 8px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                            <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <label style="display: flex; align-items: center; gap: 0.75rem; font-weight: bold; font-size: 0.95rem;">
+                                    <input type="checkbox" name="safety_bank_enabled" {% if portfolio.safety_bank_enabled %}checked{% endif %} style="transform: scale(1.2);">
+                                    Enable Bank
+                                </label>
+                                <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Send a portion of SELL proceeds to Bank when in the green</p>
+                            </div>
+                            <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <label style="display: block; font-weight: bold; font-size: 0.95rem; margin-bottom: 0.5rem;">
+                                    Bank Divisor (taper speed)
+                                </label>
+                                <input type="number" name="bank_divisor" value="{{ portfolio.bank_divisor }}" min="2" max="50" step="1"
+                                       style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                                <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Higher = slower saving. Current rate floor: 1%.</p>
+                            </div>
+                            <div style="padding: 1rem; background-color: white; border-radius: 6px; border: 1px solid #e9ecef;">
+                                <label style="display: block; font-weight: bold; font-size: 0.95rem; margin-bottom: 0.5rem;">
+                                    Bank Rate Ceiling (%)
+                                </label>
+                                <input type="number" name="bank_rate_ceiling_percent" value="{{ portfolio.bank_rate_ceiling_percent }}" min="1" max="50" step="1"
+                                       style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                                <p style="font-size: 0.8rem; color: #6c757d; margin: 0.5rem 0 0 0;">Maximum of SELL proceeds that can go to Bank (Default: 20%).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Risk Level Configuration -->
                 <div style="margin-bottom: 2rem;">
                     <h3 style="color: #667eea; margin-bottom: 1rem;">🎯 Risk Level Configuration</h3>
@@ -330,24 +367,26 @@
                     </div>
                 </div>
 
-                <!-- Modal Actions -->
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
-                    <button type="submit" class="btn" style="background-color: #28a745;">Save Changes</button>
-                </div>
             </form>
+        </div>
+        <!-- Modal Actions - Fixed Footer -->
+        <div class="modal-footer" style="flex-shrink: 0; padding: 1.5rem; border-top: 1px solid #e9ecef; background-color: #f8f9fa;">
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" form="profileEditForm" class="btn" style="background-color: #28a745;">Save Changes</button>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Edit Account Modal -->
 <div id="editAccountModal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 600px; max-height: 90vh;">
-        <div class="modal-header">
+    <div class="modal-content" style="max-width: 700px; width: 95vw; height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-header" style="flex-shrink: 0;">
             <h2 style="margin: 0; color: #333;">👤 Edit Account Settings</h2>
             <span class="close" onclick="closeAccountModal()">&times;</span>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 1.5rem;">
             <form id="accountEditForm">
                 {% csrf_token %}
                 
@@ -435,12 +474,14 @@
                     </div>
                 </div>
 
-                <!-- Modal Actions -->
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn btn-secondary" onclick="closeAccountModal()">Cancel</button>
-                    <button type="submit" class="btn" style="background-color: #28a745;">Save Changes</button>
-                </div>
             </form>
+        </div>
+        <!-- Modal Actions - Fixed Footer -->
+        <div class="modal-footer" style="flex-shrink: 0; padding: 1.5rem; border-top: 1px solid #e9ecef; background-color: #f8f9fa;">
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeAccountModal()">Cancel</button>
+                <button type="submit" form="accountEditForm" class="btn" style="background-color: #28a745;">Save Changes</button>
+            </div>
         </div>
     </div>
 </div>
@@ -478,8 +519,27 @@
 
 .modal-body {
     padding: 1.5rem;
-    max-height: 80vh;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #667eea #f8f9fa;
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #5a67d8;
 }
 
 .close {

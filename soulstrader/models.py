@@ -157,6 +157,18 @@ class Stock(models.Model):
     analyst_rating_sell = models.IntegerField(default=0)
     analyst_rating_strong_sell = models.IntegerField(default=0)
     
+    # Discovery tracking
+    discovery_source = models.CharField(
+        max_length=50, 
+        blank=True, 
+        help_text="Source that discovered this stock (alpha_vantage, yahoo_finance, fmp, manual, etc.)"
+    )
+    discovery_method = models.CharField(
+        max_length=100, 
+        blank=True, 
+        help_text="Specific method used (most_active, undervalued_growth, top_gainers, etc.)"
+    )
+    
     # Metadata
     is_active = models.BooleanField(default=True)
     last_updated = models.DateTimeField(auto_now=True)
@@ -204,6 +216,17 @@ class Portfolio(models.Model):
     current_capital = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('100000.00'))
     total_invested = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     
+    # Safety Bank (protected reserve)
+    safety_bank_enabled = models.BooleanField(default=False)
+    safety_bank_balance = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    bank_divisor = models.IntegerField(default=10, help_text="Divisor controlling taper rate; higher = slower saving")
+    bank_rate_ceiling_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('20.00'),
+        help_text="Maximum allocation rate (%) of net SELL proceeds to Bank"
+    )
+    
     # Portfolio settings
     is_active = models.BooleanField(default=True)
     auto_rebalance = models.BooleanField(default=False)
@@ -232,7 +255,7 @@ class Portfolio(models.Model):
     def total_value(self):
         """Calculate total portfolio value (cash + holdings)"""
         holdings_value = sum(holding.current_value for holding in self.holdings.all())
-        return self.current_capital + holdings_value
+        return self.current_capital + holdings_value + self.safety_bank_balance
     
     @property
     def total_return(self):
@@ -399,6 +422,20 @@ class Trade(models.Model):
             # For pending orders, calculate based on order price and quantity
             self.total_amount = self.quantity * self.price
         super().save(*args, **kwargs)
+
+
+class BankAllocation(models.Model):
+    """Audit trail for Safety Bank allocations from SELL proceeds"""
+    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='bank_allocations')
+    trade = models.ForeignKey(Trade, on_delete=models.CASCADE, related_name='bank_allocation', null=True, blank=True)
+    allocated_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    proceeds_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    allocation_rate_percent = models.DecimalField(max_digits=5, decimal_places=2)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
 
 class OrderBook(models.Model):
@@ -794,8 +831,8 @@ class RiskProfile(models.Model):
         help_text="Maximum percentage of portfolio value that can be invested in a single stock"
     )
     min_confidence_score = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal('2.00'),
-        help_text="Minimum confidence score threshold for recommendations (0-9 scale based on advisor consensus)"
+        max_digits=5, decimal_places=2, default=Decimal('0.60'),
+        help_text="Minimum confidence score threshold for recommendations (0-1 scale based on average advisor consensus)"
     )
     cash_spend_percentage = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal('20.00'),

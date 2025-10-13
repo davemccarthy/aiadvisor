@@ -90,6 +90,7 @@ def get_portfolio_holdings(request):
     portfolio_summary = {
         'total_value': portfolio.total_value,
         'available_cash': portfolio.current_capital,
+        'bank_balance': float(getattr(portfolio, 'safety_bank_balance', Decimal('0.00'))),
         'total_invested': total_invested,
         'total_current_value': total_current_value,
         'total_unrealized_pnl': total_unrealized_pnl,
@@ -197,15 +198,17 @@ def get_trade_summary(request):
     # Get total shares across all holdings (current positions)
     total_shares = sum(holding.quantity for holding in holdings)
     
-    # Get available cash from portfolio
+    # Get available cash and bank balance from portfolio
     available_cash = float(portfolio.current_capital)
+    bank_balance = float(getattr(portfolio, 'safety_bank_balance', Decimal('0.00')))
     
-    # Calculate total value (current value + available cash)
-    total_value = total_current_value + available_cash
+    # Calculate total value (current value + available cash + bank balance)
+    total_value = total_current_value + available_cash + bank_balance
     
     summary_data = {
         'total_value': float(total_value),
         'available_cash': float(available_cash),
+        'bank_balance': bank_balance,
         'total_invested': float(total_invested),
         'total_current_value': float(total_current_value),
         'total_unrealized_pnl': float(total_unrealized_pnl),

@@ -10,22 +10,26 @@
     <!-- Portfolio Summary -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-number">${{ portfolio.total_value|floatformat:2 }}</div>
-            <div class="stat-label">Total Portfolio Value</div>
+            <div class="stat-number small">${{ portfolio.total_value|floatformat:2 }}</div>
+            <div class="stat-label caps">Portfolio</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number {% if portfolio.total_return >= 0 %}positive{% else %}negative{% endif %}">
+            <div class="stat-number small {% if portfolio.total_return >= 0 %}positive{% else %}negative{% endif %}">
                 {{ portfolio.total_return|floatformat:2 }}%
             </div>
-            <div class="stat-label">Total Return</div>
+            <div class="stat-label caps">Return</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">${{ portfolio.current_capital|floatformat:2 }}</div>
-            <div class="stat-label">Available Cash</div>
+            <div class="stat-number small">${{ portfolio.current_capital|floatformat:2 }}</div>
+            <div class="stat-label caps">Cash</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">${{ total_invested|floatformat:2 }}</div>
-            <div class="stat-label">Total Invested</div>
+            <div class="stat-number small">${{ total_invested|floatformat:2 }}</div>
+            <div class="stat-label caps">Invested</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number small">${{ portfolio.safety_bank_balance|floatformat:2 }}</div>
+            <div class="stat-label caps">Bank</div>
         </div>
     </div>
 </div>

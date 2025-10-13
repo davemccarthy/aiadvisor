@@ -116,7 +116,7 @@ def register(request):
                 risk_profile_settings = {
                     'CONSERVATIVE': {
                         'max_purchase_percentage': Decimal('3.00'),
-                        'min_confidence_score': Decimal('0.80'),
+                        'min_confidence_score': Decimal('0.60'),
                         'cash_spend_percentage': Decimal('10.00'),
                         'min_stock_price': Decimal('10.00'),
                         'min_market_cap': 500_000_000,
@@ -125,7 +125,7 @@ def register(request):
                     },
                     'MODERATE': {
                         'max_purchase_percentage': Decimal('5.00'),
-                        'min_confidence_score': Decimal('0.70'),
+                        'min_confidence_score': Decimal('0.60'),
                         'cash_spend_percentage': Decimal('20.00'),
                         'min_stock_price': Decimal('5.00'),
                         'min_market_cap': 100_000_000,
@@ -375,7 +375,7 @@ def recommendations_view(request):
             user=request.user,
             defaults={
                 'max_purchase_percentage': Decimal('5.00'),
-                'min_confidence_score': Decimal('0.70'),
+                'min_confidence_score': Decimal('0.60'),
                 'cash_spend_percentage': Decimal('20.00'),
             }
         )
@@ -458,7 +458,7 @@ def profile_view(request):
         user=request.user,
         defaults={
             'max_purchase_percentage': Decimal('5.00'),
-            'min_confidence_score': Decimal('0.70'),
+            'min_confidence_score': Decimal('0.60'),
             'cash_spend_percentage': Decimal('20.00'),
             'cooldown_period_days': 7,
             'max_rebuy_percentage': Decimal('50.00'),
@@ -473,6 +473,26 @@ def profile_view(request):
     # Get user's portfolio
     portfolio = get_object_or_404(Portfolio, user=request.user)
     
+    # Compute current Safety Bank rate for display
+    try:
+        initial_investment = portfolio.initial_capital or Decimal('0.00')
+        bank_balance = getattr(portfolio, 'safety_bank_balance', Decimal('0.00'))
+        bank_divisor = getattr(portfolio, 'bank_divisor', 10)
+        ceiling_percent = getattr(portfolio, 'bank_rate_ceiling_percent', Decimal('20.00'))
+        if initial_investment > 0:
+            vacancy = Decimal('1.00') - (bank_balance / initial_investment)
+            if vacancy < 0:
+                vacancy = Decimal('0.00')
+        else:
+            vacancy = Decimal('1.00')
+        raw_rate = (vacancy / Decimal(str(bank_divisor))) if bank_divisor else Decimal('0.00')
+        floor_rate = Decimal('0.01')
+        ceiling_rate = (Decimal(str(ceiling_percent)) / Decimal('100')) if ceiling_percent else Decimal('1.00')
+        display_rate = max(floor_rate, min(raw_rate, ceiling_rate))
+        current_bank_rate_percent = (display_rate * Decimal('100')).quantize(Decimal('0.01'))
+    except Exception:
+        current_bank_rate_percent = Decimal('1.00')
+    
     # Get risk assessment if exists
     try:
         risk_assessment = request.user.risk_assessment
@@ -485,6 +505,7 @@ def profile_view(request):
         'portfolio': portfolio,
         'risk_assessment': risk_assessment,
         'current_page': 'profile',
+        'current_bank_rate_percent': current_bank_rate_percent,
     }
     
     return render(request, 'soulstrader/profile.html', context)
@@ -510,7 +531,7 @@ def update_profile(request):
             user=request.user,
             defaults={
                 'max_purchase_percentage': Decimal('5.00'),
-                'min_confidence_score': Decimal('0.70'),
+                'min_confidence_score': Decimal('0.60'),
                 'cash_spend_percentage': Decimal('20.00'),
                 'cooldown_period_days': 7,
                 'max_rebuy_percentage': Decimal('50.00'),
@@ -577,7 +598,7 @@ def update_profile(request):
         
         risk_profile.save()
         
-        # Update Portfolio Market Sentiment
+        # Update Portfolio Market Sentiment and Safety Bank settings
         if 'portfolio_sell_weight' in request.POST:
             try:
                 portfolio = get_object_or_404(Portfolio, user=request.user)
@@ -587,12 +608,36 @@ def update_profile(request):
                 allowed_values = [Decimal('0.33'), Decimal('0.66'), Decimal('1.00'), Decimal('1.50'), Decimal('3.00')]
                 if sell_weight in allowed_values:
                     portfolio.sell_weight = sell_weight
-                    portfolio.save()
                 else:
                     return JsonResponse({
                         'success': False,
                         'error': 'Invalid market sentiment value.'
                     })
+                
+                # Safety Bank toggle
+                portfolio.safety_bank_enabled = 'safety_bank_enabled' in request.POST
+                
+                # Bank divisor
+                if 'bank_divisor' in request.POST:
+                    try:
+                        bank_divisor = int(request.POST['bank_divisor'])
+                        if bank_divisor <= 0:
+                            return JsonResponse({'success': False, 'error': 'Bank divisor must be > 0'})
+                        portfolio.bank_divisor = bank_divisor
+                    except ValueError:
+                        return JsonResponse({'success': False, 'error': 'Invalid bank divisor'})
+                
+                # Ceiling percent
+                if 'bank_rate_ceiling_percent' in request.POST:
+                    try:
+                        ceiling = Decimal(request.POST['bank_rate_ceiling_percent'])
+                        if ceiling < 1 or ceiling > 50:
+                            return JsonResponse({'success': False, 'error': 'Ceiling must be between 1 and 50'})
+                        portfolio.bank_rate_ceiling_percent = ceiling
+                    except Exception:
+                        return JsonResponse({'success': False, 'error': 'Invalid ceiling percent'})
+                
+                portfolio.save()
             except (ValueError, TypeError):
                 return JsonResponse({
                     'success': False,
@@ -1436,7 +1481,7 @@ def smart_analysis_view(request):
                 user=request.user,
                 defaults={
                     'max_purchase_percentage': Decimal('5.00'),
-                    'min_confidence_score': Decimal('0.70'),
+                    'min_confidence_score': Decimal('0.60'),
                     'cash_spend_percentage': Decimal('20.00'),
                 }
             )

@@ -57,17 +57,25 @@ class PortfolioSummarySerializer(serializers.ModelSerializer):
     total_return = serializers.FloatField(read_only=True)
     total_return_percent = serializers.FloatField(read_only=True)
     holdings_count = serializers.SerializerMethodField()
+    bank_balance = serializers.SerializerMethodField()
     
     class Meta:
         model = Portfolio
         fields = [
             'id', 'name', 'initial_capital', 'current_capital',
             'total_value', 'total_invested', 'total_return', 
-            'total_return_percent', 'holdings_count', 'created_at'
+            'total_return_percent', 'holdings_count', 'created_at',
+            'bank_balance'
         ]
     
     def get_holdings_count(self, obj):
         return obj.holdings.count()
+
+    def get_bank_balance(self, obj):
+        try:
+            return float(getattr(obj, 'safety_bank_balance', 0))
+        except Exception:
+            return 0.0
 
 
 class TradeSerializer(serializers.ModelSerializer):

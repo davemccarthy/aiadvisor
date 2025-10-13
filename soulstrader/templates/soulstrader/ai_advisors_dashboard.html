@@ -10,20 +10,20 @@
     <!-- AI Advisor Summary -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-number">{{ active_advisors }}</div>
-            <div class="stat-label">Active Advisors</div>
+            <div class="stat-number small">{{ active_advisors }}</div>
+            <div class="stat-label caps">Advisors</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">{{ total_recommendations }}</div>
-            <div class="stat-label">Total Recommendations</div>
+            <div class="stat-number small">{{ total_recommendations }}</div>
+            <div class="stat-label caps">Recommendations</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">{{ overall_success_rate|floatformat:1 }}%</div>
-            <div class="stat-label">Success Rate</div>
+            <div class="stat-number small">{{ overall_success_rate|floatformat:1 }}%</div>
+            <div class="stat-label caps">Success</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">{{ recent_consensus|length }}</div>
-            <div class="stat-label">Recent Consensus</div>
+            <div class="stat-number small">{{ recent_consensus|length }}</div>
+            <div class="stat-label caps">Consensus</div>
         </div>
     </div>
 </div>

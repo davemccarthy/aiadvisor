@@ -270,9 +270,9 @@ class GeminiAdvisor(BaseAIAdvisor):
             return None
         
         try:
-            # Configure Gemini
+            # Configure Gemini with the advanced 2.5 Pro model
             genai.configure(api_key=self.advisor.api_key)
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-2.5-pro')
             
             # Get current stock data
             from .yahoo_finance_service import YahooFinanceService
@@ -331,7 +331,8 @@ class GeminiAdvisor(BaseAIAdvisor):
             recent_change = 0
         
         prompt = f"""
-Analyze {stock.symbol} ({company_info.get('name', stock.name)}) and provide an investment recommendation.
+You are an expert financial analyst with access to Gemini 2.5 Pro's advanced predictive capabilities. 
+Analyze {stock.symbol} ({company_info.get('name', stock.name)}) and provide a forward-looking investment recommendation.
 
 Current Stock Information:
 - Symbol: {stock.symbol}
@@ -345,13 +346,20 @@ Company Overview:
 - Industry: {company_info.get('industry', 'N/A')}
 - Description: {company_info.get('description', 'N/A')[:500]}
 
+Using your advanced predictive capabilities, analyze:
+1. **Price Direction Prediction**: Where do you predict the stock price will move in the next 1-3 months?
+2. **Fundamental Analysis**: P/E ratios, growth prospects, competitive position
+3. **Technical Analysis**: Price patterns, support/resistance levels, momentum indicators
+4. **Market Sentiment**: Sector trends, macroeconomic factors, investor sentiment
+5. **Risk Assessment**: Downside risks and volatility factors
+
 Please provide your analysis in this exact format:
 
 RECOMMENDATION: [STRONG_BUY/BUY/HOLD/SELL/STRONG_SELL]
 CONFIDENCE: [LOW/MEDIUM/HIGH/VERY_HIGH]
 CONFIDENCE_SCORE: [0.0-1.0]
-TARGET_PRICE: $[price or N/A]
-STOP_LOSS: $[price or N/A]
+TARGET_PRICE: $[predicted price or N/A]
+STOP_LOSS: $[risk management price or N/A]
 
 KEY_FACTORS:
 - [Factor 1]
@@ -364,9 +372,9 @@ RISK_FACTORS:
 - [Risk 3]
 
 REASONING:
-[Detailed analysis explaining your recommendation]
+[Detailed forward-looking analysis explaining your prediction and recommendation]
 
-Focus on fundamental analysis, technical indicators, market conditions, and company-specific factors.
+Focus on predictive analysis, future price movements, and actionable investment insights.
 """
         return prompt
     

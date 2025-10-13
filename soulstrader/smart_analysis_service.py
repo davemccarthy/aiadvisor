@@ -112,7 +112,9 @@ class SmartAnalysisService:
                 try:
                     stock = Stock.objects.get(symbol=symbol)
                 except Stock.DoesNotExist:
-                    stock = self._create_stock_from_market_screening(symbol)
+                    # Determine discovery source based on where symbol came from
+                    discovery_source, discovery_method = self._determine_discovery_source(symbol)
+                    stock = self._create_stock_from_market_screening(symbol, discovery_source, discovery_method)
                     if not stock:
                         logger.warning(f"Failed to create stock {symbol}, skipping")
                         continue
@@ -131,6 +133,26 @@ class SmartAnalysisService:
             except Exception as e:
                 logger.error(f"Error analyzing stock {symbol}: {str(e)}")
                 continue
+    
+    def _determine_discovery_source(self, symbol: str) -> tuple[str, str]:
+        """Determine which discovery method found this symbol"""
+        try:
+            # Check Alpha Vantage sources
+            alpha_vantage_symbols = self._get_alpha_vantage_candidates()
+            if symbol in alpha_vantage_symbols:
+                return "alpha_vantage", "market_movers"
+            
+            # Check Yahoo Finance sources
+            yahoo_symbols = self._get_yahoo_finance_candidates()
+            if symbol in yahoo_symbols:
+                return "yahoo_finance", "screener"
+            
+            # Default fallback
+            return "unknown", "unknown"
+            
+        except Exception as e:
+            logger.warning(f"Could not determine discovery source for {symbol}: {e}")
+            return "unknown", "unknown"
     
     def _has_recent_recommendations(self, symbol: str) -> bool:
         """
@@ -474,40 +496,64 @@ class SmartAnalysisService:
         return list(ticker_list), candidate_info
     
     def _get_best_buy_candidates(self) -> List[str]:
-        """Get best buy candidates from market screening"""
+        """Get best buy candidates using multiple discovery methods"""
+        all_symbols = set()
+        
+        # Method 1: Alpha Vantage Market Movers (existing, reliable)
+        alpha_vantage_symbols = self._get_alpha_vantage_candidates()
+        all_symbols.update(alpha_vantage_symbols)
+        
+        # Method 2: Yahoo Finance Screener (new, higher quality)
+        yahoo_symbols = self._get_yahoo_finance_candidates()
+        all_symbols.update(yahoo_symbols)
+        
+        # Convert to list and limit
+        candidate_symbols = list(all_symbols)[:20]
+        
+        if candidate_symbols:
+            logger.info(f"Found {len(candidate_symbols)} total candidates: {candidate_symbols}")
+            logger.info(f"Alpha Vantage: {len(alpha_vantage_symbols)}, Yahoo Finance: {len(yahoo_symbols)}")
+            return candidate_symbols
+        else:
+            logger.warning("No candidates found from any source")
+            return []
+    
+    def _get_alpha_vantage_candidates(self) -> List[str]:
+        """Get candidates from Alpha Vantage market screening"""
         try:
             from .market_screening_service import MarketScreeningService
             
-            # Try to get real market movers from Alpha Vantage
             screening_service = MarketScreeningService()
             
             # Get top gainers and most active stocks
-            top_gainers = screening_service.get_top_gainers(limit=10)
-            most_active = screening_service.get_most_active(limit=10)
+            top_gainers = screening_service.get_top_gainers(limit=8)
+            most_active = screening_service.get_most_active(limit=7)
             
-            # Extract symbols from the market data
             symbols = set()
-            
-            for stock in top_gainers:
+            for stock in top_gainers + most_active:
                 if 'ticker' in stock:
                     symbols.add(stock['ticker'])
             
-            for stock in most_active:
-                if 'ticker' in stock:
-                    symbols.add(stock['ticker'])
-            
-            # Convert to list and limit to reasonable number
-            candidate_symbols = list(symbols)[:15]
-            
-            if candidate_symbols:
-                logger.info(f"Found {len(candidate_symbols)} market screening candidates: {candidate_symbols}")
-                return candidate_symbols
-            else:
-                logger.warning("No market screening candidates found - will rely on high-confidence BUY recommendations")
-                return []
+            logger.info(f"Alpha Vantage found {len(symbols)} candidates")
+            return list(symbols)
                 
         except Exception as e:
-            logger.warning(f"Market screening failed: {e} - will rely on high-confidence BUY recommendations")
+            logger.warning(f"Alpha Vantage market screening failed: {e}")
+            return []
+    
+    def _get_yahoo_finance_candidates(self) -> List[str]:
+        """Get candidates from Yahoo Finance screener"""
+        try:
+            from .yahoo_finance_discovery_service import YahooFinanceDiscoveryService
+            
+            discovery_service = YahooFinanceDiscoveryService()
+            symbols = discovery_service.discover_stocks(limit=12)
+            
+            logger.info(f"Yahoo Finance found {len(symbols)} candidates")
+            return symbols
+                
+        except Exception as e:
+            logger.warning(f"Yahoo Finance discovery failed: {e}")
             return []
     
     def _get_sell_candidates(self, holdings: Dict[str, Holding]) -> List[str]:
@@ -518,37 +564,37 @@ class SmartAnalysisService:
     
     def _get_high_confidence_buy_candidates(self) -> List[str]:
         """
-        Get stocks with high-confidence BUY recommendations for alternative stock discovery.
-        This helps find quality stocks like NVO that have consistent BUY signals
-        but may not be in current market screening.
+        Get additional Alpha Vantage market screening candidates for stock discovery.
+        This method now only uses Alpha Vantage data to avoid contagion from other users' recommendations.
         """
-        from .models import AIAdvisorRecommendation, Stock
-        from django.utils import timezone
-        from datetime import timedelta
-        
         try:
-            # Look for recent BUY recommendations with high confidence (>= 0.7)
-            # from the last 7 days to ensure they're still relevant
-            cutoff_date = timezone.now() - timedelta(days=7)
+            from .market_screening_service import MarketScreeningService
             
-            high_confidence_buys = AIAdvisorRecommendation.objects.filter(
-                recommendation_type='BUY',
-                confidence_score__gte=0.7,
-                created_at__gte=cutoff_date
-            ).values_list('stock__symbol', flat=True).distinct()
+            # Get additional market movers from Alpha Vantage (top losers for contrarian opportunities)
+            screening_service = MarketScreeningService()
             
-            # Convert to list and limit to top 15 to avoid overwhelming the system
-            candidate_symbols = list(high_confidence_buys)[:15]
+            # Get top losers for contrarian opportunities (additional 10 stocks)
+            top_losers = screening_service.get_top_losers(limit=10)
+            
+            # Extract symbols from the market data
+            symbols = set()
+            
+            for stock in top_losers:
+                if 'ticker' in stock:
+                    symbols.add(stock['ticker'])
+            
+            # Convert to list and limit to reasonable number
+            candidate_symbols = list(symbols)[:10]
             
             if candidate_symbols:
-                logger.info(f"Found {len(candidate_symbols)} high-confidence BUY candidates: {candidate_symbols}")
+                logger.info(f"Found {len(candidate_symbols)} additional Alpha Vantage candidates (top losers): {candidate_symbols}")
                 return candidate_symbols
             else:
-                logger.info("No high-confidence BUY candidates found in recent recommendations")
+                logger.info("No additional Alpha Vantage candidates found")
                 return []
                 
         except Exception as e:
-            logger.warning(f"Failed to get high-confidence BUY candidates: {e}")
+            logger.warning(f"Failed to get additional Alpha Vantage candidates: {e}")
             return []
     
     def _get_advisor_recommendations(self, ticker_list: List[str]) -> List[AIAdvisorRecommendation]:
@@ -583,7 +629,7 @@ class SmartAnalysisService:
         
         return recommendations
     
-    def _create_stock_from_market_screening(self, symbol: str) -> Optional[Stock]:
+    def _create_stock_from_market_screening(self, symbol: str, discovery_source: str = "unknown", discovery_method: str = "unknown") -> Optional[Stock]:
         """Create a new stock from market screening data"""
         try:
             # First, validate that Yahoo Finance recognizes this symbol
@@ -596,7 +642,9 @@ class SmartAnalysisService:
                 symbol=symbol,
                 name=f"{symbol} Corporation",
                 sector="Unknown",
-                market_cap_category="Unknown"
+                market_cap_category="Unknown",
+                discovery_source=discovery_source,
+                discovery_method=discovery_method
             )
             
             # Try to get additional info from Yahoo Finance
@@ -683,17 +731,14 @@ class SmartAnalysisService:
         risk_profile: RiskProfile
     ) -> List[Dict]:
         """
-        Consolidate recommendations from multiple advisors and rank them.
+        Consolidate recommendations using two-pass analysis with HOLD range logic.
         
-        Uses new bidirectional offset algorithm with sell_weight to balance
-        BUY and SELL signals before determining final recommendation.
+        Pass 1: Analyze current holdings for SELL opportunities
+        Pass 2: Analyze new opportunities + remaining holdings for BUY opportunities
+        
+        Uses average confidence scores and HOLD range thresholds based on 
+        Market Sentiment + Risk Level.
         """
-        # Get portfolio to access sell_weight setting
-        portfolio = user.portfolio
-        
-        # Get effective sell_weight (portfolio-level overrides risk profile)
-        effective_sell_weight = portfolio.sell_weight if hasattr(portfolio, 'sell_weight') and portfolio.sell_weight else risk_profile.sell_weight
-        
         # Get real-time prices for all stocks in recommendations
         stock_symbols = list(set(rec.stock.symbol for rec in advisor_recommendations))
         realtime_prices = self._get_realtime_prices(stock_symbols)
@@ -706,82 +751,143 @@ class SmartAnalysisService:
                 stock_recommendations[symbol] = []
             stock_recommendations[symbol].append(rec)
         
+        # Separate current holdings from new opportunities
+        current_holdings = {symbol: recs for symbol, recs in stock_recommendations.items() 
+                          if symbol in holdings and holdings[symbol].quantity > 0}
+        new_opportunities = {symbol: recs for symbol, recs in stock_recommendations.items() 
+                           if symbol not in holdings or holdings[symbol].quantity == 0}
+        
         consolidated = []
         
-        for symbol, recs in stock_recommendations.items():
-            # Calculate buy/sell confidence with bidirectional offset
-            buy_confidence, sell_confidence, rec_type = self._calculate_buy_sell_confidence(
-                recs, effective_sell_weight, portfolio
+        # Pass 1: SELL Analysis (current holdings only)
+        logger.info(f"Pass 1: Analyzing {len(current_holdings)} current holdings for SELL opportunities")
+        for symbol, recs in current_holdings.items():
+            recommendation = self._analyze_stock_recommendation(
+                symbol, recs, holdings, risk_profile, realtime_prices, user, pass_type='SELL'
             )
-            
-            # Use the winning confidence as the final confidence_score
-            confidence_score = max(buy_confidence, sell_confidence)
-            
-            # Filter by minimum confidence score
-            if confidence_score < risk_profile.min_confidence_score:
-                logger.info(f"Filtering out {symbol}: confidence {confidence_score:.2f} below minimum {risk_profile.min_confidence_score}")
-                continue
-            
-            # Apply risk-based penny stock and micro-cap filters
-            stock = recs[0].stock
-            if not risk_profile.allow_penny_stocks:
-                # Filter out penny stocks based on user's risk tolerance
-                if stock.current_price and stock.current_price < risk_profile.min_stock_price:
-                    logger.info(f"Filtering out penny stock: {symbol} (price: ${stock.current_price}, min: ${risk_profile.min_stock_price})")
-                    continue
-                
-                # Filter out micro-cap stocks based on user's risk tolerance
-                if stock.market_cap and stock.market_cap < risk_profile.min_market_cap:
-                    logger.info(f"Filtering out micro-cap stock: {symbol} (market cap: ${stock.market_cap:,}, min: ${risk_profile.min_market_cap:,})")
-                    continue
-            else:
-                logger.info(f"Penny stocks allowed for {user.username} - including {symbol} (price: ${stock.current_price}, market cap: ${stock.market_cap or 'N/A'})")
-            
-            # Get portfolio context
-            existing_holding = holdings.get(symbol)
-            existing_shares = existing_holding.quantity if existing_holding else 0
-            
-            # Skip SELL recommendations for stocks not owned
-            if rec_type == 'SELL' and existing_shares == 0:
-                logger.info(f"Skipping SELL recommendation for {symbol}: not owned")
-                continue
-            
-            # Use real-time price if available, otherwise fall back to cached price
-            current_price = realtime_prices.get(symbol, recs[0].stock.current_price)
-            
-            # Calculate position context using real-time price
-            position_value = existing_shares * current_price if existing_shares > 0 else Decimal('0.00')
-            position_percentage = (position_value / user.portfolio.total_value * Decimal('100')) if user.portfolio.total_value > 0 else Decimal('0.00')
-            
-            # Calculate priority score for sorting
-            priority_score = self._calculate_priority_score(recs)
-            
-            consolidated.append({
-                'stock': recs[0].stock,
-                'recommendation_type': rec_type,
-                'priority_score': priority_score,
-                'confidence_score': confidence_score,
-                'buy_confidence': buy_confidence,  # Store both for transparency
-                'sell_confidence': sell_confidence,
-                'effective_sell_weight': effective_sell_weight,
-                'existing_shares': existing_shares,
-                'position_value': position_value,
-                'position_percentage': position_percentage,
-                'current_price': current_price,  # Use real-time price
-                'target_price': self._calculate_average_target_price(recs),
-                'stop_loss': self._calculate_average_stop_loss(recs),
-                'reasoning': self._consolidate_reasoning(recs),
-                'key_factors': self._consolidate_key_factors(recs),
-                'risk_factors': self._consolidate_risk_factors(recs),
-                'advisor_recommendations': recs,
-            })
+            if recommendation and recommendation['recommendation_type'] == 'SELL':
+                consolidated.append(recommendation)
+        
+        # Pass 2: BUY Analysis (new opportunities + remaining holdings)
+        remaining_holdings = {symbol: recs for symbol, recs in current_holdings.items() 
+                            if symbol not in [r['stock'].symbol for r in consolidated]}
+        all_buy_candidates = {**new_opportunities, **remaining_holdings}
+        
+        logger.info(f"Pass 2: Analyzing {len(all_buy_candidates)} candidates for BUY opportunities")
+        for symbol, recs in all_buy_candidates.items():
+            recommendation = self._analyze_stock_recommendation(
+                symbol, recs, holdings, risk_profile, realtime_prices, user, pass_type='BUY'
+            )
+            if recommendation and recommendation['recommendation_type'] == 'BUY':
+                consolidated.append(recommendation)
         
         # Sort by priority score (highest first)
         consolidated.sort(key=lambda x: x['priority_score'], reverse=True)
         
-        logger.info(f"Consolidated {len(consolidated)} recommendations with SellWeight={effective_sell_weight}")
+        logger.info(f"Consolidated {len(consolidated)} recommendations: "
+                   f"{sum(1 for r in consolidated if r['recommendation_type'] == 'SELL')} SELL, "
+                   f"{sum(1 for r in consolidated if r['recommendation_type'] == 'BUY')} BUY")
         
         return consolidated
+    
+    def _analyze_stock_recommendation(
+        self, 
+        symbol: str, 
+        recs: List[AIAdvisorRecommendation],
+        holdings: Dict[str, Holding],
+        risk_profile: RiskProfile,
+        realtime_prices: Dict[str, Decimal],
+        user: User,
+        pass_type: str
+    ) -> Dict:
+        """
+        Analyze a single stock's recommendations using HOLD range logic.
+        
+        Args:
+            symbol: Stock symbol
+            recs: List of advisor recommendations for this stock
+            holdings: User's current holdings
+            risk_profile: User's risk profile
+            realtime_prices: Real-time stock prices
+            user: User object
+            pass_type: 'SELL' or 'BUY' to filter recommendations
+        
+        Returns:
+            Dictionary with recommendation data or None if filtered out
+        """
+        # Calculate average confidence scores using new method
+        buy_avg, sell_avg, net_signal, rec_type = self._calculate_buy_sell_confidence(
+            recs, risk_profile
+        )
+        
+        # Filter by pass type
+        if pass_type == 'SELL' and rec_type != 'SELL':
+            return None
+        elif pass_type == 'BUY' and rec_type != 'BUY':
+            return None
+        
+        # Use net_signal as final confidence score
+        confidence_score = abs(net_signal)
+        
+        # Filter by minimum confidence score (updated for average-based system)
+        min_confidence = risk_profile.min_confidence_score
+        if confidence_score < min_confidence:
+            logger.info(f"Filtering out {symbol}: confidence {confidence_score:.2f} below minimum {min_confidence}")
+            return None
+        
+        # Apply risk-based penny stock and micro-cap filters
+        stock = recs[0].stock
+        if not risk_profile.allow_penny_stocks:
+            # Filter out penny stocks based on user's risk tolerance
+            if stock.current_price and stock.current_price < risk_profile.min_stock_price:
+                logger.info(f"Filtering out penny stock: {symbol} (price: ${stock.current_price}, min: ${risk_profile.min_stock_price})")
+                return None
+            
+            # Filter out micro-cap stocks based on user's risk tolerance
+            if stock.market_cap and stock.market_cap < risk_profile.min_market_cap:
+                logger.info(f"Filtering out micro-cap stock: {symbol} (market cap: ${stock.market_cap:,}, min: ${risk_profile.min_market_cap:,})")
+                return None
+        else:
+            logger.info(f"Penny stocks allowed for {user.username} - including {symbol} (price: ${stock.current_price}, market cap: ${stock.market_cap or 'N/A'})")
+        
+        # Get portfolio context
+        existing_holding = holdings.get(symbol)
+        existing_shares = existing_holding.quantity if existing_holding else 0
+        
+        # Skip SELL recommendations for stocks not owned
+        if rec_type == 'SELL' and existing_shares == 0:
+            logger.info(f"Skipping SELL recommendation for {symbol}: not owned")
+            return None
+        
+        # Use real-time price if available, otherwise fall back to cached price
+        current_price = realtime_prices.get(symbol, recs[0].stock.current_price)
+        
+        # Calculate position context using real-time price
+        position_value = existing_shares * current_price if existing_shares > 0 else Decimal('0.00')
+        position_percentage = (position_value / user.portfolio.total_value * Decimal('100')) if user.portfolio.total_value > 0 else Decimal('0.00')
+        
+        # Calculate priority score for sorting
+        priority_score = self._calculate_priority_score(recs)
+        
+        return {
+            'stock': recs[0].stock,
+            'recommendation_type': rec_type,
+            'priority_score': priority_score,
+            'confidence_score': confidence_score,
+            'buy_avg': buy_avg,  # Store averages for transparency
+            'sell_avg': sell_avg,
+            'net_signal': net_signal,
+            'existing_shares': existing_shares,
+            'position_value': position_value,
+            'position_percentage': position_percentage,
+            'current_price': current_price,  # Use real-time price
+            'target_price': self._calculate_average_target_price(recs),
+            'stop_loss': self._calculate_average_stop_loss(recs),
+            'reasoning': self._consolidate_reasoning(recs),
+            'key_factors': self._consolidate_key_factors(recs),
+            'risk_factors': self._consolidate_risk_factors(recs),
+            'advisor_recommendations': recs,
+        }
     
     def _calculate_priority_score(self, recommendations: List[AIAdvisorRecommendation]) -> Decimal:
         """Calculate consolidated priority score from multiple recommendations"""
@@ -817,70 +923,122 @@ class SmartAnalysisService:
     def _calculate_buy_sell_confidence(
         self, 
         recommendations: List[AIAdvisorRecommendation],
-        sell_weight: Decimal,
-        portfolio: Portfolio
+        risk_profile: RiskProfile
     ) -> tuple[Decimal, Decimal, str]:
         """
-        Calculate separate buy and sell confidence scores with bidirectional offset.
+        Calculate average buy and sell confidence scores using HOLD range logic.
         
-        Returns: (buy_confidence, sell_confidence, primary_type)
+        Returns: (buy_avg, sell_avg, net_signal, recommendation_type)
         
         New algorithm:
-        1. Calculate total buy_confidence (sum of BUY/STRONG_BUY with 1.5x multiplier for STRONG)
-        2. Calculate total sell_confidence (sum of SELL/STRONG_SELL with 1.5x multiplier for STRONG)
-        3. Apply bidirectional offset with sell_weight
-        4. Determine final recommendation based on which confidence wins
+        1. Calculate average buy_confidence from BUY/STRONG_BUY recommendations
+        2. Calculate average sell_confidence from SELL/STRONG_SELL recommendations  
+        3. Calculate net signal: buy_avg - sell_avg
+        4. Apply HOLD range logic based on Market Sentiment + Risk Level
+        5. Determine recommendation type based on net signal vs thresholds
         
-        HOLD recommendations are ignored in the offset calculation.
+        HOLD recommendations are ignored in the calculation.
         """
         if not recommendations:
-            return Decimal('0.00'), Decimal('0.00'), 'HOLD'
+            return Decimal('0.00'), Decimal('0.00'), Decimal('0.00'), 'HOLD'
         
-        # Calculate raw buy and sell confidence totals
-        buy_confidence = Decimal('0.00')
-        sell_confidence = Decimal('0.00')
+        # Separate recommendations by type
+        buy_recommendations = []
+        sell_recommendations = []
         
         for rec in recommendations:
             confidence = Decimal(str(rec.confidence_score))
             
             if rec.recommendation_type == 'STRONG_BUY':
-                buy_confidence += confidence * Decimal('1.5')  # 1.5x multiplier for STRONG
-                logger.debug(f"{rec.advisor.name}: STRONG_BUY {confidence:.2f} → {confidence * Decimal('1.5'):.2f}")
+                buy_recommendations.append(confidence * Decimal('1.2'))  # 1.2x multiplier for STRONG
+                logger.debug(f"{rec.advisor.name}: STRONG_BUY {confidence:.2f} → {confidence * Decimal('1.2'):.2f}")
             elif rec.recommendation_type == 'BUY':
-                buy_confidence += confidence
+                buy_recommendations.append(confidence)
                 logger.debug(f"{rec.advisor.name}: BUY {confidence:.2f}")
             elif rec.recommendation_type == 'STRONG_SELL':
-                sell_confidence += confidence * Decimal('1.5')  # 1.5x multiplier for STRONG
-                logger.debug(f"{rec.advisor.name}: STRONG_SELL {confidence:.2f} → {confidence * Decimal('1.5'):.2f}")
+                sell_recommendations.append(confidence * Decimal('1.2'))  # 1.2x multiplier for STRONG
+                logger.debug(f"{rec.advisor.name}: STRONG_SELL {confidence:.2f} → {confidence * Decimal('1.2'):.2f}")
             elif rec.recommendation_type == 'SELL':
-                sell_confidence += confidence
+                sell_recommendations.append(confidence)
                 logger.debug(f"{rec.advisor.name}: SELL {confidence:.2f}")
             # HOLD recommendations are ignored
         
-        logger.info(f"Raw confidence - BUY: {buy_confidence:.2f}, SELL: {sell_confidence:.2f}, SellWeight: {sell_weight}")
+        # Calculate averages
+        buy_avg = sum(buy_recommendations) / len(buy_recommendations) if buy_recommendations else Decimal('0.00')
+        sell_avg = sum(sell_recommendations) / len(sell_recommendations) if sell_recommendations else Decimal('0.00')
         
-        # Apply bidirectional offset with sell_weight
-        adjusted_buy = buy_confidence - (sell_confidence * sell_weight)
-        adjusted_sell = (sell_confidence * sell_weight) - buy_confidence
+        # Calculate net signal
+        net_signal = buy_avg - sell_avg
         
-        # Clamp to 0 (no negative confidence)
-        adjusted_buy = max(Decimal('0.00'), adjusted_buy)
-        adjusted_sell = max(Decimal('0.00'), adjusted_sell)
+        logger.info(f"Average confidence - BUY: {buy_avg:.2f}, SELL: {sell_avg:.2f}, Net Signal: {net_signal:.2f}")
         
-        # Determine primary recommendation type
-        if adjusted_buy > adjusted_sell:
-            primary_type = 'BUY'
-            final_confidence = adjusted_buy
-        elif adjusted_sell > adjusted_buy:
-            primary_type = 'SELL'
-            final_confidence = adjusted_sell
+        # Get HOLD range thresholds based on Market Sentiment + Risk Level
+        lower_threshold, upper_threshold = self._get_hold_range_thresholds(risk_profile)
+        
+        # Determine recommendation type using HOLD range logic
+        if net_signal < lower_threshold:
+            recommendation_type = 'SELL'
+            final_confidence = abs(net_signal)
+        elif net_signal > upper_threshold:
+            recommendation_type = 'BUY'
+            final_confidence = net_signal
         else:
-            primary_type = 'HOLD'
+            recommendation_type = 'HOLD'
             final_confidence = Decimal('0.00')
         
-        logger.info(f"Adjusted confidence - BUY: {adjusted_buy:.2f}, SELL: {adjusted_sell:.2f} → {primary_type} @ {final_confidence:.2f}")
+        logger.info(f"HOLD Range: [{lower_threshold:.2f}, {upper_threshold:.2f}] → {recommendation_type} @ {final_confidence:.2f}")
         
-        return adjusted_buy.quantize(Decimal('0.01')), adjusted_sell.quantize(Decimal('0.01')), primary_type
+        return buy_avg.quantize(Decimal('0.01')), sell_avg.quantize(Decimal('0.01')), net_signal.quantize(Decimal('0.01')), recommendation_type
+    
+    def _get_hold_range_thresholds(self, risk_profile: RiskProfile) -> tuple[Decimal, Decimal]:
+        """
+        Get HOLD range thresholds based on Market Sentiment + Risk Level.
+        
+        Returns: (lower_threshold, upper_threshold)
+        
+        Market Sentiment controls lower threshold (SELL sensitivity):
+        - Very Bullish: 0.00 (rarely sell)
+        - Very Bearish: 0.40 (sell aggressively)
+        
+        Risk Level controls upper threshold (BUY sensitivity):
+        - Conservative: 0.60 (high confidence required)
+        - Aggressive: 0.80 (lower confidence acceptable)
+        """
+        # Get user's profile for risk level
+        try:
+            user_profile = risk_profile.user.profile
+            risk_level = user_profile.risk_level
+        except:
+            risk_level = 'MODERATE'  # Default fallback
+        
+        # Map sell_weight to market sentiment
+        sell_weight = risk_profile.sell_weight
+        
+        # Market Sentiment → Lower Threshold (SELL sensitivity)
+        if sell_weight <= Decimal('0.40'):
+            lower_threshold = Decimal('0.00')  # Very Bullish
+        elif sell_weight <= Decimal('0.70'):
+            lower_threshold = Decimal('0.10')  # Bullish
+        elif sell_weight <= Decimal('1.20'):
+            lower_threshold = Decimal('0.20')  # Balanced
+        elif sell_weight <= Decimal('2.00'):
+            lower_threshold = Decimal('0.30')  # Bearish
+        else:
+            lower_threshold = Decimal('0.40')  # Very Bearish
+        
+        # Risk Level → Upper Threshold (BUY sensitivity)
+        if risk_level == 'CONSERVATIVE':
+            upper_threshold = Decimal('0.60')  # High confidence required
+        elif risk_level == 'MODERATE':
+            upper_threshold = Decimal('0.70')  # Medium confidence required
+        elif risk_level == 'AGGRESSIVE':
+            upper_threshold = Decimal('0.80')  # Lower confidence acceptable
+        else:
+            upper_threshold = Decimal('0.70')  # Default fallback
+        
+        logger.debug(f"HOLD Range Mapping - SellWeight: {sell_weight}, Risk: {risk_level} → [{lower_threshold:.2f}, {upper_threshold:.2f}]")
+        
+        return lower_threshold, upper_threshold
     
     def _determine_recommendation_type(
         self, 

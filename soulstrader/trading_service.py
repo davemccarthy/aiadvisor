@@ -8,7 +8,7 @@ from django.utils import timezone
 from decimal import Decimal
 from datetime import datetime, timedelta
 import random
-from .models import Trade, Portfolio, Holding, OrderBook, Stock
+from .models import Trade, Portfolio, Holding, OrderBook, Stock, BankAllocation
 
 
 class TradingService:
@@ -240,9 +240,71 @@ class TradingService:
                 holding.save()
         
         elif trade.trade_type == 'SELL':
-            # Add cash
+            # Net proceeds after fees
             total_proceeds = trade.total_amount - trade.commission
-            portfolio.current_capital += total_proceeds
+            
+            # Default: all to cash
+            bank_allocation = Decimal('0.00')
+            cash_allocation = total_proceeds
+            
+            # Safety Bank allocation if enabled
+            if getattr(portfolio, 'safety_bank_enabled', False) and total_proceeds > 0:
+                # Compute total wealth including bank and liabilities if modeled later
+                holdings_value = sum(h.current_value for h in portfolio.holdings.all())
+                total_wealth = portfolio.current_capital + holdings_value + getattr(portfolio, 'safety_bank_balance', Decimal('0.00'))
+                initial_investment = getattr(portfolio, 'initial_capital', Decimal('0.00'))
+                
+                # Green check (no additional buffer per spec)
+                is_green = initial_investment is not None and total_wealth > initial_investment
+                
+                if is_green:
+                    # Vacancy logic: if initial is zero or less, treat vacancy as 1
+                    if initial_investment and initial_investment > 0:
+                        bank_fullness = (getattr(portfolio, 'safety_bank_balance', Decimal('0.00')) / initial_investment)
+                        vacancy = Decimal('1.00') - bank_fullness
+                        if vacancy < 0:
+                            vacancy = Decimal('0.00')
+                    else:
+                        vacancy = Decimal('1.00')
+                    
+                    divisor = Decimal(str(getattr(portfolio, 'bank_divisor', 10)))
+                    raw_rate = (vacancy / divisor) if divisor > 0 else Decimal('0.00')
+                    min_rate = Decimal('0.01')  # 1%
+                    ceiling_percent = Decimal(str(getattr(portfolio, 'bank_rate_ceiling_percent', Decimal('20.00')))) / Decimal('100')
+                    
+                    # Apply floor and ceiling
+                    rate = max(min_rate, raw_rate)
+                    if ceiling_percent > 0:
+                        rate = min(rate, ceiling_percent)
+                    
+                    desired = (total_proceeds * rate)
+                    # Round to whole dollars
+                    bank_allocation = desired.quantize(Decimal('1'))
+                    if bank_allocation < 0:
+                        bank_allocation = Decimal('0')
+                    if bank_allocation > total_proceeds:
+                        bank_allocation = total_proceeds.quantize(Decimal('1'))
+                    cash_allocation = total_proceeds - bank_allocation
+            
+            # Apply allocations
+            portfolio.current_capital += cash_allocation
+            if bank_allocation:
+                portfolio.safety_bank_balance = getattr(portfolio, 'safety_bank_balance', Decimal('0.00')) + bank_allocation
+                try:
+                    # Record audit trail
+                    rate_percent = (bank_allocation / total_proceeds * Decimal('100')) if total_proceeds > 0 else Decimal('0.00')
+                    BankAllocation.objects.create(
+                        portfolio=portfolio,
+                        trade=trade,
+                        allocated_amount=bank_allocation,
+                        proceeds_amount=total_proceeds,
+                        allocation_rate_percent=rate_percent.quantize(Decimal('0.01')),
+                        notes=f"Auto-allocation to Bank (divisor={getattr(portfolio, 'bank_divisor', 10)}, ceiling={getattr(portfolio, 'bank_rate_ceiling_percent', Decimal('20.00'))}%)"
+                    )
+                except Exception:
+                    # Do not fail trade on audit log error
+                    pass
+            
             portfolio.total_invested -= trade.total_amount
             
             # Update holding

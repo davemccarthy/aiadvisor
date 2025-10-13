@@ -316,6 +316,15 @@ http://127.0.0.1:8000/admin/
 - **Polygon.io**: 1000/day (technical analysis)
 - **Google Gemini**: 1500/day (AI recommendations)
 
+### **💡 Investment Opportunities for Future Funding**
+- **FMP Company Screener**: Advanced stock screening endpoint available with paid plan
+  - Current: Basic market movers from Alpha Vantage (free)
+  - Upgrade: Sophisticated screening by market cap, P/E ratio, sector, growth metrics
+  - Impact: Much better stock discovery than current market movers approach
+  - Cost: Requires FMP paid subscription (402 Payment Required error on free plan)
+  - Endpoint: `https://financialmodelingprep.com/stable/company-screener`
+  - Note: Would significantly improve stock discovery quality for investors
+
 ---
 
 ## 🎯 **Project Status: FULLY OPERATIONAL**
